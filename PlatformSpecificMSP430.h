@@ -1,6 +1,7 @@
 #ifndef PLATFORMSPECIFIC
 #define PLATFORMSPECIFIC
-#include "io430.h"
+#include <io430.h>
+#include "FemtoxConf.h"
 
 /********************************************************************************************************************
 *********************************************************************************************************************
@@ -22,6 +23,10 @@ void resetWatchDog(void);
 
 void _init_Timer(void);	// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
 
+#ifdef USE_SOFT_UART
+#define TX_PORT   P3OUT
+#define RX_PIN    P3IN
+
 /*
  * Для программного UART
  * Все програмные UART задействует прерывания одного таймера
@@ -30,21 +35,16 @@ void _init_Timer(void);	// Инициализация таймера 0, наст
 */
 void _initTimerSoftUart();
 void _deInitTimerSoftUart();
-void initProgramUartGPIO(unsigned short RX_MASK, unsigned short TX_MASK);
-#define TX_PORT   P3OUT
-#define RX_PORT   P3OUT
-#define RX_PIN    P3IN
-#define TX_DIR    P3DIR
-#define RX_DIR    P3DIR
+void initProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK);
+void deInitProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK);
 
 #define ENABLE_UART_TIMER_ISR  (TACCTL0 |= CCIE)
 #define DISABLE_UART_TIMER_ISR (TACCTL0 &= ~CCIE)
 #define START_TIMER  TACTL |= MC0
 #define CLEAR_TIMER  TACTL |= TACLR
 
-#define READ_RX_PIN(PORT,PIN_MASK)  
-#define WRITE_TX_PIN(PORT,PIN_MASK) 
-#define CLEAR_TX_PIN(PORT,PIN_MASK) 
-
-
+#define READ_RX_PIN(PORT,PIN_MASK)   (PORT & (PIN_MASK))
+#define WRITE_TX_PIN(PORT,PIN_MASK)  (PORT |=  (PIN_MASK))
+#define CLEAR_TX_PIN(PORT,PIN_MASK)  (PORT &= ~(PIN_MASK))
+#endif //USE_SOFT_UART
 #endif // PLATFORMSPECIFIC

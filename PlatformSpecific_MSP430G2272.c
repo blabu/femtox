@@ -67,7 +67,9 @@ unsigned int _setTickTime(unsigned int timerTicks) {
 \\\\         и настройки            ////
 ****************************************
 */
-#include "ProgrammUART.h"
+#define RX_PORT   P3OUT
+#define TX_DIR    P3DIR
+#define RX_DIR    P3DIR
 
 #define TIME_CLK_us 52/*104-52 мкс (16 МГц)  78 - 52 мкс (12 МГц)  52 - SMCLK = 8MHz*/
 void _initTimerSoftUart() {
@@ -77,7 +79,7 @@ void _initTimerSoftUart() {
   TACTL |= TASSEL1; //Выбираем источником тактовых сигналов SMCLK
   TACTL |= (ID0+ID1); // Выбираем делитель тактовой частоты, равный 8
   // Записываем необходимые значения в регистры захвата сравнения
-  TACCR0 = TIME_CLK_us;  // Записываем необходимое число для генерации с заданной частотой
+  TACCR0 = TIME_CLK_us-1;  // Записываем необходимое число для генерации с заданной частотой
   TACCTL0 |= CCIE; // Разрешаем прерывания по достижении события совпадения. Генерирует прерывание по вектору TACCR0 (флаг TACCR0 CCIFG)
   TACTL |= MC0; // Выбираем режим таймера "вверх до значения записанного в TACCR0" после этой инструкции таймер начнет считать
 }
@@ -86,6 +88,20 @@ void _deInitTimerSoftUart() {
   TACCTL0 &= ~CCIE;     // disable interrupt
   TACTL &= ~(MC0+MC1); // stop timer
   TACTL |= TACLR; // Сбросим таймер и все предделители
+}
+
+void initProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK) {
+    TX_DIR  |= TX_MASK;
+    TX_PORT |= TX_MASK;
+    RX_DIR  &= ~RX_MASK;
+    RX_PORT |= RX_MASK;
+}
+
+void deInitProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK) {
+    TX_DIR  |=  TX_MASK;
+    RX_DIR  |=  RX_MASK;
+    TX_PORT &= ~TX_MASK;
+    RX_PORT &= ~RX_MASK;
 }
 
 #pragma vector=TIMERA0_VECTOR

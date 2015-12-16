@@ -175,6 +175,28 @@ void connectTaskToSignal(TaskMng task, void* signal);
 void disconnectTaskFromSignal(TaskMng task, void* signal);
 void emitSignal(void* signal, BaseSize_t arg_n, BaseParam_t arg_p);
 #endif
+
+#ifdef USE_SOFT_UART
+/*
+ *  Настраиваем прерывания по достижению события совпадения каждые 26 мкс
+ *  Для организации основных скоростей UART таймер работает с постоянной частотой прервыний
+ *  Например 9600 бод/с = 1/(BAUD_9600*26мкс)
+*/
+void initSoftUART();
+void enableSoftUART(bool_t txEnable, bool_t rxEnable);
+void disableSoftUART();
+void delSoftUART(const u08 numbUART);
+void CreateSoftUART(const BaseSize_t buffTXsize, const BaseSize_t buffRXsize, const s08 BAUD,
+                    const u08 numbUART, const u08 TXpinNumber, const u08 RXpinNumber);
+void sendUART_byte(const u08 numbUART, const u08 U_data);
+u08 readUART_byte(u08 numbUART);
+BaseSize_t readUART_array(const u08 numbUART, const BaseSize_t size, const unsigned char* U_data); // Вернет количество прочитанного
+void clearSoftUartRxBuffer(const u08 numbUART);
+void sendUART_str(const u08 numbUART, const string_t U_data);
+void sendUART_array(const u08 numbUART, const BaseSize_t size, const unsigned char* U_data);
+void UARTTimerISR(); // Само прерывание
+#endif //USE_SOFT_UART
+
 //---------------------------------------------------------	СИНОНИМЫ API функций ядра ------------------------------------------------------------
 #define Scheduler()	runFemtOS()		/*Функция диспетчера*/
 #define Manager()       runFemtOS()

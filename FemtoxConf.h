@@ -24,7 +24,7 @@
 //#define SIGNALS_TASK
 //#define _LIST_STRUCT
 //#define _DYNAMIC_ARRAY
-#define _PWR_SAVE
+//#define _PWR_SAVE
 
 #define TASK_LIST_LEN 10U /*Длина очереди задач*/
 #define TIME_LINE_LEN 30U /*Максимальне количество системных таймеров*/
@@ -60,6 +60,20 @@
 
 #ifdef _PWR_SAVE
 //   #define NATIVE_TIMER_PWR_SAVE /*Реализация динамического изменения частоты таймера нативным способом*/
+#endif
+
+#ifdef USE_SOFT_UART
+  #define SOFT_UART_WORK_FLAG 1<<2
+  #define UART_NUMB 1    /*Колличество программных ЮАРТов*/
+  #define BAUD_150   127
+  #define BAUD_300   64
+  #define BAUD_600   32
+  #define BAUD_1200  16
+  #define BAUD_2400  8
+  #define BAUD_4800  4
+  #define BAUD_9600  2
+  #define DATA_BITS  8   /*Количество бит данных в посылке*/
+  #define STOP_BITS  2   /*Колличество СТОП битов*/
 #endif
 
 #endif /* FEMTOXCONF_H_ */

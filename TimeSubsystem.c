@@ -28,7 +28,7 @@ static u08 timeCorrectSummer = TIME_INDEX;
 #define FEBRUARY  28
 #define MARCH	  31
 #define APRIL     30
-#define MAY		  31
+#define MAY	  31
 #define JUNE      30
 #define JULY	  31
 #define AUGUST	  31

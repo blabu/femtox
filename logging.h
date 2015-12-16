@@ -8,7 +8,7 @@
 #ifndef LOGGING_H_
 #define LOGGING_H_
 
-#include "TaskMngr.h"
+#include "FemtoxTypes.h"
 
 void enableLogging(void);
 void disableLogging(void);
