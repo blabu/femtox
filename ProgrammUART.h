@@ -17,6 +17,15 @@
 
 #define DATA_BITS  8   /*Количество бит данных в посылке*/
 
+typedef struct
+{
+    u16 Mask;
+    u08 Data;/*Регистр данных. Сюда записываются данные для передачи*/
+    s08 Baud;         /*Сюда записывается одна из переменных BAUD_600 - BAUD_19200*/
+    s08 curentCount;  /*Счетчик прерываний по передачи (нужны для организации заданной скорости)*/
+    u08* buffer;    /*Буфер приема-передачи*/
+} SoftUART_t;
+
 /*
  *  Настраиваем прерывания по достижению события совпадения каждые 26 мкс
  *  Для организации основных скоростей UART таймер работает с постоянной частотой прервыний
@@ -33,5 +42,7 @@ void clearRxBuffer(const u08 numbUART);
 void sendUART_str(const u08 numbUART, const string_t U_data);
 void sendUART_array(const u08 numbUART, const BaseSize_t size, const unsigned char* U_data);
 void UARTTimerISR(); // Само прерывание
+
 #endif //USE_SOFT_UART
+
 #endif //PROGRAMM_UART_H

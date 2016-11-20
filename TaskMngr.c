@@ -804,7 +804,7 @@ u08 PutToFrontDataStruct(const void* Elem, const void* Array)
         INTERRUPT_DISABLE;
     }
     unsigned int offset = Data_Array[i].firstCount * Data_Array[i].sizeElement; //вычисляем смещение
-    void* dst = (void*)((BaseSize_t*)Data_Array[i].Data + offset);     // Определяем адресс куда копировать
+    void* dst = (void*)((byte_ptr)Data_Array[i].Data + offset);     // Определяем адресс куда копировать
     MyMemcpy(dst, Elem, Data_Array[i].sizeElement); // Вставляем наш элемент
     Data_Array[i].firstCount = frontCount;
     if(flag_int) INTERRUPT_ENABLE;
@@ -825,7 +825,7 @@ u08 PutToEndDataStruct(const void* Elem, const void* Array){
         INTERRUPT_DISABLE;
     }
     unsigned int offset = endCount * Data_Array[i].sizeElement;  // Определяем смещение на свободную позицию (количество байт)
-    void* dst = (void*)((BaseSize_t*)Data_Array[i].Data + offset); // Записываем адрес памяти начала свободной ячейки
+    void* dst = (void*)((byte_ptr)Data_Array[i].Data + offset); // Записываем адрес памяти начала свободной ячейки
     MyMemcpy(dst, Elem, Data_Array[i].sizeElement);  // Копируем все байты Elem в массив Array с заданным смещением
     Data_Array[i].lastCount = endCount;           // После копирования инкрементируем текущую позицию
     if(flag_int) INTERRUPT_ENABLE;
@@ -846,7 +846,7 @@ u08 GetFromFrontDataStruct(void* returnValue, const void* Array) // Достае
     Data_Array[i].firstCount = (Data_Array[i].firstCount)? Data_Array[i].firstCount : Data_Array[i].sizeAllElements;
     Data_Array[i].firstCount--;
     unsigned int offset = Data_Array[i].firstCount * Data_Array[i].sizeElement;  // Определяем смещение на элемент, который надо достать
-    void* dst = (void*)((BaseSize_t*)Data_Array[i].Data + offset);     // Записываем адрес памяти свободной ячейки
+    void* dst = (void*)((byte_ptr)Data_Array[i].Data + offset);     // Записываем адрес памяти свободной ячейки
     MyMemcpy(returnValue, dst, Data_Array[i].sizeElement);   // Если структура данных найдена, читаем от туда первый (самый старый) элемент
     if(flag_int) INTERRUPT_ENABLE;  // Если все происходило не в прерывании восстанавливаем разрешение прерываний
     return EVERYTHING_IS_OK;   // Если все впорядке возвращаем ноль
@@ -864,7 +864,7 @@ u08 GetFromEndDataStruct(void* returnValue, const void* Array) // Достаем
         INTERRUPT_DISABLE;
     }
     unsigned int offset = Data_Array[i].lastCount * Data_Array[i].sizeElement;
-    void* src = (void*)((BaseSize_t*)Data_Array[i].Data+offset);
+    void* src = (void*)((byte_ptr)Data_Array[i].Data+offset);
     MyMemcpy(returnValue, src, Data_Array[i].sizeElement);   // Если структура данных найдена, читаем от туда первый (самый старый) элемент
     Data_Array[i].lastCount = (Data_Array[i].lastCount < Data_Array[i].sizeAllElements)? Data_Array[i].lastCount+1:0;
     if(flag_int) INTERRUPT_ENABLE;  // Если все происходило не в прерывании восстанавливаем разрешение прерываний
@@ -917,7 +917,7 @@ u08 peekFromFrontData(void* returnValue, const void* Array)
     }
     u08 count = (Data_Array[i].firstCount)? Data_Array[i].firstCount-1 : Data_Array[i].sizeAllElements-1;
     unsigned int offset = count * Data_Array[i].sizeElement;  // Определяем смещение на элемент, который надо достать
-    void* dst = (void*)((BaseSize_t*)Data_Array[i].Data + offset); // Записываем адрес памяти свободной ячейки
+    void* dst = (void*)((byte_ptr)Data_Array[i].Data + offset); // Записываем адрес памяти свободной ячейки
     MyMemcpy(returnValue, dst, Data_Array[i].sizeElement);   // Если структура данных найдена, читаем от туда первый (самый старый) элемент
     if(flag_int) INTERRUPT_ENABLE;  // Если все происходило не в прерывании восстанавливаем разрешение прерываний
     return EVERYTHING_IS_OK;   // Если все впорядке возвращаем ноль
@@ -935,7 +935,7 @@ u08 peekFromEndData(void* returnValue, const void* Array)
         INTERRUPT_DISABLE;
     }
     unsigned int offset = Data_Array[i].lastCount * Data_Array[i].sizeElement;
-    void* src = (void*)((BaseSize_t*)Data_Array[i].Data+offset);
+    void* src = (void*)((byte_ptr)Data_Array[i].Data+offset);
     MyMemcpy(returnValue, src, Data_Array[i].sizeElement);   // Если структура данных найдена, читаем от туда первый (самый старый) элемент
     if(flag_int) INTERRUPT_ENABLE;  // Если все происходило не в прерывании восстанавливаем разрешение прерываний
     return EVERYTHING_IS_OK;   // Если все впорядке возвращаем ноль
@@ -970,7 +970,7 @@ void for_each(const void* const Array, TaskMng tsk)
     if(i == ArraySize) return;
     for(BaseSize_t j=Data_Array[i].firstCount; j!=Data_Array[i].lastCount;)
     {
-      BaseParam_t ptr = (BaseParam_t)((BaseSize_t*)Data_Array[i].Data+j);
+      BaseParam_t ptr = (BaseParam_t)((byte_ptr)Data_Array[i].Data+j);
       tsk(0,ptr);
       j=(j < Data_Array[i].sizeAllElements)? j+1:0;
     }

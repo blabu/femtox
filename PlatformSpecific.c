@@ -1,62 +1,29 @@
 #include "PlatformSpecific.h"
 #include "TaskMngr.h"
-#include "stm32f4xx_tim.h"
-#include "stm32f4xx_rcc.h"
+#include "stm32l1xx_hal_rcc.h"
 /********************************************************************************************************************
 *********************************************************************************************************************
                                             ПЛАТФОРМО-ЗАВИСИМЫЕ ФУНКЦИИ														|
 *********************************************************************************************************************
 *********************************************************************************************************************/
-
-// Функции void _init_Timer() - устанавливают начальное значения Т/С0. настраивает частоту тактирования и включает таймер
-//Включение таймеров происходит после установки битов CSn0-CSn2 (рекомендуется в функции main)
-#define TIMERB_10MS 320
-void _init_Timer_()  // Настроим таймер на прерывания каждые 1 мс
-{
-    SysTick_CLKSourceConfig(SysTick_CLKSource_HCLK);
-    SysTick_Config(HSI_VALUE/TICK_PER_SECOND);
-}
-
-
-void SysTick_Handler(void)
-{//Обработчик прерывания по совпадению теущего значения таймера и счетчика.
-    TimerISR();
-}
-
+static TIM_HandleTypeDef TIM6InitStruct;
 void _init_Timer(){
-
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE); // включаем тактирование таймера
-
-    /* Другие параметры структуры TIM_TimeBaseInitTypeDef
-     * не имеют смысла для базовых таймеров.
-     */
-    TIM_TimeBaseInitTypeDef baseTimerStruct;
-    TIM_TimeBaseStructInit(&baseTimerStruct); // Начальная инициализация структуры таймер
-
-    /* Делитель учитывается как TIM_Prescaler + 1, поэтому отнимаем 1 */
-    baseTimerStruct.TIM_Prescaler = 16 - 1; // делитель 16 - 1000 импульсов в мс
-    baseTimerStruct.TIM_Period = 1000-1; //период 1000 импульсов
-
-    TIM_Cmd(TIM4, ENABLE);  // Включаем таймер
-    TIM_TimeBaseInit(TIM4, &baseTimerStruct);
-
-  /* Разрешаем прерывание по обновлению (в данном случае -
-   * по переполнению) счётчика таймера TIM6.
-   */
-    TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);
-
-  /* Разрешаем обработку прерывания по переполнению счётчика
-   * таймера TIM6. это же прерывание
-   * отвечает и за опустошение ЦАП.
-   */
-    NVIC_EnableIRQ(TIM4_IRQn);
+	__TIM6_CLK_ENABLE();
+	TIM6InitStruct.Instance = TIM6;
+	TIM6InitStruct.Init.CounterMode = TIM_COUNTERMODE_UP;
+	TIM6InitStruct.Init.Period = 5000-1;
+	TIM6InitStruct.Init.Prescaler = 16-1;
+	TIM6InitStruct.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+	HAL_TIM_Base_Init(&TIM6InitStruct);     // Init timer
+	HAL_TIM_Base_Start_IT(&TIM6InitStruct);
+	HAL_NVIC_EnableIRQ(TIM6_IRQn);
 }
 
-void TIM4_IRQHandler(void){
-    if(TIM_GetITStatus(TIM4, TIM_IT_Update) != RESET){
-        TIM_ClearITPendingBit(TIM4,TIM_IT_Update);
-        TimerISR();
-    }
+void TIM6_IRQHandler(void){
+	if(__HAL_TIM_GET_FLAG(&TIM6InitStruct, TIM_FLAG_UPDATE)){
+		__HAL_TIM_CLEAR_FLAG(&TIM6InitStruct, TIM_FLAG_UPDATE);
+		TimerISR();
+	}
 }
 
 #ifdef USE_SOFT_UART
@@ -66,14 +33,46 @@ void TIM4_IRQHandler(void){
 \\\\         и настройки            ////
 ****************************************
 */
+TIM_HandleTypeDef TIM7InitStruct;
 #include "ProgrammUART.h"
+#include "stm32l1xx_hal_gpio.h"
 
-#define TIME_CLK_us 104/*104-52 мкс (16 МГц)  78 - 52 мкс (12 МГц)  */
+//52 мкс
 void _initTimerSoftUart()
 {
+	__TIM7_CLK_ENABLE();
+	TIM7InitStruct.Instance = TIM7;
+	TIM7InitStruct.Init.CounterMode = TIM_COUNTERMODE_UP;
+	TIM7InitStruct.Init.Period = 52-1;
+	TIM7InitStruct.Init.Prescaler = 16-1;
+	TIM7InitStruct.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+	HAL_TIM_Base_Init(&TIM7InitStruct);     // Init timer
+	HAL_TIM_Base_Start_IT(&TIM7InitStruct);
+	HAL_NVIC_EnableIRQ(TIM7_IRQn);
+
 }
 
-void TimerA_ISR(){
-    UARTTimerISR();
+void initProgramUartGPIO(unsigned short RX_MASK, unsigned short TX_MASK){
+    GPIO_InitTypeDef gpioStruct;
+    gpioStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    gpioStruct.Pin = TX_MASK;
+    gpioStruct.Pull = GPIO_NOPULL;
+    gpioStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(PROGRAMM_TX_PORT,&gpioStruct);
+    HAL_GPIO_WritePin(PROGRAMM_TX_PORT,TX_MASK,GPIO_PIN_SET);
+
+    gpioStruct.Mode = GPIO_MODE_INPUT;
+    gpioStruct.Pin = RX_MASK;
+    gpioStruct.Pull = GPIO_PULLUP;
+    gpioStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(PROGRAMM_RX_PIN,&gpioStruct);
 }
+
+void TIM7_IRQHandler(void){
+	if(__HAL_TIM_GET_FLAG(&TIM7InitStruct, TIM_FLAG_UPDATE)){
+		__HAL_TIM_CLEAR_FLAG(&TIM7InitStruct, TIM_FLAG_UPDATE);
+    	UARTTimerISR();
+	}
+}
+
 #endif
