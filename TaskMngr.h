@@ -5,7 +5,7 @@
 #define NULL 0
 #endif
 
-#define BASE_DALAY(x)  for(register volatile unsigned int ccii=0; ccii<x; ccii++) /*Задержка*/
+#define BASE_DALAY(x)  for(register volatile unsigned int ccii=0; ccii<(x); ccii++) /*Задержка*/
 
 #define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
 #define DATA_STRUCT_MANAGER   /*Включаем работу с очередями средствами деспетчера*/
@@ -15,12 +15,12 @@
 #define ALLOC_MEM   /*Включение динамического выделения памяти*/
 #define QUICK       /*Оптимизация диспетчера по скорости*/
 #define EVENT_LOOP_TASKS
-//#define USE_SOFT_UART
+#define USE_SOFT_UART
 #define CLOCK_SERVICE
 
 
-#define TASK_LIST_LEN 100U /*Длина очереди задач*/
-#define TIME_LINE_LEN 150U /*Максимальне количество системных таймеров*/
+#define TASK_LIST_LEN 10U /*Длина очереди задач*/
+#define TIME_LINE_LEN 20U /*Максимальне количество системных таймеров*/
 #define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
 typedef char* string_t;
@@ -96,19 +96,21 @@ void SetIdleTask(IdleTask_t Task);
 unsigned int getTime(void);     // Вернет текущее время в тиках диспетчера
 
 #ifdef EVENT_LOOP_TASKS
-#define EVENT_LIST_SIZE 10
+#define EVENT_LIST_SIZE 15
    bool_t CreateEvent(Predicat_t condition, CycleFuncPtr_t effect); // Регистрирует новое событие в списке событий
    void delEvent(Predicat_t condition); //Удаляем обработку события  condition
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
-#define ArraySize   10 /*Общее количество всех структур данных*/
+#define ArraySize   18 /*Общее количество всех структур данных*/
 #define NOT_FAUND_DATA_STRUCT_ERROR 1
 #define OVERFLOW_OR_EMPTY_ERROR     2
 #define OTHER_ERROR                 3
 #define EVERYTHING_IS_OK            0
 u08 CreateDataStruct(const void * const D, const BaseSize_t sizeElement, const BaseSize_t sizeAll);
 u08 delDataStruct(const void * const Data);                                    // Удаляем структуру из списка структур
+u08 PutToCycleDataStruct(const void* Elem, const void* Array);
+u08 GetFromCycleDataStruct(void* returnValue, const void* Array);
 u08 PutToFrontDataStruct(const void * const Elem, const void * const Array);   // Кладем элемент в начало
 u08 PutToEndDataStruct(const void * const Elem, const void * const Array);     // Кладем элемент в конец
 u08 GetFromFrontDataStruct(void * const returnValue, const void * const Array);// Достаем элемент с начала структуры
@@ -156,7 +158,7 @@ void showAllDataStruct(); // передает в ЮАРТ данные о все
 #endif //CYCLE_FUNC
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 290
+#define HEAP_SIZE 5400
     byte_ptr allocMem(u08 size);  //size - до 127 размер блока выделяемой памяти
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
     void freeMem(byte_ptr data);  // Освобождение памяти

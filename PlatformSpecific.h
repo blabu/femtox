@@ -1,8 +1,6 @@
 #ifndef PLATFORMSPECIFIC
 #define PLATFORMSPECIFIC
 #include "stm32l1xx_hal.h"
-#include "stm32l1xx_hal_tim.h"
-#include "stm32l1xx_hal_gpio.h"
 #include "cmsis_gcc.h"
 
 /********************************************************************************************************************
@@ -28,7 +26,6 @@ void _init_Timer(void);	// Инициализация таймера 0, наст
 void _initTimerSoftUart();
 void initProgramUartGPIO(unsigned short RX_MASK, unsigned short TX_MASK);
 
-#ifdef STM32
 extern TIM_HandleTypeDef TIM7InitStruct;
 #define PROGRAMM_TX_PORT   GPIOA
 #define PROGRAMM_RX_PIN    GPIOA
@@ -40,20 +37,6 @@ extern TIM_HandleTypeDef TIM7InitStruct;
 #define READ_RX_PIN(PORT,PIN_MASK)  HAL_GPIO_ReadPin(PORT, PIN_MASK)
 #define WRITE_TX_PIN(PORT,PIN_MASK) HAL_GPIO_WritePin(PORT,PIN_MASK,GPIO_PIN_SET)
 #define CLEAR_TX_PIN(PORT,PIN_MASK) HAL_GPIO_WritePin(PORT,PIN_MASK,GPIO_PIN_RESET)
-#endif STM32
 
-
-#ifdef MSP430
-#define TX_PORT   P1OUT
-#define RX_PORT   P1OUT
-#define RX_PIN    P1IN
-#define TX_DIR    P1DIR
-#define RX_DIR    P1DIR
-
-#define ENABLE_UART_TIMER_ISR  (TACCTL0 |= CCIE)
-#define DISABLE_UART_TIMER_ISR (TACCTL0 &= ~CCIE)
-#define START_TIMER  TACTL |= MC0
-#define CLEAR_TIMER  TACTL |= TACLR
-#endif
 
 #endif // PLATFORMSPECIFIC

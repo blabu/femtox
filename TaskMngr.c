@@ -1,6 +1,9 @@
 #include "TaskMngr.h"
 #include "PlatformSpecific.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 /*
 Создание простого диспетчера задач. Пример построения программы
 Кроме диспетчера задач здесь также реализован системный таймер на базе Т/С0
@@ -131,7 +134,7 @@ void initFemtOS (void)   // Инициализация менеджера зад
     // Вызвать любую функцию можно двояко:
     //  1. Стандартным способом через ее имя и список параметров Например, shov1();
     //  2. Через указатель на функцию. К примеру, (*show1)() - операция разыменовывания указателя на функцию;
-    INTERRUPT_DISABLE;
+    //INTERRUPT_DISABLE;
     for(i=0;i<TASK_LIST_LEN;i++)  //Набираем очередь задач // Это масив указателей на функции
     {
         TaskList[i].Task = NULL;
@@ -156,7 +159,7 @@ void initFemtOS (void)   // Инициализация менеджера зад
 #ifdef EVENT_LOOP_TASKS
     initEventList();
 #endif
-    INTERRUPT_ENABLE;
+    //INTERRUPT_ENABLE;
 }
 
 void runFemtOS( void )
@@ -221,7 +224,7 @@ void SetTask(TaskMng New_Task, BaseSize_t n, BaseParam_t data)
         INTERRUPT_DISABLE;
         flag_inter = TRUE;                     // И устанавливаем флаг, что мы не в прерывании
     }
-    register u08 count = (countEnd < TASK_LIST_LEN-1)? countEnd+1:0;
+    register u08 count = (countEnd < TASK_LIST_LEN-1)? countEnd+1:0; //Кольцевой буфер
     if(count != countBegin) // Если после добавления задачи countEnd не догонит countBegin значит очередь не переполнена
     {// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
         TaskList[countEnd].Task = New_Task; // Если очередь не переполнится добавляем элемент в очередь
@@ -230,7 +233,7 @@ void SetTask(TaskMng New_Task, BaseSize_t n, BaseParam_t data)
         countEnd = count;
         if(flag_inter) INTERRUPT_ENABLE;
         return;
-    }// Здесь мы окажемся в редких случаях когда чередь переполнена
+    }// Здесь мы окажемся в редких случаях когда oчередь переполнена
     SetTimerTask(New_Task, n, data, TIME_DELAY_IF_BUSY);  //Ставим задачу в очередь(попытаемся записать ее позже)
     if (flag_inter) INTERRUPT_ENABLE;  //предварительно восстановив прерывания, если надо.
 }
@@ -772,9 +775,9 @@ u08 CreateDataStruct(const void* D, const BaseSize_t sizeElement, const BaseSize
         flag_int = TRUE;
         INTERRUPT_DISABLE;
     }
-    Data_Array[i].Data = (void*)D;
-    Data_Array[i].sizeElement = sizeElement;
-    Data_Array[i].sizeAllElements = sizeAll;
+    Data_Array[i].Data = (void*)D; // Адрес начала
+    Data_Array[i].sizeElement = sizeElement; // размер одного элемента в байтах
+    Data_Array[i].sizeAllElements = sizeAll; // Размер всей очереди в элементах
     Data_Array[i].firstCount= sizeAll;
     Data_Array[i].lastCount = sizeAll;
     if(flag_int) INTERRUPT_ENABLE;
@@ -790,6 +793,49 @@ u08 delDataStruct(const void* Data)  // Удаляем из массива аб�
     return EVERYTHING_IS_OK;
 }
 
+u08 PutToCycleDataStruct(const void* Elem, const void* Array) {
+    bool_t flag_int = FALSE;
+    register BaseSize_t i = findNumberDataStruct(Array);
+    if(i == ArraySize) return NOT_FAUND_DATA_STRUCT_ERROR;    // Если мы не нашли абстрактную структуру данных с указанным идентификтором выходим
+    BaseSize_t frontCount = (Data_Array[i].firstCount < Data_Array[i].sizeAllElements)? Data_Array[i].firstCount+1:0;
+    if(INTERRUPT_STATUS){
+        flag_int = TRUE;
+        INTERRUPT_DISABLE;
+    }
+    unsigned int offset = Data_Array[i].firstCount * Data_Array[i].sizeElement; //вычисляем смещение в байтах
+    void* dst = (void*)((byte_ptr)Data_Array[i].Data + offset);     // Определяем адресс куда копировать
+    MyMemcpy(dst, Elem, Data_Array[i].sizeElement); // Вставляем наш элемент
+    Data_Array[i].firstCount = frontCount;
+    if(Data_Array[i].lastCount < Data_Array[i].sizeAllElements) Data_Array[i].lastCount++;
+    if(flag_int) INTERRUPT_ENABLE;
+    return EVERYTHING_IS_OK;
+}
+
+u08 GetFromCycleDataStruct(void* returnValue, const void* Array)
+{
+    bool_t flag_int = FALSE;
+    register BaseSize_t i = findNumberDataStruct(Array);
+    if(i == ArraySize) return NOT_FAUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
+    if(Data_Array[i].lastCount > 0) { // Если есть какие либо данные
+    	if(INTERRUPT_STATUS) {
+    		flag_int = TRUE;
+    		INTERRUPT_DISABLE;
+    	}
+    	Data_Array[i].lastCount--;
+    	Data_Array[i].firstCount = (Data_Array[i].firstCount)? Data_Array[i].firstCount : Data_Array[i].sizeAllElements;
+    	Data_Array[i].firstCount--;
+    	unsigned int offset = Data_Array[i].firstCount * Data_Array[i].sizeElement;  // Определяем смещение на элемент, который надо достать
+    	void* dst = (void*)((byte_ptr)Data_Array[i].Data + offset);     // Записываем адрес памяти свободной ячейки
+    	MyMemcpy(returnValue, dst, Data_Array[i].sizeElement);   // Если структура данных найдена, читаем от туда первый (самый старый) элемент
+    	if(flag_int) INTERRUPT_ENABLE;  // Если все происходило не в прерывании восстанавливаем разрешение прерываний
+    	return EVERYTHING_IS_OK;   // Если все впорядке возвращаем ноль
+    }
+    else {
+    	&returnValue = 0;
+    	return OVERFLOW_OR_EMPTY_ERROR;
+    }
+}
+
 //Положить элемент Elem в начало структуры данных Array
 u08 PutToFrontDataStruct(const void* Elem, const void* Array)
 {
@@ -803,7 +849,7 @@ u08 PutToFrontDataStruct(const void* Elem, const void* Array)
         flag_int = TRUE;
         INTERRUPT_DISABLE;
     }
-    unsigned int offset = Data_Array[i].firstCount * Data_Array[i].sizeElement; //вычисляем смещение
+    unsigned int offset = Data_Array[i].firstCount * Data_Array[i].sizeElement; //вычисляем смещение в байтах
     void* dst = (void*)((byte_ptr)Data_Array[i].Data + offset);     // Определяем адресс куда копировать
     MyMemcpy(dst, Elem, Data_Array[i].sizeElement); // Вставляем наш элемент
     Data_Array[i].firstCount = frontCount;
@@ -970,7 +1016,7 @@ void for_each(const void* const Array, TaskMng tsk)
     if(i == ArraySize) return;
     for(BaseSize_t j=Data_Array[i].firstCount; j!=Data_Array[i].lastCount;)
     {
-      BaseParam_t ptr = (BaseParam_t)((byte_ptr)Data_Array[i].Data+j);
+      BaseParam_t ptr = (BaseParam_t)((byte_ptr)Data_Array[i].Data + j*Data_Array[i].sizeElement);
       tsk(0,ptr);
       j=(j < Data_Array[i].sizeAllElements)? j+1:0;
     }
@@ -1134,8 +1180,7 @@ u16 getFreeMemmorySize(){
     return sizeAllFreeMemmory;
 }
 
-void defragmentation(void)
-{
+void defragmentation(void){
     u16 i = 0;
     u08 blockSize = 0;
     sizeAllFreeMemmory=HEAP_SIZE;
@@ -1224,3 +1269,7 @@ void freeMem(byte_ptr data)
 }
 
 #endif //ALLOC_MEM
+
+#ifdef __cplusplus
+}
+#endif

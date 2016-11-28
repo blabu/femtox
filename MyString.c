@@ -23,7 +23,7 @@ s08 findStr(const string_t small, const string_t big){
     return -1;
 } 
 
-bool_t str1_str2(const string_t small, const string_t big){ // Функция возвращает TRUE если command является подстрокой answer
+bool_t str1_str2(const string_t small, const string_t big){ // Функция возвращает TRUE если small является подстрокой big
   if(findStr(small,big)<0) return FALSE;
   return TRUE;
 }
@@ -79,20 +79,19 @@ void strCopy(string_t result, const string_t c_str, BaseSize_t numb, BaseSize_t 
     result[i]=END_STRING;
 }
 
-void toString(u32 n, string_t c_str){
-    BaseSize_t size = (sizeof(n))<<1;
-    BaseSize_t j = 0;
+void toString(u08 capacity, u32 data, string_t c_str){
+    u08 size = (capacity)<<1; // Размер выходной строки
+    u08 j = 0;
     for(;size != 0; size--)
     {
-        unsigned char halfbyte = (n>>((size-1)<<2)) & 0x0F;
-        if(halfbyte < 10)
-        {
-            if(halfbyte == 0 && j==0) continue;
+    	u08 offset = (size-1)<<2; // Расчитываем смещение
+        unsigned char halfbyte = ((data>>offset) & 0x0F); // Берем старшие четыре бита
+        if(halfbyte < 10) {
+        	if(halfbyte == 0 && j == 0) continue;
             c_str[j] = (char)(halfbyte + '0');
             j++;
         }
-        else
-        {
+        else {
             c_str[j] = (char)(halfbyte + 'A' - 10);
             j++;
         }
@@ -100,30 +99,51 @@ void toString(u32 n, string_t c_str){
     c_str[j]=END_STRING;
 }
 
-u32 toInt(const string_t c_str){
+static u32 toInt(s08 razryad, const string_t c_str){
     u32 res = 0;
-    s08 j = (sizeof(res))<<1;
-    BaseSize_t i = 0;
+	BaseSize_t i = 0;
     while(c_str[i] != END_STRING)
     {
         if(c_str[i] >= '0' && c_str[i] <= '9')
         {
             res <<= 4;
             res |= c_str[i] - '0';
-            j--;
+            razryad--;
         }
         else if(c_str[i] >= 'A' && c_str[i] <= 'F')
         {
             res <<= 4;
             res |= c_str[i]-'A'+10;
-            j--;
+            razryad--;
         }
         else if(res != 0) break;
+        if(razryad<0) break;
         i++;
-        if(j<0) break;
     }
     return res;
 }
+
+u32 toInt32(const string_t c_str){
+    u32 res = strSize(c_str);
+    if(res<1) return 0;
+    res = toInt(4,c_str);
+    return res;
+}
+
+u16 toInt16(const string_t c_str){
+	u16 res = strSize(c_str);
+	if(res<1) return 0;
+	res = toInt(2,c_str);
+	return res;
+}
+
+u08 toInt08(const string_t c_str){
+	u08 res = strSize(c_str);
+	if(res<1) return 0;
+	res = toInt(1,c_str);
+	return res;
+}
+
 
 void shiftString(BaseSize_t poz, string_t c_str){
   BaseSize_t size = strSize(c_str);

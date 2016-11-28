@@ -26,10 +26,14 @@ void strCat(string_t c_str1, const string_t c_str2);
 void strCopy(string_t result, const string_t c_str, BaseSize_t numb, BaseSize_t pos);
 
 // str - строка с символьной шестнадцатиричной переменной
-u32 toInt(const string_t c_str);
+u32 toInt32(const string_t c_str);
+
+u08 toInt08(const string_t c_str);
+
+u16 toInt16(const string_t c_str);
 
 // Переводит число в строку шестнадцатиричного формата
-void toString(u32 n, string_t c_str);
+void toString(u08 capacity, u32 data, string_t c_str);
 
 void shiftString(BaseSize_t poz, string_t c_str); // Смещает строку на poz элементов влево
 
