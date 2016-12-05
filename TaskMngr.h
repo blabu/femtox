@@ -7,20 +7,21 @@
 
 #define BASE_DALAY(x)  for(register volatile unsigned int ccii=0; ccii<(x); ccii++) /*Задержка*/
 
-#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
+//#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
 #define DATA_STRUCT_MANAGER   /*Включаем работу с очередями средствами деспетчера*/
 #define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/
-#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
-//#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
+//#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
+#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 #define ALLOC_MEM   /*Включение динамического выделения памяти*/
 #define QUICK       /*Оптимизация диспетчера по скорости*/
 #define EVENT_LOOP_TASKS
 #define USE_SOFT_UART
-#define CLOCK_SERVICE
+//#define CLOCK_SERVICE
+#define CALL_BACK_TASK
 
 
-#define TASK_LIST_LEN 10U /*Длина очереди задач*/
-#define TIME_LINE_LEN 20U /*Максимальне количество системных таймеров*/
+#define TASK_LIST_LEN 15U /*Длина очереди задач*/
+#define TIME_LINE_LEN 25U /*Максимальне количество системных таймеров*/
 #define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
 typedef char* string_t;
@@ -51,12 +52,13 @@ typedef void (*TaskMng)(BaseSize_t arg_n, BaseParam_t arg_p);  // Объявля
 //  1. Стандартным способом через ее имя и список параметров Например, shov1();
 //  2. Через указатель на функцию. К примеру, (*show1)() - операция разыменовывания указателя на функцию;
 
-typedef struct
-{
+typedef struct {
   TaskMng Task;         //Указателей на функции, которая является задачей и принимает два параметра (количество аргументов и адрес первого из них)
   BaseSize_t   arg_n; // первый аргумент (Количество принимаемых аргументов)
   BaseParam_t arg_p; // второй аргумент (Указатель на начало массива аргументов)
 } TaskList_t;
+
+
 //Эта операционка сделана для 8-ми битных микроконтроллеров, поэтому чаще всего будут передаватся функциям восьмибиные параметры. Поэтому взят указатель на char
 
 void initFemtOS(void);    /* Инициализация менеджера задач. Здесь весь список задач (масив TaskLine) иницмализируется функцией Idle*/
@@ -76,7 +78,8 @@ void delAllTask(void);
 
 //********************************СИСТЕМНЫЙ ТАЙМЕР*********************************************
 void TimerISR(void); //Обработчик прерывания по совпадению теущего значения таймера и счетчика.
-u08 SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time); //Постановщик задач c количеством параметров n в таймер.
+
+void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time); //Постановщик задач c количеством параметров n в таймер.
 /*Функция устанавливающая задачу в очередь по таймеру. На входе адрес перехода (имя задачи) и время в тиках службы таймера.
 Время двухбайтное, т.е. от 1 до 65535 измеряеться в переплнениях таймера0. Не имеет значение
 какой таймер использовать. Если в очереди таймеров уже есть таймер с такой задачей, то происходит апдейт времени. Две одинаковых задачи в
@@ -166,6 +169,26 @@ void showAllDataStruct(); // передает в ЮАРТ данные о все
     u16 getFreeMemmorySize();
 #endif //ALLOC_MEM
 
+#ifdef CLOCK_SERVICE
+    u08 getMinutes();
+    u08 getHour();
+    u16 getDay();
+    void setSeconds(u32 sec);
+#endif
+
+#ifdef CALL_BACK_TASK
+#define CALL_BACK_TASK_LIST_LEN 15
+#ifndef OVERFLOW_OR_EMPTY_ERROR
+#define OVERFLOW_OR_EMPTY_ERROR 2
+#endif
+#ifndef EVERYTHING_IS_OK
+#define EVERYTHING_IS_OK 0
+#endif
+    u08 registerCallBack(TaskMng task, BaseSize_t arg_n, BaseParam_t arg_p, void* labelPtr);
+    void execCallBack(void* labelPtr);
+    void execErrorCallBack(BaseSize_t errorCode, void* labelPtr);
+    u08 changeCallBackLabel(void* oldLabel, void* newLabel);
+#endif
 //---------------------------------------------------------	СИНОНИМЫ API функций ядра ------------------------------------------------------------
 #define Scheduler()	runFemtOS()		/*Функция диспетчера*/
 #define Manager()       runFemtOS()

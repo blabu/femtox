@@ -101,23 +101,21 @@ void toString(u08 capacity, u32 data, string_t c_str){
 
 static u32 toInt(s08 razryad, const string_t c_str){
     u32 res = 0;
+    razryad <<= 1; // В каждом разряде по две цифры 0хFF
 	BaseSize_t i = 0;
-    while(c_str[i] != END_STRING)
-    {
-        if(c_str[i] >= '0' && c_str[i] <= '9')
-        {
+    while(c_str[i] != END_STRING) {
+        if(c_str[i] >= '0' && c_str[i] <= '9') {
             res <<= 4;
             res |= c_str[i] - '0';
             razryad--;
         }
-        else if(c_str[i] >= 'A' && c_str[i] <= 'F')
-        {
+        else if(c_str[i] >= 'A' && c_str[i] <= 'F') {
             res <<= 4;
             res |= c_str[i]-'A'+10;
             razryad--;
         }
         else if(res != 0) break;
-        if(razryad<0) break;
+        if(razryad <= 0) break;
         i++;
     }
     return res;

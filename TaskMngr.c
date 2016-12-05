@@ -35,6 +35,10 @@ volatile static u32 seconds = 0;
 void ClockService( void );
 #endif
 
+#ifdef CALL_BACK_TASK
+static void initCallBackTask();
+#endif
+
 #ifdef EMPTY
 #warning "EMPTY eror"
 #endif
@@ -44,9 +48,17 @@ void ClockService( void );
 #error "TASK_LIST_LEN error (Не определена длина списка задач)"
 #endif
 // длина списка задач (максимальное число задач)
+#if TASK_LIST_LEN > 0xFE
+#error "Invalid size"
+#endif
+
 
 #ifndef TIME_LINE_LEN
 #error "TIME_LINE_LEN error (Не определена длина списка таймеров)"
+#endif
+
+#if TIME_LINE_LEN > 0xFE
+#error "Invalid size"
 #endif
 
 volatile static IdleTask_t IdleTask=NULL;
@@ -102,7 +114,6 @@ u16 getDay(){
 void setSeconds(u32 sec){
     seconds = sec;
 }
-
 #endif
 
 void SetIdleTask(IdleTask_t Task)
@@ -158,6 +169,9 @@ void initFemtOS (void)   // Инициализация менеджера зад
 #endif  //CYCLE_FUNC
 #ifdef EVENT_LOOP_TASKS
     initEventList();
+#endif
+#ifdef CALL_BACK_TASK
+    initCallBackTask();
 #endif
     //INTERRUPT_ENABLE;
 }
@@ -297,7 +311,7 @@ static void TimerService (void)
     }
 }
 
-u08 SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
+void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
 {
     bool_t flag_inter = FALSE;  // флаг состояния прерывания
     if (INTERRUPT_STATUS) //Если прерывания разрешены, то запрещаем их
@@ -313,14 +327,14 @@ u08 SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
         MainTime[lastTimerIndex] = New_Time;
         lastTimerIndex++;
         if(flag_inter) INTERRUPT_ENABLE;
-        return 0;
+        return;
     }
     #ifdef MAXIMIZE_OVERFLOW_ERROR
     #warning "if queue task timers is overflow programm will be stoped"
         while(1);
     #else
         if(flag_inter) INTERRUPT_ENABLE;
-        return 1; //  тут можно сделать return c кодом ошибки - нет свободных таймеров
+        return; //  тут можно сделать return c кодом ошибки - нет свободных таймеров
     #endif
 }
 static u08 findTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data)
@@ -628,6 +642,9 @@ void delTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data)
 //------------------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------
 #ifdef EVENT_LOOP_TASKS
+#if EVENT_LIST_SIZE > 0xFE
+#error "incompatible size"
+#endif
 typedef struct
 {
     Predicat_t      Predicat;   // Указатель на функцию условия
@@ -710,6 +727,9 @@ void delEvent(Predicat_t condition)
 //------------------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------
 #ifdef DATA_STRUCT_MANAGER
+#if ArraySize > 0xFE
+#error "incompatible size"
+#endif
 typedef struct
 {
     void* Data;               // Указатель на начало очереди
@@ -728,9 +748,9 @@ void showAllDataStruct(void)
   SetTask((TaskMng)sendCOM_buf,sizeof(AbstractDataType)*ArraySize,(BaseParam_t)Data_Array);
 }
 
-static inline BaseSize_t findNumberDataStruct(const void* const Data)
+static inline u08 findNumberDataStruct(const void* const Data)
 {
-    register BaseSize_t i = 0;
+    register u08 i = 0;
     for(; i<ArraySize; i++) // находим абстрактную структуру данных
     {
         if(Data_Array[i].Data == Data) break;
@@ -787,7 +807,7 @@ u08 CreateDataStruct(const void* D, const BaseSize_t sizeElement, const BaseSize
 // Удаляем абстрактную структуру данных
 u08 delDataStruct(const void* Data)  // Удаляем из массива абстрактную структуру данных с заданным идентификатором
 {
-    BaseSize_t i = findNumberDataStruct(Data);
+    u08 i = findNumberDataStruct(Data);
     if(i == ArraySize) return NOT_FAUND_DATA_STRUCT_ERROR;  // Если такой не существует в массиве, выдаем ошибку
     Data_Array[i].Data = NULL;    // Если абстрактная структура данных есть удаляем ее
     return EVERYTHING_IS_OK;
@@ -795,7 +815,7 @@ u08 delDataStruct(const void* Data)  // Удаляем из массива аб�
 
 u08 PutToCycleDataStruct(const void* Elem, const void* Array) {
     bool_t flag_int = FALSE;
-    register BaseSize_t i = findNumberDataStruct(Array);
+    register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return NOT_FAUND_DATA_STRUCT_ERROR;    // Если мы не нашли абстрактную структуру данных с указанным идентификтором выходим
     BaseSize_t frontCount = (Data_Array[i].firstCount < Data_Array[i].sizeAllElements)? Data_Array[i].firstCount+1:0;
     if(INTERRUPT_STATUS){
@@ -814,7 +834,7 @@ u08 PutToCycleDataStruct(const void* Elem, const void* Array) {
 u08 GetFromCycleDataStruct(void* returnValue, const void* Array)
 {
     bool_t flag_int = FALSE;
-    register BaseSize_t i = findNumberDataStruct(Array);
+    register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return NOT_FAUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
     if(Data_Array[i].lastCount > 0) { // Если есть какие либо данные
     	if(INTERRUPT_STATUS) {
@@ -831,7 +851,7 @@ u08 GetFromCycleDataStruct(void* returnValue, const void* Array)
     	return EVERYTHING_IS_OK;   // Если все впорядке возвращаем ноль
     }
     else {
-    	&returnValue = 0;
+    	*((byte_ptr)returnValue) = 0;
     	return OVERFLOW_OR_EMPTY_ERROR;
     }
 }
@@ -840,7 +860,7 @@ u08 GetFromCycleDataStruct(void* returnValue, const void* Array)
 u08 PutToFrontDataStruct(const void* Elem, const void* Array)
 {
     bool_t flag_int = FALSE;
-    register BaseSize_t i = findNumberDataStruct(Array);
+    register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return NOT_FAUND_DATA_STRUCT_ERROR;    // Если мы не нашли абстрактную структуру данных с указанным идентификтором выходим
     BaseSize_t frontCount = (Data_Array[i].firstCount < Data_Array[i].sizeAllElements)? Data_Array[i].firstCount+1:0;
     if(frontCount == Data_Array[i].lastCount) return OVERFLOW_OR_EMPTY_ERROR;  // Если после добавления мы догоним lastCount, значит структура заполнена
@@ -860,7 +880,7 @@ u08 PutToFrontDataStruct(const void* Elem, const void* Array)
 // Полоожить элемент Elem в конец абстрактной структуры данных Array
 u08 PutToEndDataStruct(const void* Elem, const void* Array){
     bool_t flag_int = FALSE;
-    register BaseSize_t i = findNumberDataStruct(Array);
+    register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return NOT_FAUND_DATA_STRUCT_ERROR;    // Если мы не нашли абстрактную структуру данных с указанным идентификтором выходим
     BaseSize_t endCount = (Data_Array[i].lastCount)? Data_Array[i].lastCount:Data_Array[i].sizeAllElements;
     endCount--;
@@ -881,7 +901,7 @@ u08 PutToEndDataStruct(const void* Elem, const void* Array){
 u08 GetFromFrontDataStruct(void* returnValue, const void* Array) // Достаем элемент с начала структуры данных
 {
     bool_t flag_int = FALSE;
-    register BaseSize_t i = findNumberDataStruct(Array);
+    register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return NOT_FAUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
     if(Data_Array[i].firstCount == Data_Array[i].lastCount) {return OVERFLOW_OR_EMPTY_ERROR;} // Если она пустая читать нечего
     if(INTERRUPT_STATUS)
@@ -901,7 +921,7 @@ u08 GetFromFrontDataStruct(void* returnValue, const void* Array) // Достае
 u08 GetFromEndDataStruct(void* returnValue, const void* Array) // Достаем элемент с конца структуры данных
 {
     bool_t flag_int = FALSE;
-    register BaseSize_t i = findNumberDataStruct(Array);
+    register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return NOT_FAUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
     if(Data_Array[i].lastCount == Data_Array[i].firstCount) return OVERFLOW_OR_EMPTY_ERROR; //Проверка пустая ли структура данных
     if(INTERRUPT_STATUS)
@@ -920,7 +940,7 @@ u08 GetFromEndDataStruct(void* returnValue, const void* Array) // Достаем
 u08 delFromFrontDataStruct(const void* const Data)
 {
     bool_t flag_int = FALSE;
-    register BaseSize_t i = findNumberDataStruct(Data);
+    register u08 i = findNumberDataStruct(Data);
     if(i == ArraySize) return NOT_FAUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
     if(Data_Array[i].firstCount == Data_Array[i].lastCount) {return OVERFLOW_OR_EMPTY_ERROR;} // Если она пустая читать нечего
     if(INTERRUPT_STATUS)
@@ -937,7 +957,7 @@ u08 delFromFrontDataStruct(const void* const Data)
 u08 delFromEndDataStruct(const void* const Data)
 {
     bool_t flag_int = FALSE;
-    register BaseSize_t i = findNumberDataStruct(Data);
+    register u08 i = findNumberDataStruct(Data);
     if(i == ArraySize) return NOT_FAUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
     if(Data_Array[i].lastCount == Data_Array[i].firstCount) return OVERFLOW_OR_EMPTY_ERROR; //Проверка пустая ли структура данных
     if(INTERRUPT_STATUS)
@@ -953,7 +973,7 @@ u08 delFromEndDataStruct(const void* const Data)
 u08 peekFromFrontData(void* returnValue, const void* Array)
 {
     bool_t flag_int = FALSE;
-    register BaseSize_t i = findNumberDataStruct(Array);
+    register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return NOT_FAUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
     if(Data_Array[i].firstCount == Data_Array[i].lastCount) {return OVERFLOW_OR_EMPTY_ERROR;} // Если она пустая читать нечего
     if(INTERRUPT_STATUS)
@@ -972,7 +992,7 @@ u08 peekFromFrontData(void* returnValue, const void* Array)
 u08 peekFromEndData(void* returnValue, const void* Array)
 {
     bool_t flag_int = FALSE;
-    register BaseSize_t i = findNumberDataStruct(Array);
+    register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return NOT_FAUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
     if(Data_Array[i].lastCount == Data_Array[i].firstCount) return OVERFLOW_OR_EMPTY_ERROR; //Проверка пустая ли структура данных
     if(INTERRUPT_STATUS)
@@ -990,7 +1010,7 @@ u08 peekFromEndData(void* returnValue, const void* Array)
 void clearDataStruct(const void * const Data)
 {
     bool_t flag_int = FALSE;
-    register BaseSize_t i = findNumberDataStruct(Data);
+    register u08 i = findNumberDataStruct(Data);
     if(i == ArraySize) return;
     if(INTERRUPT_STATUS)
     {
@@ -1004,7 +1024,7 @@ void clearDataStruct(const void * const Data)
 
 bool_t isEmptyDataStruct(const void* const Data)
 {
-    register BaseSize_t i = findNumberDataStruct(Data);
+    register u08 i = findNumberDataStruct(Data);
     if(i == ArraySize) return TRUE; // Если такой структуры нет она точно пустая
     bool_t res = (Data_Array[i].firstCount == Data_Array[i].lastCount); // Если они равны друг другу значит пустая
     return res;
@@ -1012,7 +1032,7 @@ bool_t isEmptyDataStruct(const void* const Data)
 
 void for_each(const void* const Array, TaskMng tsk)
 {
-    register BaseSize_t i = findNumberDataStruct(Array);
+    register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return;
     for(BaseSize_t j=Data_Array[i].firstCount; j!=Data_Array[i].lastCount;)
     {
@@ -1066,6 +1086,9 @@ bool_t freeMutex(const u08 mutexNumb)
 
 
 #ifdef CYCLE_FUNC
+#if TIMERS_ARRAY_SIZE > 0xFE
+#error "incompatible size"
+#endif
 /*
 Эта часть содержит набор функция для реализации циклически выполняемых коротких функций
 Функции выполняются внутри прерывания и не должны содержать задержек или разрешений прерываний
@@ -1166,6 +1189,9 @@ static void CycleService(void)
 Перед блоком памяти хранится байт с размером этого блока (0...6 биты), а последний бит определяет занята
 эта память или свободна (поэтому до 127 байт единоразово)
 */
+#if HEAP_SIZE  > 0xFFFF
+#error "incompatible size"
+#endif
 static u08 heap[HEAP_SIZE];  // Сама куча
 static u16 sizeAllFreeMemmory;
 
@@ -1270,6 +1296,79 @@ void freeMem(byte_ptr data)
 
 #endif //ALLOC_MEM
 
+
+#ifdef CALL_BACK_TASK
+#if CALL_BACK_TASK_LIST_LEN > 0xFE
+#error "incompatible size"
+#endif
+
+static void* labelPointer[CALL_BACK_TASK_LIST_LEN]; // Массив указателей на функции по завершении которых следует вызвать callBack (по сути метка колбэка)
+static TaskList_t callBackList[CALL_BACK_TASK_LIST_LEN];	// Указатель на функцию которая будет вызвана
+
+static void initCallBackTask(){
+	for(u08 index = 0;index<CALL_BACK_TASK_LIST_LEN; index++){
+		labelPointer[index] = NULL;
+	}
+}
+
+static u08 findCallBack(void* labelPtr){
+	u08 index = 0;
+	for(;index < CALL_BACK_TASK_LIST_LEN; index++){
+		if(labelPointer[index] == labelPtr) break;
+	}
+	return index;
+}
+
+u08 registerCallBack(TaskMng task, BaseSize_t arg_n, BaseParam_t arg_p, void* labelPtr){
+	bool_t flag_isr = FALSE;
+	if(INTERRUPT_STATUS){
+		flag_isr = TRUE;
+		INTERRUPT_DISABLE;
+	}
+	u08 i = findCallBack(NULL);
+	if(i == CALL_BACK_TASK_LIST_LEN) {
+		if(flag_isr) INTERRUPT_ENABLE;
+		return OVERFLOW_OR_EMPTY_ERROR;
+	}
+	callBackList[i].Task = task;
+	callBackList[i].arg_n = arg_n;
+	callBackList[i].arg_p = arg_p;
+	labelPointer[i] = labelPtr;
+	if(flag_isr) INTERRUPT_ENABLE;
+	return EVERYTHING_IS_OK;
+}
+
+void execCallBack(void* labelPtr){
+	u08 i = findCallBack(labelPtr);
+	if(i == CALL_BACK_TASK_LIST_LEN) return;
+	if(callBackList[i].Task != NULL) SetTask(callBackList[i].Task,callBackList[i].arg_n,callBackList[i].arg_p);
+	labelPointer[i] = NULL;
+}
+
+void execErrorCallBack(BaseSize_t errorCode, void* labelPtr){
+	u08 i = findCallBack(labelPtr);
+	if(i == CALL_BACK_TASK_LIST_LEN) return;
+	if(callBackList[i].Task != NULL) SetTask(callBackList[i].Task,errorCode,callBackList[i].arg_p);
+	labelPointer[i] = NULL;
+}
+
+u08 changeCallBackLabel(void* oldLabel, void* newLabel){
+	bool_t flag_isr = FALSE;
+	if(INTERRUPT_STATUS){
+		flag_isr = TRUE;
+		INTERRUPT_DISABLE;
+	}
+	u08 i = findCallBack(oldLabel);
+	if(i == CALL_BACK_TASK_LIST_LEN) {
+		if(flag_isr) INTERRUPT_ENABLE;
+		return OVERFLOW_OR_EMPTY_ERROR;
+	}
+	labelPointer[i] = newLabel;
+	if(flag_isr) INTERRUPT_ENABLE;
+	return EVERYTHING_IS_OK;
+}
+
+#endif // CALL_BACK_TASK
 #ifdef __cplusplus
 }
 #endif

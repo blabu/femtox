@@ -180,12 +180,28 @@ void CreateSoftUART(const BaseSize_t buffTXsize, const BaseSize_t buffRXsize, co
     UART_TX_DATA[numbUART].Data = 0;
     UART_RX_DATA[numbUART].Data = 0;
     UART_TX_DATA[numbUART].buffer = allocMem(buffTXsize);
-    if(UART_TX_DATA[numbUART].buffer == NULL) while(1);
+    if(UART_TX_DATA[numbUART].buffer == NULL) {
+#ifdef MAXIMIZE_OVERFLOW_ERROR
+		while(1);
+#endif
+    }
     UART_RX_DATA[numbUART].buffer = allocMem(buffRXsize);
-    if(UART_TX_DATA[numbUART].buffer == NULL) while(1);
+    if(UART_TX_DATA[numbUART].buffer == NULL) {
+#ifdef MAXIMIZE_OVERFLOW_ERROR
+		while(1);
+#endif
+    }
     
-    if(CreateQ(UART_TX_DATA[numbUART].buffer, 1, buffTXsize) != EVERYTHING_IS_OK) while(1);
-    if(CreateQ(UART_RX_DATA[numbUART].buffer, 1, buffRXsize) != EVERYTHING_IS_OK) while(1);
+    if(CreateQ(UART_TX_DATA[numbUART].buffer, 1, buffTXsize) != EVERYTHING_IS_OK) {
+#ifdef MAXIMIZE_OVERFLOW_ERROR
+		while(1);
+#endif
+    }
+    if(CreateQ(UART_RX_DATA[numbUART].buffer, 1, buffRXsize) != EVERYTHING_IS_OK) {
+#ifdef MAXIMIZE_OVERFLOW_ERROR
+		while(1);
+#endif
+    }
     
     initProgramUartGPIO((1<<RXpinNumber),(1<<TXpinNumber));
     ENABLE_UART_TIMER_ISR;
