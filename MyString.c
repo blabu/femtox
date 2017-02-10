@@ -79,11 +79,14 @@ void strCopy(string_t result, const string_t c_str, BaseSize_t numb, BaseSize_t 
     result[i]=END_STRING;
 }
 
+void strClear(string_t str){
+	str[0]='\0';
+}
+
 void toString(u08 capacity, u32 data, string_t c_str){
     u08 size = (capacity)<<1; // Размер выходной строки
     u08 j = 0;
-    for(;size != 0; size--)
-    {
+    for(;size != 0; size--) {
     	u08 offset = (size-1)<<2; // Расчитываем смещение
         unsigned char halfbyte = ((data>>offset) & 0x0F); // Берем старшие четыре бита
         if(halfbyte < 10) {
@@ -96,6 +99,7 @@ void toString(u08 capacity, u32 data, string_t c_str){
             j++;
         }
     }
+    if(j==0) {c_str[j]='0'; j++;}
     c_str[j]=END_STRING;
 }
 

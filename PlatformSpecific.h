@@ -3,6 +3,9 @@
 #include "stm32l1xx_hal.h"
 #include "cmsis_gcc.h"
 
+
+void initWatchDog();
+void resetWatchDog();
 /********************************************************************************************************************
 *********************************************************************************************************************
                                             ПЛАТФОРМО-ЗАВИСИМЫЕ ФУНКЦИИ														|
@@ -11,8 +14,8 @@
 #define INTERRUPT_ENABLE  __enable_irq()   //{asm("nop"); __asm__ __volatile__("eint");}
 #define INTERRUPT_DISABLE __disable_irq()  //{__asm__ __volatile__("dint nop"); asm("nop");}
 #define INTERRUPT_STATUS  (__get_CONTROL() & (uint32_t)(1<<7))
-#define WATCH_DOG_ON  /*Генерируем Reset*/
-#define TICK_PER_SECOND 1000 /*Колличество тиков в секунду*/
+#define WATCH_DOG_ON  initWatchDog()/*Генерируем Reset*/
+#define TICK_PER_SECOND 200 /*Колличество тиков в секунду*/
 
 void _init_Timer(void);	// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
 

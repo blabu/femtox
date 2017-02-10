@@ -1,19 +1,44 @@
 #include "PlatformSpecific.h"
 #include "TaskMngr.h"
 
-
+#ifdef MAXIMIZE_OVERFLOW_ERROR
+	void MaximizeErrorHandler(){
+		while(1);
+	}
+#else
+	void MaximizeErrorHandler(){
+	}
+#endif
 /********************************************************************************************************************
 *********************************************************************************************************************
                                             ПЛАТФОРМО-ЗАВИСИМЫЕ ФУНКЦИИ														|
 *********************************************************************************************************************
 *********************************************************************************************************************/
+#define TIME_WATCH_DOG 5000UL /*Время перезапуска таймера в мс*/
+#define RELOAD_VALUE ((40UL*TIME_WATCH_DOG)/128UL)
+#if(RELOAD_VALUE > 0xFFF)
+#error "RELOAD value to longer"
+#endif
+
+static IWDG_HandleTypeDef watchDog;
+void initWatchDog(){
+	watchDog.Instance = IWDG;
+	watchDog.Init.Prescaler = IWDG_PRESCALER_128;
+	watchDog.Init.Reload = RELOAD_VALUE;
+	HAL_IWDG_Init(&watchDog);
+}
+
+void resetWatchDog(){
+	HAL_IWDG_Refresh(&watchDog);
+}
+
 static TIM_HandleTypeDef TIM6InitStruct;
 void _init_Timer(){
 	__TIM6_CLK_ENABLE();
 	TIM6InitStruct.Instance = TIM6;
 	TIM6InitStruct.Init.CounterMode = TIM_COUNTERMODE_UP;
 	TIM6InitStruct.Init.Period = 5000-1;
-	TIM6InitStruct.Init.Prescaler = 16-1;
+	TIM6InitStruct.Init.Prescaler = 4-1;
 	TIM6InitStruct.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	HAL_TIM_Base_Init(&TIM6InitStruct);     // Init timer
 	HAL_TIM_Base_Start_IT(&TIM6InitStruct);
@@ -45,7 +70,7 @@ void _initTimerSoftUart()
 	TIM7InitStruct.Instance = TIM7;
 	TIM7InitStruct.Init.CounterMode = TIM_COUNTERMODE_UP;
 	TIM7InitStruct.Init.Period = 52-1;
-	TIM7InitStruct.Init.Prescaler = 16-1;
+	TIM7InitStruct.Init.Prescaler = 4-1;
 	TIM7InitStruct.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	HAL_TIM_Base_Init(&TIM7InitStruct);     // Init timer
 	HAL_TIM_Base_Start_IT(&TIM7InitStruct);

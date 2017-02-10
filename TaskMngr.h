@@ -5,6 +5,8 @@
 #define NULL 0
 #endif
 
+
+#define ABS(XX) (((XX) > 0)?(XX):(-(XX)))
 #define BASE_DALAY(x)  for(register volatile unsigned int ccii=0; ccii<(x); ccii++) /*Задержка*/
 
 //#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
@@ -14,27 +16,26 @@
 #define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 #define ALLOC_MEM   /*Включение динамического выделения памяти*/
 #define QUICK       /*Оптимизация диспетчера по скорости*/
-#define EVENT_LOOP_TASKS
-#define USE_SOFT_UART
-//#define CLOCK_SERVICE
+//#define EVENT_LOOP_TASKS
+//#define USE_SOFT_UART
+#define CLOCK_SERVICE
 #define CALL_BACK_TASK
 
 
-#define TASK_LIST_LEN 15U /*Длина очереди задач*/
-#define TIME_LINE_LEN 25U /*Максимальне количество системных таймеров*/
+#define TASK_LIST_LEN 12U /*Длина очереди задач*/
+#define TIME_LINE_LEN 20U /*Максимальне количество системных таймеров*/
 #define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
 typedef char* string_t;
-typedef unsigned long  u32;
+typedef unsigned int  u32;
 typedef unsigned short u16;
 typedef unsigned char  u08;
-typedef signed long    s32;
+typedef signed int    s32;
 typedef signed short   s16;
 typedef signed char    s08;
 typedef unsigned int   Time_t;
-typedef unsigned char  bool_t;
-#define TRUE 1
-#define FALSE 0
+typedef enum {FALSE=0, TRUE = !FALSE} bool_t;
+
 
 typedef unsigned char* byte_ptr;
 
@@ -96,7 +97,9 @@ void SetIdleTask(IdleTask_t Task);
 //Задача должна иметь сигнатуру void Task(void)
 
 
-unsigned int getTime(void);     // Вернет текущее время в тиках диспетчера
+u32 getTime(void);     // Вернет текущее время в тиках диспетчера
+
+void MaximizeErrorHandler();
 
 #ifdef EVENT_LOOP_TASKS
 #define EVENT_LIST_SIZE 15
@@ -128,23 +131,23 @@ void clearDataStruct(const void * const Data); // Очистить структ�
 void showAllDataStruct(); // передает в ЮАРТ данные о всех структурах данных
 /*---------------ОЧЕРЕДЬ-------------------*/
 // Создание очереди вернет ноль если очередь успешно создана
-#define CreateQ(Q, sizeElement, sizeAll)    CreateDataStruct((void*)Q, (BaseSize_t)sizeElement, (BaseSize_t) sizeAll)
+#define CreateQ(Q, sizeElement, sizeAll)    CreateDataStruct((void*)(Q), (BaseSize_t)(sizeElement), (BaseSize_t)(sizeAll))
 // Положить элемент по указателю Elem в очередь Queue
-#define PutToBackQ(Elem, Queue) PutToEndDataStruct((void*)Elem, (void*)Queue)
+#define PutToBackQ(Elem, Queue) PutToEndDataStruct((void*)(Elem), (void*)(Queue))
 // Достать єлемент из очереди и записать его по указателю returnValue
-#define GetFromQ(returnValue, Queue)   GetFromFrontDataStruct((void*)returnValue, (void*)Queue)
+#define GetFromQ(returnValue, Queue)   GetFromFrontDataStruct((void*)(returnValue), (void*)(Queue))
 // Удаляем из массива очередей очередь с заданным идентивикатором
-#define deleteQ(Queue)  delDataStruct((void*)Queue)
+#define deleteQ(Queue)  delDataStruct((void*)(Queue))
 
 /*----------------СТЕК--------------------*/
 // Создание стека в масиве структур данных
-#define CreateStack(Stack,sizeElement,sizeAll)  CreateDataStruct((void*)Stack, (BaseSize_t)sizeElement, (BaseSize_t) sizeAll)
+#define CreateStack(Stack,sizeElement,sizeAll)  CreateDataStruct((void*)(Stack), (BaseSize_t)(sizeElement), (BaseSize_t)(sizeAll))
 // Вставляем элемент в стек
-#define PushToStack(Elem, Stack)    PutToEndDataStruct((void*)Elem, (void*)Stack)
+#define PushToStack(Elem, Stack)    PutToEndDataStruct((void*)(Elem), (void*)(Stack))
 // Достаем элемент из стека
-#define PopFromStack(returnValue, Stack)    GetFromEndDataStruct((void*)returnValue, (void*)Stack)
+#define PopFromStack(returnValue, Stack)    GetFromEndDataStruct((void*)(returnValue), (void*)(Stack))
 // Удаляем стек
-#define delStack(Stack)   delDataStruct((void*)Stack)
+#define delStack(Stack)   delDataStruct((void*)(Stack))
 #endif //DATA_STRUCT_MANAGER
 
 #ifdef MUTEX_ENABLE 
@@ -161,7 +164,7 @@ void showAllDataStruct(); // передает в ЮАРТ данные о все
 #endif //CYCLE_FUNC
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 5400
+#define HEAP_SIZE 1024
     byte_ptr allocMem(u08 size);  //size - до 127 размер блока выделяемой памяти
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
     void freeMem(byte_ptr data);  // Освобождение памяти
@@ -177,7 +180,7 @@ void showAllDataStruct(); // передает в ЮАРТ данные о все
 #endif
 
 #ifdef CALL_BACK_TASK
-#define CALL_BACK_TASK_LIST_LEN 15
+#define CALL_BACK_TASK_LIST_LEN 20
 #ifndef OVERFLOW_OR_EMPTY_ERROR
 #define OVERFLOW_OR_EMPTY_ERROR 2
 #endif

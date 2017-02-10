@@ -32,8 +32,8 @@ static void initEventList( void );
 
 #ifdef CLOCK_SERVICE
 volatile static u32 seconds = 0;
-void ClockService( void );
 #endif
+static void ClockService( void );
 
 #ifdef CALL_BACK_TASK
 static void initCallBackTask();
@@ -71,48 +71,88 @@ static unsigned int MainTime[TIME_LINE_LEN];// Выдержка времени �
 static TaskList_t MainTimer[TIME_LINE_LEN]; // Указатель задачи, которая состоит из указателя на функцию задачи, и двух аргументов
 
 
-volatile static unsigned int GlobalTick;
-unsigned int getTime(void)
-{
-    bool_t flag_ISR = FALSE;
-    unsigned int time_res = 0;
-    if (INTERRUPT_STATUS) //Если прерывания разрешены, то запрещаем их
-    {
-        INTERRUPT_DISABLE;
-        flag_ISR = TRUE;                     // И устанавливаем флаг, что мы не в прерывании
-    }
-    time_res = GlobalTick;      // Так как переменная у нас двухбайтная
-    if(flag_ISR) INTERRUPT_ENABLE;
+volatile static Time_t GlobalTick;
+Time_t getTime(void) {
+	Time_t time_res = 0;
+    while(time_res != GlobalTick) time_res = GlobalTick;      // Так как переменная у нас двухбайтная
+#ifdef CLOCK_SERVICE
+    time_res += seconds*TICK_PER_SECOND;
+#endif
     return time_res;
 }
 
-#ifdef CLOCK_SERVICE
-void ClockService(){
+
+static void ClockService(){
     GlobalTick++;
-    if(GlobalTick == 0) return;
-    if(GlobalTick % TICK_PER_SECOND == 0){
-        seconds++;
+#ifdef CLOCK_SERVICE
+    if(GlobalTick == TICK_PER_SECOND) {
+    	seconds++;
+    	GlobalTick = 0;
     }
+#endif
 }
 
+#ifdef CLOCK_SERVICE
+
+#define JANUARY   31
+#define FEBRUARY  28
+#define MARCH	  31
+#define APRIL     30
+#define MAY		  31
+#define JUNE      30
+#define JULY	  31
+#define AUGUST	  31
+#define SEPTEMBER 30
+#define OCTOBOR	  31
+#define NOVEMBER  30
+#define DECEMBER  31
+const u08 daysInYear[12] = {JANUARY,FEBRUARY,MARCH,APRIL,MAY,JUNE,JULY,AUGUST,SEPTEMBER,OCTOBOR,NOVEMBER,DECEMBER};
+
 u08 getMinutes(){
-    u32 temp = seconds/60; // Определяем сколько всего минут проошло
+	u32 temp = 0;
+	while(temp != seconds) temp = seconds;
+    temp = temp/60; // Определяем сколько всего минут прошло
     temp %= 60; // от 0 до 59 минут
     return (u08)temp;
 }
 
 u08 getHour(){
-    u16 temp = (u16)(seconds/3600UL); // Определяем сколько всего часов проошло
+	u32 temp = 0;
+	while(temp != seconds) temp = seconds;
+    temp = (temp/3600UL); // Определяем сколько всего часов прошло
     temp %= 24; // от 0 до 23 часов
     return (u08)temp;
 }
 
-u16 getDay(){
-   return (u16)(seconds/86400UL);
+u16 getDayInYear() { // День в году
+	u16 result = (u16)(seconds/86400UL);
+	result %= 365;
+	return result;
 }
 
-void setSeconds(u32 sec){
-    seconds = sec;
+//LSB - day, MSB - mounth
+u16 getDayAndMonth() {
+	u16 temp = getDayInYear();
+	u08 mounth = 0;
+	u08 day = 0;
+	for(u08 i = 0; i<12; i++) {
+		if(temp > daysInYear[i]) {
+			temp -= daysInYear[i];
+			mounth++;
+		}
+		else break;
+	}
+	return ((u16)(mounth<<8) | day);
+}
+
+
+u32 getYear(){
+	u32 result = (seconds/31536000UL) + 1970;
+	return result;
+}
+
+void setSeconds(u32 sec) {
+	while(seconds != sec) seconds = sec;
 }
 #endif
 
@@ -196,9 +236,10 @@ void ResetFemtOS(void)
 void TimerISR(void)
 {
 #ifdef CYCLE_FUNC
-      CycleService();
+	CycleService();
 #endif
       TimerService();	// Пересчет всех системных таймеров из очереди
+      ClockService();
 } 	//Отработка прерывания по переполнению TCNT0
 
 #ifdef QUICK
@@ -276,9 +317,10 @@ void SetFrontTask (TaskMng New_Task, BaseSize_t n, BaseParam_t data) // Функ
 }
 #endif  //SET_FRONT_TASK_ENABLE
 
-void delAllTask(void)
-{
-    countBegin = countEnd = 0;
+void delAllTask(void) {
+	while(countBegin != countEnd)  {
+		countBegin = countEnd = 0;
+	}
 }
 /********************************************************************************************************************
 *********************************************************************************************************************
@@ -331,7 +373,7 @@ void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
     }
     #ifdef MAXIMIZE_OVERFLOW_ERROR
     #warning "if queue task timers is overflow programm will be stoped"
-        while(1);
+     	 MaximizeErrorHandler();
     #else
         if(flag_inter) INTERRUPT_ENABLE;
         return; //  тут можно сделать return c кодом ошибки - нет свободных таймеров
@@ -577,7 +619,7 @@ u08 SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
     }				//Если мы дошли до конца цикла значит такой задачи мы не нашли
 #ifdef MAXIMIZE_OVERFLOW_ERROR
 #warning "if queue task timers is overflow programm will be stoped"
-    while(1);
+    MaximizeErrorHandler();
 #else
     if(flag_inter) INTERRUPT_ENABLE;		// Востанавливаем прерывание если необходимо.
     return 1; //  тут можно сделать return c кодом ошибки - нет свободных таймеров
@@ -741,11 +783,9 @@ typedef struct
 static AbstractDataType Data_Array[ArraySize];   // Собственно сам массив абстрактных структур данных
 
 /***************************/
-void sendCOM_buf(const unsigned char n, const unsigned char* const data);
 /***************************/
 void showAllDataStruct(void)
 {
-  SetTask((TaskMng)sendCOM_buf,sizeof(AbstractDataType)*ArraySize,(BaseParam_t)Data_Array);
 }
 
 static inline u08 findNumberDataStruct(const void* const Data)
@@ -1111,27 +1151,24 @@ static void initCycleTask(void)
     }
 }
 
-void SetCycleTask(unsigned int time, CycleFuncPtr_t CallBack, bool_t toManager)
-{
+void SetCycleTask(unsigned int time, CycleFuncPtr_t CallBack, bool_t toManager) {
     bool_t flag_int = FALSE;
-    if(INTERRUPT_STATUS)
-    {
+    if(INTERRUPT_STATUS) {
         flag_int = TRUE;
         INTERRUPT_DISABLE;
     }
-    for(register u08 i = 0; i<TIMERS_ARRAY_SIZE; i++)
-    {
+    for(register u08 i = 0; i<TIMERS_ARRAY_SIZE; i++){
         if(Timers_Array[i].value) continue; // Если таймер уже занят (не нулевой) переходим к следющему
-        Timers_Array[i].value = time;       // Первый свободный таймер мы займем своей задачей
         Timers_Array[i].Call_Back = CallBack;  // Запоминаем новый колбэк
         Timers_Array[i].flagToManager = toManager;      // Флаг определяет выполняется задача в таймере или ставится в глобальную очередь
+        Timers_Array[i].value = time;       // Первый свободный таймер мы займем своей задачей
+        Timers_Array[i].time = time;
         break;                          // выходим из цикла
     }
     if(flag_int) INTERRUPT_ENABLE;
 }
 
-void delCycleTask(CycleFuncPtr_t CallBack)
-{
+void delCycleTask(CycleFuncPtr_t CallBack) {
     bool_t flag_int = FALSE;
     if(INTERRUPT_STATUS)
     {
@@ -1162,14 +1199,13 @@ void delCycleTask(CycleFuncPtr_t CallBack)
 }
 
 
-static void CycleService(void)
-{
+static void CycleService(void) {
     register u08 i = 0;
     while(Timers_Array[i].value) // Перебираем массив таймеров пока не встретили пустышку
     {
-        if(Timers_Array[i].time) Timers_Array[i].time--;// Если нашли не путой таймер тикаем
-        else
-        {
+    	Timers_Array[i].time--;// Если нашли не путой таймер тикаем
+        if(!Timers_Array[i].time) // Если таймер дотикал
+    	{
             Timers_Array[i].time = Timers_Array[i].value;     // Если таймер дотикал обновляем его значение
             if(!Timers_Array[i].flagToManager) // Если флаг поставить задачу в очередь не выставлен выполняем функцию здесь же
                 (*Timers_Array[i].Call_Back)();
@@ -1339,17 +1375,25 @@ u08 registerCallBack(TaskMng task, BaseSize_t arg_n, BaseParam_t arg_p, void* la
 }
 
 void execCallBack(void* labelPtr){
-	u08 i = findCallBack(labelPtr);
-	if(i == CALL_BACK_TASK_LIST_LEN) return;
-	if(callBackList[i].Task != NULL) SetTask(callBackList[i].Task,callBackList[i].arg_n,callBackList[i].arg_p);
-	labelPointer[i] = NULL;
+	for(u08 i = 0; i < CALL_BACK_TASK_LIST_LEN; i++){
+		if(labelPointer[i] == labelPtr){
+			if(callBackList[i].Task != NULL) {
+			 	SetTask(callBackList[i].Task,callBackList[i].arg_n,callBackList[i].arg_p);		
+			}
+			labelPointer[i] = NULL;
+	    }
+	}
 }
 
 void execErrorCallBack(BaseSize_t errorCode, void* labelPtr){
-	u08 i = findCallBack(labelPtr);
-	if(i == CALL_BACK_TASK_LIST_LEN) return;
-	if(callBackList[i].Task != NULL) SetTask(callBackList[i].Task,errorCode,callBackList[i].arg_p);
-	labelPointer[i] = NULL;
+	for(u08 i = 0; i < CALL_BACK_TASK_LIST_LEN; i++){
+		if(labelPointer[i] == labelPtr){
+			if(callBackList[i].Task != NULL) {
+			 	SetTask(callBackList[i].Task,errorCode,callBackList[i].arg_p);
+			}
+			labelPointer[i] = NULL;
+	    }	
+	}
 }
 
 u08 changeCallBackLabel(void* oldLabel, void* newLabel){
