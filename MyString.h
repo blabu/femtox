@@ -27,6 +27,11 @@ void strCopy(string_t result, const string_t c_str, BaseSize_t numb, BaseSize_t 
 
 void strClear(string_t str);
 
+void toStringDec(s32 data, string_t c_str);
+
+// razryad - количество знаков, например для чисел от 10 до 99 razryad = 2.
+u32 toIntDec(const string_t c_str);
+
 // str - строка с символьной шестнадцатиричной переменной
 u32 toInt32(const string_t c_str);
 

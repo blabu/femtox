@@ -94,6 +94,10 @@ static void ClockService(){
 
 #ifdef CLOCK_SERVICE
 
+#define SECONDS_2000 946684800UL  /*Колличество секунд с 1970 по 2000*/
+#define SECONDS_IN_YEAR 31536000UL
+#define SECONDS_IN_DAY 86400UL
+
 #define JANUARY   31
 #define FEBRUARY  28
 #define MARCH	  31
@@ -107,6 +111,7 @@ static void ClockService(){
 #define NOVEMBER  30
 #define DECEMBER  31
 const u08 daysInYear[12] = {JANUARY,FEBRUARY,MARCH,APRIL,MAY,JUNE,JULY,AUGUST,SEPTEMBER,OCTOBOR,NOVEMBER,DECEMBER};
+
 
 u08 getMinutes(){
 	u32 temp = 0;
@@ -124,35 +129,75 @@ u08 getHour(){
     return (u08)temp;
 }
 
+u16 getYear(){
+	Time_t sec = 0;
+	while(sec != seconds) sec=seconds;
+	u16 result = (sec/SECONDS_IN_YEAR) + 1970;
+	return result;
+}
+
 u16 getDayInYear() { // День в году
-	u16 result = (u16)(seconds/86400UL);
+	Time_t sec = 0;
+	while(sec != seconds) sec=seconds;
+	u16 result = (u16)(sec/SECONDS_IN_DAY); // Кол-во дней с 1970 года
 	result %= 365;
+	// Поправка на высокосные годы
+	u16 year  = getYear();
+	u08 dataOffset = 0;
+	if(year > 1972) // Больше первого высокосного года
+	 	dataOffset = ((year - 1972)>>2);
+	result -= dataOffset;
 	return result;
 }
 
 //LSB - day, MSB - mounth
 u16 getDayAndMonth() {
 	u16 temp = getDayInYear();
-	u08 mounth = 0;
+	u08 mounth=0;
 	u08 day = 0;
-	for(u08 i = 0; i<12; i++) {
-		if(temp > daysInYear[i]) {
-			temp -= daysInYear[i];
-			mounth++;
+	for(; mounth<12; mounth++) {
+		if(temp > daysInYear[mounth]) {
+			temp -= (daysInYear[mounth] );  // Учитываем что день в месяце начинается с 0
 		}
 		else break;
 	}
-	return ((u16)(mounth<<8) | day);
-}
-
-
-u32 getYear(){
-	u32 result = (seconds/31536000UL) + 1970;
-	return result;
+	day = temp & 0x1F;
+	mounth+=1;
+	return ((u16)mounth<<8) | day;
 }
 
 void setSeconds(u32 sec) {
 	while(seconds != sec) seconds = sec;
+}
+
+#include "MyString.h"
+// input date must have format YY.MM.DD hh:mm:ss
+void setDate(string_t date) {
+	char tempStr[4];
+	if(strSize(date) < 17) { return;}
+	strCopy(tempStr,date,2,0);
+	u08 year = toIntDec(tempStr);
+	if(year < 70) { // значит введена дата после 2000-го
+		year += 30;
+	}
+	u08 dayOffset = (year+2)>>2; // Поправка в днях на высокосные годы
+	strClear(tempStr);
+	strCopy(tempStr,date,2,3);
+	u08 mounth = toIntDec(tempStr);
+	strClear(tempStr);
+	strCopy(tempStr,date,2,6);
+	u08 day = toIntDec(tempStr);
+	strClear(tempStr);
+	strCopy(tempStr,date,2,9);
+	u08 hour = toIntDec(tempStr);
+	strClear(tempStr);
+	strCopy(tempStr,date,2,12);
+	u08 minutes = toIntDec(tempStr);
+	strClear(tempStr);
+	strCopy(tempStr,date,2,15);
+	u08 sec = toIntDec(tempStr);
+	Time_t tempSeconds = year*SECONDS_IN_YEAR + (daysInYear[mounth-1] + day + dayOffset)*SECONDS_IN_DAY + hour*3600 + minutes*60 + sec;
+	setSeconds(tempSeconds);
 }
 #endif
 

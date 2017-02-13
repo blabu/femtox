@@ -176,7 +176,11 @@ void showAllDataStruct(); // передает в ЮАРТ данные о все
     u08 getMinutes();
     u08 getHour();
     u16 getDay();
+    u16 getDayInYear();
+    u16 getDayAndMonth();
+    u16 getYear();
     void setSeconds(u32 sec);
+    void setDate(string_t date); //YY.MM.DD hh:mm:ss
 #endif
 
 #ifdef CALL_BACK_TASK
