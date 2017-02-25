@@ -98,6 +98,10 @@ static void ClockService(){
 #define SECONDS_IN_YEAR 31536000UL
 #define SECONDS_IN_DAY 86400UL
 
+#if TIME_INDEX>1
+static u08 timeCorrectSummer = TIME_INDEX;
+#endif
+
 #define JANUARY   31
 #define FEBRUARY  28
 #define MARCH	  31
@@ -126,6 +130,10 @@ u08 getHour(){
 	while(temp != seconds) temp = seconds;
     temp = (temp/3600UL); // Определяем сколько всего часов прошло
     temp %= 24; // от 0 до 23 часов
+#ifdef TIME_INDEX
+    temp += timeCorrectSummer;
+    if(temp > 23) temp -= 24;
+#endif
     return (u08)temp;
 }
 
@@ -163,6 +171,13 @@ u16 getDayAndMonth() {
 	}
 	day = temp & 0x1F;
 	mounth+=1;
+#if TIME_INDEX>1
+#ifdef SUMMER_TIME
+	//Если месяц больше марта (т.е. апрель или дальше) и меньше ноября (т.е. окябрь или меньше)
+	if(mounth > 3 || mounth < 11) timeCorrectSummer = TIME_INDEX;
+	else timeCorrectSummer = TIME_INDEX-1;
+#endif
+#endif
 	return ((u16)mounth<<8) | day;
 }
 
@@ -336,6 +351,11 @@ void SetTask(TaskMng New_Task, BaseSize_t n, BaseParam_t data)
     }// Здесь мы окажемся в редких случаях когда oчередь переполнена
     SetTimerTask(New_Task, n, data, TIME_DELAY_IF_BUSY);  //Ставим задачу в очередь(попытаемся записать ее позже)
     if (flag_inter) INTERRUPT_ENABLE;  //предварительно восстановив прерывания, если надо.
+}
+
+bool_t isEmptyTaskList( void ){
+	if(countBegin == countEnd) return TRUE; // Если очередь пустая (чаще всего так и есть)
+	return FALSE;
 }
 
 #ifdef SET_FRONT_TASK_ENABLE
@@ -540,6 +560,14 @@ void SetTask (TaskMng New_Task, BaseSize_t n, BaseParam_t data) // Функци�
     TaskList[index].arg_p = data;
     if (flag_inter) INTERRUPT_ENABLE;	     //Востанавливаем прерывания, если это необходимо.
 }
+
+bool_t isEmptyTaskList( void ){
+	TaskMng Func_point = NULL;
+	while(Func_point != TaskList[0].Task) Func_point = TaskList[0].Task;
+	if(Func_point == NULL) return TRUE; // Если очередь пустая (чаще всего так и есть)
+	return FALSE;
+}
+
 #ifdef SET_FRONT_TASK_ENABLE
 //Сами задачи следует делать небольшими. Чтобы как можно быстрее передать управление диспетчеру
 // Для задач, которые необходимо сделать быстро эта функция ставит их в начало очереди
@@ -612,7 +640,6 @@ static void TimerService (void)	// В прерывании таймера вып
 таймеров и их итерация вплоть до нулевого значения. После того как какой-либо таймер обнулился в список диспетчера задач
 дбавляется соответствующая ему задача.*/
     u08 index = 0;
-    GlobalTime++;    // Глобальное время
     for(index=0; index < TIME_LINE_LEN; index++)         // Прочесываем массив таймеров
     {
         if (MainTimer[index].Task == NULL) continue;  // Если это Таймер-пустышка переходим к следующему
@@ -641,7 +668,7 @@ static void TimerService (void)	// В прерывании таймера вып
     надо соблюдать атомарность добавления в очередь. Причем не тупо запрещать/разрешать прерывания, а
     восстанавливать состояние прерываний.
 */
-u08 SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
+void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
 {
     u08 index = 0;              // Счетчик очереди таймеров
     bool_t flag_inter = FALSE;  // Флаг состояния прерывания
@@ -659,7 +686,7 @@ u08 SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
             MainTimer[index].arg_p = data;
             MainTime[index] = New_Time;	// Устанавливаем выдержку времени для данной задачи
             if(flag_inter) INTERRUPT_ENABLE;		// Востанавливаем прерывание если необходимо.
-            return 0;						// и выходим из функции
+            return;						// и выходим из функции
         }
     }				//Если мы дошли до конца цикла значит такой задачи мы не нашли
 #ifdef MAXIMIZE_OVERFLOW_ERROR
@@ -865,8 +892,7 @@ static void initDataStruct(void)  // Инициализация абстракт
 
 // Функция создает абстрактную структуру данных (резервирует место под нее в глобальном массиве)
 // sizeElement - размер одного элемента в БАЙТАХ, sizeAll - размер очереди в ЭЛЕМЕНТАХ
-u08 CreateDataStruct(const void* D, const BaseSize_t sizeElement, const BaseSize_t sizeAll)
-{
+u08 CreateDataStruct(const void* D, const BaseSize_t sizeElement, const BaseSize_t sizeAll){
     bool_t flag_int = FALSE;
     register u08 i = 0;
     for(; i<ArraySize; i++) // Ищем пустое место в списке для новой структуры данных
@@ -875,8 +901,7 @@ u08 CreateDataStruct(const void* D, const BaseSize_t sizeElement, const BaseSize
         if(Data_Array[i].Data == NULL) break;
     }
     if(i == ArraySize) return NOT_FAUND_DATA_STRUCT_ERROR;
-    if(INTERRUPT_STATUS)
-    {
+    if(INTERRUPT_STATUS) {
         flag_int = TRUE;
         INTERRUPT_DISABLE;
     }
@@ -1055,14 +1080,12 @@ u08 delFromEndDataStruct(const void* const Data)
     return EVERYTHING_IS_OK;   // Если все впорядке возвращаем ноль  
 }
 
-u08 peekFromFrontData(void* returnValue, const void* Array)
-{
+u08 peekFromFrontData(void* returnValue, const void* Array) {
     bool_t flag_int = FALSE;
     register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return NOT_FAUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
     if(Data_Array[i].firstCount == Data_Array[i].lastCount) {return OVERFLOW_OR_EMPTY_ERROR;} // Если она пустая читать нечего
-    if(INTERRUPT_STATUS)
-    {
+    if(INTERRUPT_STATUS) {
         flag_int = TRUE;
         INTERRUPT_DISABLE;
     }
@@ -1263,6 +1286,41 @@ static void CycleService(void) {
 }
 #endif  //CYCLE_FUNC
 
+#ifdef GLOBAL_FLAGS
+globalFlags_t GlobalFlags = 0;
+
+void setFlags(globalFlags_t flagMask) {
+	bool_t flag_int = FALSE;
+	if(INTERRUPT_STATUS){
+		flag_int = TRUE;
+		INTERRUPT_DISABLE;
+	}
+	GlobalFlags |= flagMask;
+	if(flag_int) INTERRUPT_ENABLE;
+}
+
+void clearFlags(globalFlags_t flagMask) {
+	bool_t flag_int = FALSE;
+	if(INTERRUPT_STATUS){
+		flag_int = TRUE;
+		INTERRUPT_DISABLE;
+	}
+	GlobalFlags &= ~flagMask;
+	if(flag_int) INTERRUPT_ENABLE;
+}
+
+bool_t getFlags(globalFlags_t flagMask){
+	if(GlobalFlags & flagMask) return TRUE;
+	return FALSE;
+}
+
+globalFlags_t getGlobalFlags(){
+	globalFlags_t result = 0;
+	while(result != GlobalFlags) result = GlobalFlags;
+	return result;
+}
+#endif
+
 
 #ifdef ALLOC_MEM
 /*
@@ -1443,16 +1501,15 @@ void execErrorCallBack(BaseSize_t errorCode, void* labelPtr){
 
 u08 changeCallBackLabel(void* oldLabel, void* newLabel){
 	bool_t flag_isr = FALSE;
-	if(INTERRUPT_STATUS){
+	if(INTERRUPT_STATUS) {
 		flag_isr = TRUE;
 		INTERRUPT_DISABLE;
 	}
-	u08 i = findCallBack(oldLabel);
-	if(i == CALL_BACK_TASK_LIST_LEN) {
-		if(flag_isr) INTERRUPT_ENABLE;
-		return OVERFLOW_OR_EMPTY_ERROR;
+	while(1) {
+		u08 i = findCallBack(oldLabel);
+		if(i == CALL_BACK_TASK_LIST_LEN) break;
+		labelPointer[i] = newLabel;
 	}
-	labelPointer[i] = newLabel;
 	if(flag_isr) INTERRUPT_ENABLE;
 	return EVERYTHING_IS_OK;
 }

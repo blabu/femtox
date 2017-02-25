@@ -19,6 +19,7 @@
 //#define EVENT_LOOP_TASKS
 //#define USE_SOFT_UART
 #define CLOCK_SERVICE
+#define GLOBAL_FLAGS
 #define CALL_BACK_TASK
 
 
@@ -70,6 +71,9 @@ void SetTask (TaskMng New_Task, BaseSize_t n, BaseParam_t data); /* Функци
 и выходим из функции. Если не нашли пустой функции и засовывать задачу некуда просто выходим из функции. Можно также возвращать
 код ошибки если не удалось записать задачу и нормального завершения. Тогда функция будет иметь тип не void, а uint8_t.
  */
+
+bool_t isEmptyTaskList( void );
+
 #ifdef SET_FRONT_TASK_ENABLE
     void SetFrontTask (TaskMng New_Task, BaseSize_t n, BaseParam_t data); // Поставить задачу в начало очереди
 #endif
@@ -108,7 +112,7 @@ void MaximizeErrorHandler();
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
-#define ArraySize   18 /*Общее количество всех структур данных*/
+#define ArraySize   12 /*Общее количество всех структур данных*/
 #define NOT_FAUND_DATA_STRUCT_ERROR 1
 #define OVERFLOW_OR_EMPTY_ERROR     2
 #define OTHER_ERROR                 3
@@ -158,13 +162,21 @@ void showAllDataStruct(); // передает в ЮАРТ данные о все
 #endif //MUTEX_ENABLE
 
 #ifdef CYCLE_FUNC
-     #define TIMERS_ARRAY_SIZE 10
+     #define TIMERS_ARRAY_SIZE 15
      void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t toManager); // toManager == 0(false) выполняется прям в прерывании
      void delCycleTask(CycleFuncPtr_t CallBack);
 #endif //CYCLE_FUNC
 
+#ifdef GLOBAL_FLAGS
+     typedef u08 globalFlags_t;
+     void setFlags(globalFlags_t flagMask);
+     void clearFlags(globalFlags_t flagMask);
+     bool_t getFlags(globalFlags_t flagMask);
+     globalFlags_t getGlobalFlags();
+#endif
+
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 1024
+#define HEAP_SIZE 2048
     byte_ptr allocMem(u08 size);  //size - до 127 размер блока выделяемой памяти
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
     void freeMem(byte_ptr data);  // Освобождение памяти
@@ -181,6 +193,8 @@ void showAllDataStruct(); // передает в ЮАРТ данные о все
     u16 getYear();
     void setSeconds(u32 sec);
     void setDate(string_t date); //YY.MM.DD hh:mm:ss
+	#define TIME_INDEX 3
+	#define SUMMER_TIME
 #endif
 
 #ifdef CALL_BACK_TASK
