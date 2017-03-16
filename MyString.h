@@ -27,20 +27,25 @@ void strCopy(string_t result, const string_t c_str, BaseSize_t numb, BaseSize_t 
 
 void strClear(string_t str);
 
-void toStringDec(s32 data, string_t c_str);
 
 // razryad - количество знаков, например для чисел от 10 до 99 razryad = 2.
-u32 toIntDec(const string_t c_str);
+s32 toIntDec(const string_t c_str);
 
 // str - строка с символьной шестнадцатиричной переменной
-u32 toInt32(const string_t c_str);
+s32 toInt32(const string_t c_str);
 
-u08 toInt08(const string_t c_str);
+s08 toInt08(const string_t c_str);
 
-u16 toInt16(const string_t c_str);
+s16 toInt16(const string_t c_str);
 
 // Переводит число в строку шестнадцатиричного формата
-void toString(u08 capacity, u32 data, string_t c_str);
+void toString(u08 capacity, s32 data, string_t c_str);
+void toStringUnsign(u08 capacity, u32 data, string_t c_str);
+
+void toStringDec(s32 data, string_t c_str);
+void toStringUnsignDec(u32 data, string_t c_str);
+
+void doubleToString(double data, string_t c_str, u08 precision);
 
 void shiftString(BaseSize_t poz, string_t c_str); // Смещает строку на poz элементов влево
 

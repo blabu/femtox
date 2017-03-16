@@ -89,11 +89,10 @@ void strClear(string_t str){
 	str[0]='\0';
 }
 
-void toStringDec(s32 data, string_t c_str) {
+void toStringUnsignDec(u32 data, string_t c_str){
 	u08 size = 0;
 	u32 offset = 0;
-	bool_t sign = FALSE;
-	if(data<0) { sign = TRUE; data = (-data); }
+	u08 i = 0;
 	if(data<10) size = 1;
 	else if(data<100) { size = 2; offset = 10; }
 	else if(data<1000){ size = 3; offset = 100; }
@@ -102,8 +101,6 @@ void toStringDec(s32 data, string_t c_str) {
 	else if(data<1000000){ size = 6; offset = 100000; }
 	else if(data<10000000){ size = 7; offset = 1000000; }
 	else if(data<100000000){ size = 8; offset = 10000000; }
-	u08 i = 0;
-	if(sign) {c_str[i] = '-'; i++;}
 	while(size) {
 		if(size != 1){
 				 c_str[i] = (data/offset) + 0x30;
@@ -117,7 +114,17 @@ void toStringDec(s32 data, string_t c_str) {
 	c_str[i] = END_STRING;
 }
 
-void toString(u08 capacity, u32 data, string_t c_str){
+void toStringDec(s32 data, string_t c_str) {
+	if(data<0) {
+		c_str[0] ='-';
+		data = -data;
+		toStringUnsignDec(data, c_str+1);
+		return;
+	}
+	toStringUnsignDec(data,c_str);
+}
+
+void toStringUnsign(u08 capacity, u32 data, string_t c_str){
     u08 size = (capacity)<<1; // Размер выходной строки
     u08 j = 0;
     for(;size != 0; size--) {
@@ -137,11 +144,23 @@ void toString(u08 capacity, u32 data, string_t c_str){
     c_str[j]=END_STRING;
 }
 
-static u32 toInt(s08 razryad, const string_t c_str){
-    u32 res = 0;
+void toString(u08 capacity, s32 data, string_t c_str){
+	if(data<0) {
+		 c_str[0] = '-';
+		 data=-data;
+		 toStringUnsign(capacity,data,c_str+1);
+		 return;
+	}
+	toStringUnsign(capacity,data,c_str);
+}
+
+static s32 toInt(s08 razryad, const string_t c_str){
+    s32 res = 0;
     if(c_str == NULL) return res;
+    bool_t sign = FALSE;
+    BaseSize_t i = 0;
+    if(c_str[0] == '-') {sign=TRUE; i = 1;}
     razryad <<= 1; // В каждом разряде по две цифры 0хFF
-	BaseSize_t i = 0;
     while(c_str[i] != END_STRING) {
         if(c_str[i] >= '0' && c_str[i] <= '9') {
             res <<= 4;
@@ -157,14 +176,17 @@ static u32 toInt(s08 razryad, const string_t c_str){
         if(razryad <= 0) break;
         i++;
     }
+    if(sign) res = -res;
     return res;
 }
 
-u32 toIntDec(const string_t c_str) {
-	u32 res = 0;
+s32 toIntDec(const string_t c_str) {
+	s32 res = 0;
 	if(c_str == NULL) return res;  // В каждом разряде по две цифры
 	s08 razryad = strSize(c_str);
-	BaseSize_t i = 0;
+    bool_t sign = FALSE;
+    BaseSize_t i = 0;
+    if(c_str[0] == '-') {sign=TRUE; i = 1;}
 	razryad <<= 1;
 	while(c_str[i] != END_STRING) {
 		if(c_str[i] >= '0' && c_str[i] <= '9') { // Значит валидный знак
@@ -176,25 +198,26 @@ u32 toIntDec(const string_t c_str) {
         if(razryad <= 0) break;
         i++;
 	}
+	if(sign) res=-res;
 	return res;
 }
 
-u32 toInt32(const string_t c_str){
-    u32 res = strSize(c_str);
+s32 toInt32(const string_t c_str){
+    s32 res = strSize(c_str);
     if(res<1) return 0;
     res = toInt(4,c_str);
     return res;
 }
 
-u16 toInt16(const string_t c_str){
-	u16 res = strSize(c_str);
+s16 toInt16(const string_t c_str){
+	s16 res = strSize(c_str);
 	if(res<1) return 0;
 	res = toInt(2,c_str);
 	return res;
 }
 
-u08 toInt08(const string_t c_str){
-	u08 res = strSize(c_str);
+s08 toInt08(const string_t c_str){
+	s08 res = strSize(c_str);
 	if(res<1) return 0;
 	res = toInt(1,c_str);
 	return res;
@@ -209,3 +232,27 @@ void shiftString(BaseSize_t poz, string_t c_str){
   }
   c_str[i] = '\0';
 }
+
+
+void doubleToString(double data, string_t c_str, u08 precision) {
+	if(c_str == NULL) return;
+	s32 wholePart = (s32)data; // выделяем целую часть
+	double fraction = data - wholePart;	// выделяем дробную часть
+	toStringDec(wholePart,c_str);
+	if(fraction < 0) { fraction = -fraction; }
+	if (precision > 0) {
+		string_t endString = c_str;
+		while(*endString != END_STRING) endString++;
+		*endString = '.';
+		endString++;
+		while(precision > 0) {
+			precision--;
+			fraction *= 10;
+			u08 d1 = ((u08)fraction) & 0x0F;
+			*endString++ = '0' + d1;
+			fraction -= d1;
+		}
+		*endString = END_STRING;
+	}
+}
+

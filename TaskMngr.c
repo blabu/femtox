@@ -116,37 +116,27 @@ static u08 timeCorrectSummer = TIME_INDEX;
 #define DECEMBER  31
 const u08 daysInYear[12] = {JANUARY,FEBRUARY,MARCH,APRIL,MAY,JUNE,JULY,AUGUST,SEPTEMBER,OCTOBOR,NOVEMBER,DECEMBER};
 
-
-u08 getMinutes(){
-	u32 temp = 0;
-	while(temp != seconds) temp = seconds;
-    temp = temp/60; // Определяем сколько всего минут прошло
-    temp %= 60; // от 0 до 59 минут
-    return (u08)temp;
+static  u08 getMinutesFromSec(Time_t sec) {
+    sec = sec/60; // Определяем сколько всего минут прошло
+    sec %= 60; // от 0 до 59 минут
+    return (u08)sec;
 }
 
-u08 getHour(){
-	u32 temp = 0;
-	while(temp != seconds) temp = seconds;
-    temp = (temp/3600UL); // Определяем сколько всего часов прошло
-    temp %= 24; // от 0 до 23 часов
+static u08 getHourFromSec(Time_t sec) {
+    sec = (sec/3600UL); // Определяем сколько всего часов прошло
+    sec %= 24; // от 0 до 23 часов
 #ifdef TIME_INDEX
-    temp += timeCorrectSummer;
-    if(temp > 23) temp -= 24;
+    sec += timeCorrectSummer;
+    if(sec > 23) sec -= 24;
 #endif
-    return (u08)temp;
+    return (u08)sec;
 }
 
-u16 getYear(){
-	Time_t sec = 0;
-	while(sec != seconds) sec=seconds;
-	u16 result = (sec/SECONDS_IN_YEAR) + 1970;
-	return result;
+static u16 getYearFromSec(Time_t sec) {
+	return (sec/SECONDS_IN_YEAR) + 1970;
 }
 
-u16 getDayInYear() { // День в году
-	Time_t sec = 0;
-	while(sec != seconds) sec=seconds;
+static u16 getDayInYearFromSec(Time_t sec) { // День в году
 	u16 result = (u16)(sec/SECONDS_IN_DAY); // Кол-во дней с 1970 года
 	result %= 365;
 	// Поправка на высокосные годы
@@ -158,31 +148,73 @@ u16 getDayInYear() { // День в году
 	return result;
 }
 
-//LSB - day, MSB - mounth
-u16 getDayAndMonth() {
-	u16 temp = getDayInYear();
-	u08 mounth=0;
+static u16 getDayAndMonthFromDate(u16 dayInYear) { //LSB - day, MSB - mounth
+	u08 month=0;
 	u08 day = 0;
-	for(; mounth<12; mounth++) {
-		if(temp > daysInYear[mounth]) {
-			temp -= (daysInYear[mounth] );  // Учитываем что день в месяце начинается с 0
+	for(; month<12; month++) {
+		if(dayInYear > daysInYear[month]) {
+			dayInYear -= (daysInYear[month] );  // Учитываем что день в месяце начинается с 0
 		}
 		else break;
 	}
-	day = temp & 0x1F;
-	mounth+=1;
+	day = dayInYear & 0x1F;
+	month+=1;
 #if TIME_INDEX>1
 #ifdef SUMMER_TIME
 	//Если месяц больше марта (т.е. апрель или дальше) и меньше ноября (т.е. окябрь или меньше)
-	if(mounth > 3 || mounth < 11) timeCorrectSummer = TIME_INDEX;
+	if(month > 3 || month < 11) timeCorrectSummer = TIME_INDEX;
 	else timeCorrectSummer = TIME_INDEX-1;
+#else
+	timeCorrectSummer = TIME_INDEX;
 #endif
 #endif
-	return ((u16)mounth<<8) | day;
+	return ((u16)month<<8) | day;
+}
+
+Time_t getAllSeconds(){
+	u32 temp = 0;
+	while(temp != seconds) temp = seconds;
+	return temp;
+}
+
+u08 getMinutes(){
+	return getMinutesFromSec(getAllSeconds());
+}
+
+u08 getHour(){
+	return getHourFromSec(getAllSeconds());
+}
+
+u16 getYear(){
+	return getYearFromSec(getAllSeconds());
+}
+
+u16 getDayInYear() { // День в году
+	return getDayInYearFromSec(getAllSeconds());
+}
+
+//LSB - day, MSB - mounth
+u16 getDayAndMonth() {
+	return getDayAndMonthFromDate(getDayInYear());
+}
+
+u08 getDaysInMonth(u08 month) {
+	return daysInYear[month];
 }
 
 void setSeconds(u32 sec) {
 	while(seconds != sec) seconds = sec;
+}
+
+Date_t getDateFromSeconds(Time_t sec){
+	Date_t res;
+	res.min = getMinutesFromSec(sec);
+	res.hour = getHourFromSec(sec);
+	u16 temp = getDayAndMonthFromDate(getDayInYearFromSec(sec));
+	res.day = (u08)(temp & 0xFF);
+	res.mon = (u08)(temp>>8);
+	res.year = (sec/SECONDS_IN_YEAR) + 1970;
+	return res;
 }
 
 #include "MyString.h"
@@ -1204,8 +1236,8 @@ bool_t freeMutex(const u08 mutexNumb)
 volatile static struct
 {
     CycleFuncPtr_t Call_Back;
-    unsigned int value;
-    unsigned int time;
+    Time_t value;
+    Time_t time;
     bool_t flagToManager;
 }Timers_Array[TIMERS_ARRAY_SIZE];
 
@@ -1219,7 +1251,7 @@ static void initCycleTask(void)
     }
 }
 
-void SetCycleTask(unsigned int time, CycleFuncPtr_t CallBack, bool_t toManager) {
+void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t toManager) {
     bool_t flag_int = FALSE;
     if(INTERRUPT_STATUS) {
         flag_int = TRUE;
