@@ -201,9 +201,9 @@ typedef struct {
     u16 getYear();
     u08 getDaysInMonth(u08 month);
     Date_t getDateFromSeconds(Time_t sec);
-
     void setSeconds(u32 sec);
     void setDate(string_t date); //YY.MM.DD hh:mm:ss
+    s08 compareDates(Date_t* date1, Date_t* date2); /* * return >0 if date1 > date2  * return 0 if date = date2  * return <0 if date1 < date2  */
 	#define TIME_INDEX 2
 	#define SUMMER_TIME
 #endif

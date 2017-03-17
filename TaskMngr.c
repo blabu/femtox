@@ -217,6 +217,26 @@ Date_t getDateFromSeconds(Time_t sec){
 	return res;
 }
 
+/*
+ * return >0 if date1 > date2
+ * return 0 if date = date2
+ * return <0 if date1 < date2
+ */
+s08 compareDates(Date_t* date1, Date_t* date2){
+	if(date1 == NULL || date2 == NULL) return 0;
+	s16 different = date1->year - date2->year;
+	if(!different) return (s08)(different>>8);
+	different = date1->mon - date2->mon;
+	if(!different) return (s08)(different>>8);
+	different = date1->day - date2->day;
+	if(!different) return (s08)(different>>8);
+	different = date1->hour - date2->hour;
+	if(!different) return (s08)(different>>8);
+	different = date1->min - date2->min;
+	if(!different) return (s08)(different>>8);
+	return 0;
+}
+
 #include "MyString.h"
 // input date must have format YY.MM.DD hh:mm:ss
 void setDate(string_t date) {
