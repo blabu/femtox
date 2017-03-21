@@ -140,7 +140,7 @@ static u16 getDayInYearFromSec(Time_t sec) { // День в году
 	u16 result = (u16)(sec/SECONDS_IN_DAY); // Кол-во дней с 1970 года
 	result %= 365;
 	// Поправка на высокосные годы
-	u16 year  = getYear();
+	u16 year  = getYearFromSec(sec);
 	u08 dataOffset = 0;
 	if(year > 1972) // Больше первого высокосного года
 	 	dataOffset = ((year - 1972)>>2);
@@ -208,6 +208,7 @@ void setSeconds(u32 sec) {
 
 Date_t getDateFromSeconds(Time_t sec){
 	Date_t res;
+	res.sec = sec%60;
 	res.min = getMinutesFromSec(sec);
 	res.hour = getHourFromSec(sec);
 	u16 temp = getDayAndMonthFromDate(getDayInYearFromSec(sec));
@@ -225,15 +226,17 @@ Date_t getDateFromSeconds(Time_t sec){
 s08 compareDates(Date_t* date1, Date_t* date2){
 	if(date1 == NULL || date2 == NULL) return 0;
 	s16 different = date1->year - date2->year;
-	if(!different) return (s08)(different>>8);
+	if(different) return (s08)(different);
 	different = date1->mon - date2->mon;
-	if(!different) return (s08)(different>>8);
+	if(different) return (s08)(different);
 	different = date1->day - date2->day;
-	if(!different) return (s08)(different>>8);
+	if(different) return (s08)(different);
 	different = date1->hour - date2->hour;
-	if(!different) return (s08)(different>>8);
+	if(different) return (s08)(different);
 	different = date1->min - date2->min;
-	if(!different) return (s08)(different>>8);
+	if(different) return (s08)(different);
+	different = date1->sec - date2->sec;
+	if(different) return (s08)(different);
 	return 0;
 }
 

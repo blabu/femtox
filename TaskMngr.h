@@ -186,6 +186,7 @@ void showAllDataStruct(); // передает в ЮАРТ данные о все
 
 #ifdef CLOCK_SERVICE
 typedef struct {
+	u08 sec;
   	u08 min;
    	u08 hour;
    	u08 day;
