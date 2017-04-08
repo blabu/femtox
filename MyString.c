@@ -1,6 +1,10 @@
 // Файл работы со строками
 #include "MyString.h"
 
+#ifndef NULL
+#define NULL 0
+#endif
+
 #define END_STRING '\0'
 /*
 command - строка, которую ищут

@@ -148,12 +148,12 @@ static u16 getDayInYearFromSec(Time_t sec) { // День в году
 	return result;
 }
 
-static u16 getDayAndMonthFromDate(u16 dayInYear) { //LSB - day, MSB - mounth
+static u16 getDayAndMonthFromDay(u16 dayInYear) { //LSB - day, MSB - mounth
 	u08 month=0;
 	u08 day = 0;
 	for(; month<12; month++) {
 		if(dayInYear > daysInYear[month]) {
-			dayInYear -= (daysInYear[month] );  // Учитываем что день в месяце начинается с 0
+			dayInYear -= ( daysInYear[month] );  // Учитываем что день в месяце начинается с 0
 		}
 		else break;
 	}
@@ -162,8 +162,8 @@ static u16 getDayAndMonthFromDate(u16 dayInYear) { //LSB - day, MSB - mounth
 #if TIME_INDEX>1
 #ifdef SUMMER_TIME
 	//Если месяц больше марта (т.е. апрель или дальше) и меньше ноября (т.е. окябрь или меньше)
-	if(month > 3 || month < 11) timeCorrectSummer = TIME_INDEX;
-	else timeCorrectSummer = TIME_INDEX-1;
+	if(month > 3 && month < 11) timeCorrectSummer = TIME_INDEX+1;
+	else timeCorrectSummer = TIME_INDEX;
 #else
 	timeCorrectSummer = TIME_INDEX;
 #endif
@@ -195,7 +195,7 @@ u16 getDayInYear() { // День в году
 
 //LSB - day, MSB - mounth
 u16 getDayAndMonth() {
-	return getDayAndMonthFromDate(getDayInYear());
+	return getDayAndMonthFromDay(getDayInYear());
 }
 
 u08 getDaysInMonth(u08 month) {
@@ -211,11 +211,42 @@ Date_t getDateFromSeconds(Time_t sec){
 	res.sec = sec%60;
 	res.min = getMinutesFromSec(sec);
 	res.hour = getHourFromSec(sec);
-	u16 temp = getDayAndMonthFromDate(getDayInYearFromSec(sec));
+	u16 temp = getDayAndMonthFromDay(getDayInYearFromSec(sec));
 	res.day = (u08)(temp & 0xFF);
 	res.mon = (u08)(temp>>8);
 	res.year = (sec/SECONDS_IN_YEAR) + 1970;
 	return res;
+}
+
+
+void addOneSecondToDate(Date_t* date){
+	if(date->sec < 59) date->sec++;
+	else if(date->min < 59) date->min++;
+	else if(date->hour < 23) date->hour++;
+	else if(date->day < getDaysInMonth(date->mon)) date->day++;
+	else if(date->mon < 12) date->mon++;
+	else date->year++;
+}
+
+void addOneMinutesToDate(Date_t* date){
+	if(date->min < 59) date->min++;
+	else if(date->hour < 23) date->hour++;
+	else if(date->day < getDaysInMonth(date->mon)) date->day++;
+	else if(date->mon < 12) date->mon++;
+	else date->year++;
+}
+
+void addOneHourToDate(Date_t* date){
+	if(date->hour < 23) date->hour++;
+	else if(date->day < getDaysInMonth(date->mon)) date->day++;
+	else if(date->mon < 12) date->mon++;
+	else date->year++;
+}
+
+void addOneDayToDate(Date_t* date){
+	if(date->day < getDaysInMonth(date->mon)) date->day++;
+	else if(date->mon < 12) date->mon++;
+	else date->year++;
 }
 
 /*

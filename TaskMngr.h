@@ -176,7 +176,7 @@ void showAllDataStruct(); // передает в ЮАРТ данные о все
 #endif
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 6200
+#define HEAP_SIZE 6500
     byte_ptr allocMem(u08 size);  //size - до 127 размер блока выделяемой памяти
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
     void freeMem(byte_ptr data);  // Освобождение памяти
@@ -205,6 +205,10 @@ typedef struct {
     void setSeconds(u32 sec);
     void setDate(string_t date); //YY.MM.DD hh:mm:ss
     s08 compareDates(Date_t* date1, Date_t* date2); /* * return >0 if date1 > date2  * return 0 if date = date2  * return <0 if date1 < date2  */
+    void addOneSecondToDate(Date_t* date);
+    void addOneMinutesToDate(Date_t* date);
+    void addOneHourToDate(Date_t* date);
+    void addOneDayToDate(Date_t* date);
 	#define TIME_INDEX 2
 	#define SUMMER_TIME
 #endif
