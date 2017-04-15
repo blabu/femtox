@@ -373,8 +373,7 @@ void runFemtOS( void )
     }
 }
 
-void ResetFemtOS(void)
-{
+void ResetFemtOS(void){
     WATCH_DOG_ON;
     while(1);
 }
@@ -1418,7 +1417,7 @@ globalFlags_t getGlobalFlags(){
 #error "incompatible size"
 #endif
 static u08 heap[HEAP_SIZE];  // Сама куча
-static u16 sizeAllFreeMemmory;
+static u16 sizeAllFreeMemmory = HEAP_SIZE;
 
 static void initHeap(void)
 {
@@ -1434,6 +1433,8 @@ u16 getFreeMemmorySize(){
 void defragmentation(void){
     u16 i = 0;
     u08 blockSize = 0;
+//    bool_t overflowMemmory = FALSE;
+//    if(sizeAllFreeMemmory <= HEAP_SIZE>>4) overflowMemmory = TRUE;
     sizeAllFreeMemmory=HEAP_SIZE;
     bool_t flag_int = FALSE;
     while(i < HEAP_SIZE)    // Пока не закончится куча
@@ -1467,6 +1468,24 @@ void defragmentation(void){
         blockSize = currentBlockSize;
         i += blockSize + 1;
     }
+//    if(overflowMemmory && (sizeAllFreeMemmory <= HEAP_SIZE>>8)) clearAllMemmory();
+}
+
+void clearAllMemmory(){
+	u16 i = 0;
+    bool_t flag_int = FALSE;
+    if(INTERRUPT_STATUS)
+    {
+        flag_int = TRUE;
+        INTERRUPT_DISABLE;
+    }
+    while(i < HEAP_SIZE) {
+    	u08 blockSize = heap[i] & 0x7F;
+    	if(!blockSize) break;
+    	heap[i] &= ~(1<<7);
+    	i+=blockSize;
+    }
+    if(flag_int) INTERRUPT_ENABLE;
 }
 
 byte_ptr allocMem(u08 size)  //size - до 127 размер блока выделяемой памяти
@@ -1510,8 +1529,7 @@ byte_ptr allocMem(u08 size)  //size - до 127 размер блока выде�
     return (heap + i + 1); // Иначе вернем валидный указатель на начало массива
 }
 
-void freeMem(byte_ptr data)
-{
+void freeMem(byte_ptr data) {
     if(data > heap &&
        data < heap + HEAP_SIZE)  // Если мы передали валидный указатель
     {
