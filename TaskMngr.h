@@ -13,7 +13,7 @@
 #define DATA_STRUCT_MANAGER   /*Включаем работу с очередями средствами деспетчера*/
 #define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/
 //#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
-#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
+//#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 #define ALLOC_MEM   /*Включение динамического выделения памяти*/
 #define QUICK       /*Оптимизация диспетчера по скорости*/
 //#define EVENT_LOOP_TASKS
@@ -182,6 +182,7 @@ void showAllDataStruct(); // передает в ЮАРТ данные о все
     void freeMem(byte_ptr data);  // Освобождение памяти
     void defragmentation(void);         // Дефрагментация памяти
     u16 getFreeMemmorySize();
+    void clearAllMemmory(); // Аварийное освобождение памяти
 #endif //ALLOC_MEM
 
 #ifdef CLOCK_SERVICE
