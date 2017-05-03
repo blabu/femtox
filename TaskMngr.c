@@ -623,7 +623,6 @@ void delTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data)
 }
 #endif  // NOT QUICK
 
-
 #ifdef __cplusplus
 }
 #endif
