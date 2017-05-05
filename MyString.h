@@ -47,7 +47,11 @@ void toStringUnsignDec(u32 data, string_t c_str);
 
 void doubleToString(double data, string_t c_str, u08 precision);
 
-void shiftString(BaseSize_t poz, string_t c_str); // Смещает строку на poz элементов влево
+void shiftStringLeft(BaseSize_t poz, string_t c_str);
+void shiftStringRight(BaseSize_t poz, string_t c_str);
+
+// Заменяет все символы в строке длиной size (если size==0 определит длину сама)
+void replaceAllSymbols(string_t c_str, const char symbolOrigin, const char symbolReplacement, BaseSize_t size);
 
 //Вернет размер строки
 BaseSize_t strSize(const string_t c_str);

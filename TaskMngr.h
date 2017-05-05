@@ -182,6 +182,7 @@ void showAllDataStruct(); // передает в ЮАРТ данные о все
     void freeMem(byte_ptr data);  // Освобождение памяти
     void defragmentation(void);         // Дефрагментация памяти
     u16 getFreeMemmorySize();
+    u16 getAllocateMemmorySize(byte_ptr data);
     void clearAllMemmory(); // Аварийное освобождение памяти
 #endif //ALLOC_MEM
 

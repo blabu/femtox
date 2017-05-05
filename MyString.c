@@ -227,14 +227,23 @@ s08 toInt08(const string_t c_str){
 	return res;
 }
 
-void shiftString(BaseSize_t poz, string_t c_str){
+void shiftStringLeft(BaseSize_t poz, string_t c_str){
   BaseSize_t size = strSize(c_str);
   BaseSize_t i=0;
   while(poz<size){
     c_str[i]=c_str[poz];
     i++, poz++;
   }
-  c_str[i] = '\0';
+  c_str[i] = END_STRING;
+}
+
+void shiftStringRight(BaseSize_t poz, string_t c_str) {
+	BaseSize_t size = strSize(c_str);
+	poz += size;
+	while(size) {
+		c_str[poz] = c_str[size];
+	    poz--; size--;
+	}
 }
 
 
@@ -260,3 +269,12 @@ void doubleToString(double data, string_t c_str, u08 precision) {
 	}
 }
 
+
+void replaceAllSymbols(string_t c_str, const char symbolOrigin, const char symbolReplacement, BaseSize_t size) {
+	if(c_str == NULL) return;
+	if(!size) size = strSize(c_str);
+	for(BaseSize_t i = 0; i<size; i++) {
+		if(c_str[i] == symbolOrigin) c_str[i] = symbolReplacement;
+	}
+	c_str[size] = END_STRING;
+}
