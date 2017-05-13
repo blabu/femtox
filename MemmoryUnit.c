@@ -36,11 +36,20 @@ u16 getFreeMemmorySize(){
     return sizeAllFreeMemmory;
 }
 
+u16 getAllocateMemmorySize(byte_ptr data) {
+    u16 size = 0;
+	if(data > heap &&
+       data < heap + HEAP_SIZE)  // Если мы передали валидный указатель
+    {
+		size = *(data-1);
+		if(!(size & (1<<7))) size = 0; // Если старший бит не установлен значит память пустая
+    }
+	return size;
+}
+
 void defragmentation(void){
     u16 i = 0;
     u08 blockSize = 0;
-//    bool_t overflowMemmory = FALSE;
-//    if(sizeAllFreeMemmory <= HEAP_SIZE>>4) overflowMemmory = TRUE;
     sizeAllFreeMemmory=HEAP_SIZE;
     bool_t flag_int = FALSE;
     while(i < HEAP_SIZE)    // Пока не закончится куча
@@ -74,7 +83,6 @@ void defragmentation(void){
         blockSize = currentBlockSize;
         i += blockSize + 1;
     }
-//    if(overflowMemmory && (sizeAllFreeMemmory <= HEAP_SIZE>>8)) clearAllMemmory();
 }
 
 void clearAllMemmory(){

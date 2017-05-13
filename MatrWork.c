@@ -41,8 +41,7 @@ void rotate90LeftSqrtMatr(BaseSize_t size, BaseParam_t matr)
   freeMem(copy);  
 }
 
-void swapByte(unsigned char* byte1, unsigned char* byte2)
-{
+void swapByte(byte_ptr byte1, byte_ptr byte2) {
   unsigned char temp = *byte1;
   *byte1 = *byte2;
   *byte2 = temp;
