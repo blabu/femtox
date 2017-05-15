@@ -162,7 +162,7 @@ void showAllDataStruct(); // передает в ЮАРТ данные о все
 #endif //MUTEX_ENABLE
 
 #ifdef CYCLE_FUNC
-     #define TIMERS_ARRAY_SIZE 8
+     #define TIMERS_ARRAY_SIZE 9
      void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t toManager); // toManager == 0(false) выполняется прям в прерывании
      void delCycleTask(CycleFuncPtr_t CallBack);
 #endif //CYCLE_FUNC
