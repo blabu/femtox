@@ -23,8 +23,8 @@
 #define CALL_BACK_TASK
 
 
-#define TASK_LIST_LEN 10U /*Длина очереди задач*/
-#define TIME_LINE_LEN 20U /*Максимальне количество системных таймеров*/
+#define TASK_LIST_LEN 15U /*Длина очереди задач*/
+#define TIME_LINE_LEN 25U /*Максимальне количество системных таймеров*/
 #define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
 typedef char* string_t;
@@ -162,7 +162,7 @@ void showAllDataStruct(); // передает в ЮАРТ данные о все
 #endif //MUTEX_ENABLE
 
 #ifdef CYCLE_FUNC
-     #define TIMERS_ARRAY_SIZE 8
+     #define TIMERS_ARRAY_SIZE 10
      void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t toManager); // toManager == 0(false) выполняется прям в прерывании
      void delCycleTask(CycleFuncPtr_t CallBack);
 #endif //CYCLE_FUNC
@@ -176,7 +176,7 @@ void showAllDataStruct(); // передает в ЮАРТ данные о все
 #endif
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 6500
+#define HEAP_SIZE 9500 /*6500*/
     byte_ptr allocMem(u08 size);  //size - до 127 размер блока выделяемой памяти
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
     void freeMem(byte_ptr data);  // Освобождение памяти
@@ -216,7 +216,7 @@ typedef struct {
 #endif
 
 #ifdef CALL_BACK_TASK
-#define CALL_BACK_TASK_LIST_LEN 25
+#define CALL_BACK_TASK_LIST_LEN 30
 #ifndef OVERFLOW_OR_EMPTY_ERROR
 #define OVERFLOW_OR_EMPTY_ERROR 2
 #endif

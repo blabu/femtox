@@ -47,10 +47,6 @@ static  u08 getMinutesFromSec(Time_t sec) {
 static u08 getHourFromSec(Time_t sec) {
     sec = (sec/3600UL); // Определяем сколько всего часов прошло
     sec %= 24; // от 0 до 23 часов
-#ifdef TIME_INDEX
-    sec += timeCorrectSummer;
-    if(sec > 23) sec -= 24;
-#endif
     return (u08)sec;
 }
 
@@ -79,8 +75,8 @@ static u16 getDayAndMonthFromDay(u16 dayInYear) { //LSB - day, MSB - mounth
 		}
 		else break;
 	}
-	day = dayInYear & 0x1F;
-	month+=1;
+	day = dayInYear & 0x1F; // 32 (Обнуляем все старшие биты) на всякий случай
+	month+=1;	// Чтобы год начинался с 1-го месяца
 #if TIME_INDEX>1
 #ifdef SUMMER_TIME
 	//Если месяц больше марта (т.е. апрель или дальше) и меньше ноября (т.е. окябрь или меньше)
@@ -104,7 +100,12 @@ u08 getMinutes(){
 }
 
 u08 getHour(){
-	return getHourFromSec(getAllSeconds());
+	u08 nowHour = getHourFromSec(getAllSeconds());
+#ifdef TIME_INDEX
+	nowHour += timeCorrectSummer;
+    if(nowHour > 23) nowHour -= 24;
+#endif
+	return nowHour;
 }
 
 u16 getYear(){
