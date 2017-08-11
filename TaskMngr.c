@@ -569,7 +569,7 @@ void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
     MaximizeErrorHandler();
 #else
     if(flag_inter) INTERRUPT_ENABLE;		// Востанавливаем прерывание если необходимо.
-    return 1; //  тут можно сделать return c кодом ошибки - нет свободных таймеров
+    return; //  тут можно сделать return c кодом ошибки - нет свободных таймеров
 #endif
 }
 

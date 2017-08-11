@@ -32,6 +32,17 @@ bool_t str1_str2(const string_t small, const string_t big){ // Функция в
   if(findStr(small,big)<0) return FALSE;
   return TRUE;
 }
+
+bool_t strCompare(const string_t str1, const string_t str2){
+	u08 size1 = strSize(str1);
+	u08 size2 = strSize(str2);
+	if(size1 != size2) return FALSE;
+	for(u08 i = 0; i< size1; i++) {
+		if(str1[i] != str2[i]) return FALSE;
+	}
+	return TRUE;
+}
+
 // Ищет символ symb в строке c_str (вернет позицию этого символа в строке) Если не нашло вернет отрицательный результат
 s08 findSymb(const char symb, const string_t c_str){
 	  if(c_str == NULL) return -1;
@@ -50,8 +61,7 @@ s08 findSymb(const char symb, const string_t c_str){
 BaseSize_t strSize(const string_t c_str){
   u08 i = 0;
   if(c_str == NULL) return 0;
-  while(c_str[i] != END_STRING)
-  {
+  while(c_str[i] != END_STRING){
     i++;
     if(!i) break; // Если переполнился выходим из функции с результатом 0 (не нашли конца строки)
   }

@@ -166,7 +166,7 @@ u08 PutToFrontDataStruct(const void* Elem, const void* Array)
     return EVERYTHING_IS_OK;
 }
 
-// Полоожить элемент Elem в конец абстрактной структуры данных Array
+// Положить элемент Elem в конец абстрактной структуры данных Array
 u08 PutToEndDataStruct(const void* Elem, const void* Array){
     bool_t flag_int = FALSE;
     register u08 i = findNumberDataStruct(Array);
@@ -174,8 +174,7 @@ u08 PutToEndDataStruct(const void* Elem, const void* Array){
     BaseSize_t endCount = (Data_Array[i].lastCount)? Data_Array[i].lastCount:Data_Array[i].sizeAllElements;
     endCount--;
     if(endCount == Data_Array[i].firstCount) return OVERFLOW_OR_EMPTY_ERROR;  // Если она заполнена полностью писать некуда
-    if(INTERRUPT_STATUS)
-    {
+    if(INTERRUPT_STATUS) {
         flag_int = TRUE;
         INTERRUPT_DISABLE;
     }
@@ -294,31 +293,39 @@ u08 peekFromEndData(void* returnValue, const void* Array)
     return EVERYTHING_IS_OK;   // Если все впорядке возвращаем ноль
 }
 
-void clearDataStruct(const void * const Data)
-{
+void clearDataStruct(const void * const Data){
     bool_t flag_int = FALSE;
     register u08 i = findNumberDataStruct(Data);
     if(i == ArraySize) return;
-    if(INTERRUPT_STATUS)
-    {
+    if(INTERRUPT_STATUS) {
         flag_int = TRUE;
         INTERRUPT_DISABLE;
     }
-    Data_Array[i].firstCount= Data_Array[i].sizeAllElements; // Очищаем от данных наш массив
+    Data_Array[i].firstCount = Data_Array[i].sizeAllElements; // Очищаем от данных наш массив
     Data_Array[i].lastCount = Data_Array[i].sizeAllElements;
     if(flag_int) INTERRUPT_ENABLE;  // Если все происходило не в прерывании восстанавливаем разрешение прерываний
 }
 
-bool_t isEmptyDataStruct(const void* const Data)
-{
+bool_t isEmptyDataStruct(const void* const Data){
     register u08 i = findNumberDataStruct(Data);
     if(i == ArraySize) return TRUE; // Если такой структуры нет она точно пустая
     bool_t res = (Data_Array[i].firstCount == Data_Array[i].lastCount); // Если они равны друг другу значит пустая
     return res;
 }
 
-void for_each(const void* const Array, TaskMng tsk)
-{
+BaseSize_t getSizeDataStruct(const void* const Data) {
+	register u08 i = findNumberDataStruct(Data);
+	if(i == ArraySize) return 0;
+	BaseSize_t first = 0;
+	BaseSize_t last = 0;
+	while(first != Data_Array[i].firstCount) first = Data_Array[i].firstCount;
+	while(last != Data_Array[i].lastCount) last = Data_Array[i].lastCount;
+	if(last > first) return (first + (Data_Array[i].sizeAllElements-last) + 1);
+	if(first > last) return (first - last);
+	return 0;
+}
+
+void for_each(const void* const Array, TaskMng tsk) {
     register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return;
     for(BaseSize_t j=Data_Array[i].firstCount; j!=Data_Array[i].lastCount;)

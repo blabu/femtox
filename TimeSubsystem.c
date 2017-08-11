@@ -103,7 +103,7 @@ u08 getHour(){
 	u08 nowHour = getHourFromSec(getAllSeconds());
 #ifdef TIME_INDEX
 	nowHour += timeCorrectSummer;
-    if(nowHour > 23) nowHour -= 24;
+    if(nowHour > 23) nowHour -= 24; // Если часы равны 24 и более
 #endif
 	return nowHour;
 }

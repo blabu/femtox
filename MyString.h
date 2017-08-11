@@ -8,6 +8,8 @@
 // Если не нашли FALSE
 bool_t str1_str2(const string_t small, const string_t big);
 
+bool_t strCompare(const string_t str1, const string_t str2);
+
 // command - строка, которую ищут
 // answer  - строка, в которой ищут
 // Функция возвращает адресс начала входа подстроки в строку

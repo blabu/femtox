@@ -119,6 +119,7 @@ void MaximizeErrorHandler();
 #define EVERYTHING_IS_OK            0
 u08 CreateDataStruct(const void * const D, const BaseSize_t sizeElement, const BaseSize_t sizeAll);
 u08 delDataStruct(const void * const Data);                                    // Удаляем структуру из списка структур
+BaseSize_t getSizeDataStruct(const void* const Data);
 u08 PutToCycleDataStruct(const void* Elem, const void* Array);
 u08 GetFromCycleDataStruct(void* returnValue, const void* Array);
 u08 PutToFrontDataStruct(const void * const Elem, const void * const Array);   // Кладем элемент в начало
