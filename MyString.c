@@ -237,6 +237,13 @@ s08 toInt08(const string_t c_str){
 	return res;
 }
 
+bool_t isDigit(const char symb) {
+	if(symb < '0') return FALSE;
+	if(symb > '9' && symb < 'A') return FALSE;
+	if(symb > 'F') return FALSE;
+	return TRUE;
+}
+
 void shiftStringLeft(BaseSize_t poz, string_t c_str){
   BaseSize_t size = strSize(c_str);
   BaseSize_t i=0;
@@ -278,7 +285,6 @@ void doubleToString(double data, string_t c_str, u08 precision) {
 		*endString = END_STRING;
 	}
 }
-
 
 void replaceAllSymbols(string_t c_str, const char symbolOrigin, const char symbolReplacement, BaseSize_t size) {
 	if(c_str == NULL) return;

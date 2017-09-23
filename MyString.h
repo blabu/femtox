@@ -45,6 +45,9 @@ void toString(u08 capacity, s32 data, string_t c_str);
 void toStringUnsign(u08 capacity, u32 data, string_t c_str);
 
 void toStringDec(s32 data, string_t c_str);
+
+bool_t isDigit(const char symb);
+
 void toStringUnsignDec(u32 data, string_t c_str);
 
 void doubleToString(double data, string_t c_str, u08 precision);

@@ -227,6 +227,7 @@ typedef struct {
     u08 registerCallBack(TaskMng task, BaseSize_t arg_n, BaseParam_t arg_p, void* labelPtr);
     void execCallBack(void* labelPtr);
     void execErrorCallBack(BaseSize_t errorCode, void* labelPtr);
+    void deleteCallBack(void* labelPtr);
     u08 changeCallBackLabel(void* oldLabel, void* newLabel);
 #endif
 //---------------------------------------------------------	СИНОНИМЫ API функций ядра ------------------------------------------------------------

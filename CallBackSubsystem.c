@@ -54,24 +54,50 @@ u08 registerCallBack(TaskMng task, BaseSize_t arg_n, BaseParam_t arg_p, void* la
 	return EVERYTHING_IS_OK;
 }
 
+void deleteCallBack(void* labelPtr){
+	bool_t flag_isr = FALSE;
+		for(u08 i = 0; i < CALL_BACK_TASK_LIST_LEN; i++){
+			if(labelPointer[i] == labelPtr) {
+				if(INTERRUPT_STATUS){
+					flag_isr = TRUE;
+					INTERRUPT_DISABLE;
+				}
+				labelPointer[i] = NULL;
+				if(flag_isr) INTERRUPT_ENABLE;
+			}
+		}
+}
+
 void execCallBack(void* labelPtr){
+	bool_t flag_isr = FALSE;
 	for(u08 i = 0; i < CALL_BACK_TASK_LIST_LEN; i++){
 		if(labelPointer[i] == labelPtr){
 			if(callBackList[i].Task != NULL) {
 			 	SetTask(callBackList[i].Task,callBackList[i].arg_n,callBackList[i].arg_p);
 			}
+			if(INTERRUPT_STATUS){
+				flag_isr = TRUE;
+				INTERRUPT_DISABLE;
+			}
 			labelPointer[i] = NULL;
+			if(flag_isr) INTERRUPT_ENABLE;
 	    }
 	}
 }
 
 void execErrorCallBack(BaseSize_t errorCode, void* labelPtr){
+	bool_t flag_isr = FALSE;
 	for(u08 i = 0; i < CALL_BACK_TASK_LIST_LEN; i++){
 		if(labelPointer[i] == labelPtr){
 			if(callBackList[i].Task != NULL) {
 			 	SetTask(callBackList[i].Task,errorCode,callBackList[i].arg_p);
 			}
+			if(INTERRUPT_STATUS){
+				flag_isr = TRUE;
+				INTERRUPT_DISABLE;
+			}
 			labelPointer[i] = NULL;
+			if(flag_isr) INTERRUPT_ENABLE;
 	    }
 	}
 }
