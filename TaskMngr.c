@@ -72,9 +72,9 @@ static TaskList_t MainTimer[TIME_LINE_LEN]; // Указатель задачи, 
 
 
 volatile static Time_t GlobalTick;
-Time_t getTime(void) {
-	Time_t time_res = 0;
-    while(time_res != GlobalTick) time_res = GlobalTick;      // Так как переменная у нас двухбайтная
+u32 getTick(void) {
+	u32 time_res = 0;
+    while(time_res != GlobalTick) time_res = (u32)GlobalTick;      // Так как переменная у нас двухбайтная
 #ifdef CLOCK_SERVICE
     time_res += seconds*TICK_PER_SECOND;
 #endif
@@ -85,7 +85,7 @@ Time_t getTime(void) {
 static void ClockService(){
     GlobalTick++;
 #ifdef CLOCK_SERVICE
-    if(GlobalTick == TICK_PER_SECOND) {
+    if(GlobalTick >= TICK_PER_SECOND) {
     	seconds++;
     	GlobalTick = 0;
     }

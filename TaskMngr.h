@@ -101,7 +101,7 @@ void SetIdleTask(IdleTask_t Task);
 //Задача должна иметь сигнатуру void Task(void)
 
 
-u32 getTime(void);     // Вернет текущее время в тиках диспетчера
+u32 getTick(void);
 
 void MaximizeErrorHandler();
 
