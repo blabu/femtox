@@ -233,6 +233,15 @@ bool_t isEmptyTaskList( void ){
 	return FALSE;
 }
 
+u08 getFreePositionForTask(){
+	u08 end = 0;
+	u08 begin = 0;
+	while(begin != countBegin) begin = countBegin;
+	while(end != countEnd) end = countEnd;
+	if(end >= begin) return (TASK_LIST_LEN - (end-begin));
+	return begin - end;
+}
+
 #ifdef SET_FRONT_TASK_ENABLE
 void SetFrontTask (TaskMng New_Task, BaseSize_t n, BaseParam_t data) // Функция помещает в НАЧАЛО очереди задачу New_Task
 {
@@ -370,6 +379,10 @@ void delTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data)
         MainTime[index] = MainTime[lastTimerIndex];
         if(flag_inter) INTERRUPT_ENABLE;
     }
+}
+
+u08 getFreePositionForTimerTask() {
+	return TIME_LINE_LEN - lastTimerIndex;
 }
 #else // NOT QUICK
 // Функция Планировщика (Менеджера) задач. Она запускает ту функцию, которая должна сейчас выполнятся.

@@ -21,7 +21,8 @@
 #define CLOCK_SERVICE
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
-
+#define _LIST_STRUCT
+#define _DYNAMIC_ARRAY
 
 #define TASK_LIST_LEN 15U /*Длина очереди задач*/
 #define TIME_LINE_LEN 25U /*Максимальне количество системных таймеров*/
@@ -73,6 +74,8 @@ void SetTask (TaskMng New_Task, BaseSize_t n, BaseParam_t data); /* Функци
  */
 
 bool_t isEmptyTaskList( void );
+u08 getFreePositionForTask();
+u08 getFreePositionForTimerTask();
 
 #ifdef SET_FRONT_TASK_ENABLE
     void SetFrontTask (TaskMng New_Task, BaseSize_t n, BaseParam_t data); // Поставить задачу в начало очереди
@@ -165,7 +168,7 @@ void showAllDataStruct(); // передает в ЮАРТ данные о все
 #ifdef CYCLE_FUNC
      #define TIMERS_ARRAY_SIZE 10
      void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t toManager); // toManager == 0(false) выполняется прям в прерывании
-     void delCycleTask(CycleFuncPtr_t CallBack);
+     void delCycleTask(BaseSize_t arg_n, CycleFuncPtr_t CallBack);
 #endif //CYCLE_FUNC
 
 #ifdef GLOBAL_FLAGS
@@ -177,7 +180,7 @@ void showAllDataStruct(); // передает в ЮАРТ данные о все
 #endif
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 9500 /*6500*/
+#define HEAP_SIZE 10000 /*6500*/
     byte_ptr allocMem(u08 size);  //size - до 127 размер блока выделяемой памяти
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
     void freeMem(byte_ptr data);  // Освобождение памяти
@@ -227,7 +230,7 @@ typedef struct {
     u08 registerCallBack(TaskMng task, BaseSize_t arg_n, BaseParam_t arg_p, void* labelPtr);
     void execCallBack(void* labelPtr);
     void execErrorCallBack(BaseSize_t errorCode, void* labelPtr);
-    void deleteCallBack(void* labelPtr);
+    void deleteCallBack(BaseSize_t arg_n, void* labelPtr);
     u08 changeCallBackLabel(void* oldLabel, void* newLabel);
 #endif
 //---------------------------------------------------------	СИНОНИМЫ API функций ядра ------------------------------------------------------------

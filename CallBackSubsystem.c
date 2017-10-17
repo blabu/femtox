@@ -54,7 +54,7 @@ u08 registerCallBack(TaskMng task, BaseSize_t arg_n, BaseParam_t arg_p, void* la
 	return EVERYTHING_IS_OK;
 }
 
-void deleteCallBack(void* labelPtr){
+void deleteCallBack(BaseSize_t arg_n, void* labelPtr){
 	bool_t flag_isr = FALSE;
 		for(u08 i = 0; i < CALL_BACK_TASK_LIST_LEN; i++){
 			if(labelPointer[i] == labelPtr) {
