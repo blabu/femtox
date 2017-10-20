@@ -26,7 +26,7 @@ void strCat(string_t c_str1, const string_t c_str2);
 
 //Копирует numb байт строки c_str начиная с позиции pos в строку result.
 void strCopy(string_t result, const string_t c_str, BaseSize_t numb, BaseSize_t pos);
-
+char* strcpy (string_t destination, const string_t source);
 void strClear(string_t str);
 
 

@@ -3,6 +3,7 @@
 #include "stm32l1xx_hal.h"
 #include "cmsis_gcc.h"
 
+#define ARCH 8 /*Архитектура процессора 8, 16, 32 байта (разрядность шины данных)*/
 
 void initWatchDog();
 void resetWatchDog();

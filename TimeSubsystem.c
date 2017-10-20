@@ -14,7 +14,7 @@ extern "C" {
 
 #ifdef CLOCK_SERVICE
 
-volatile u32 seconds = 0;
+volatile u32 __systemSeconds = 0;
 
 #define SECONDS_2000 946684800UL  /*Колличество секунд с 1970 по 2000*/
 #define SECONDS_IN_YEAR 31536000UL
@@ -91,7 +91,7 @@ static u16 getDayAndMonthFromDay(u16 dayInYear) { //LSB - day, MSB - mounth
 
 Time_t getAllSeconds(){
 	u32 temp = 0;
-	while(temp != seconds) temp = seconds;
+	while(temp != __systemSeconds) temp = __systemSeconds;
 	return temp;
 }
 
@@ -126,7 +126,7 @@ u08 getDaysInMonth(u08 month) {
 }
 
 void setSeconds(u32 sec) {
-	while(seconds != sec) seconds = sec;
+	while(__systemSeconds != sec) __systemSeconds = sec;
 }
 
 Date_t getDateFromSeconds(Time_t sec){
@@ -141,6 +141,14 @@ Date_t getDateFromSeconds(Time_t sec){
 	return res;
 }
 
+Time_t getSecondsFromDate(Date_t* date) {
+	u16 year = date->year;
+	if(year > 1970) year -= 1970;
+	u08 mounth = date->mon;
+	u08 dayOffset = (year+2)>>2; // Поправка в днях на высокосные годы
+	Time_t tempSeconds = (u32)year*SECONDS_IN_YEAR + ((u32)daysInYear[mounth-1] + (u32)(date->day) + (u32)dayOffset)*SECONDS_IN_DAY + (u32)(date->hour)*3600 + (u32)(date->min)*60 + date->sec;
+	return tempSeconds;
+}
 
 void addOneSecondToDate(Date_t* date){
 	if(date->sec < 59) date->sec++;

@@ -31,7 +31,7 @@ extern void initEventList( void );
 #endif
 
 #ifdef CLOCK_SERVICE
-extern u32 seconds;
+extern u32 __systemSeconds;
 #endif
 
 static void ClockService( void );
@@ -76,7 +76,7 @@ u32 getTick(void) {
 	u32 time_res = 0;
     while(time_res != GlobalTick) time_res = (u32)GlobalTick;      // Так как переменная у нас двухбайтная
 #ifdef CLOCK_SERVICE
-    time_res += seconds*TICK_PER_SECOND;
+    time_res += __systemSeconds*TICK_PER_SECOND;
 #endif
     return time_res;
 }
@@ -86,7 +86,7 @@ static void ClockService(){
     GlobalTick++;
 #ifdef CLOCK_SERVICE
     if(GlobalTick >= TICK_PER_SECOND) {
-    	seconds++;
+    	__systemSeconds++;
     	GlobalTick = 0;
     }
 #endif
@@ -384,6 +384,38 @@ void delTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data)
 u08 getFreePositionForTimerTask() {
 	return TIME_LINE_LEN - lastTimerIndex;
 }
+
+//destination - адрес в памяти КУДА копируем source - адрес в памяти ОТКУДА копируем n - количество БАЙТ копируемых
+void memCpy(void* destination, const void* source, const BaseSize_t num) {
+#if ARCH == 32
+		BaseSize_t blocks = num>>2;		// 4-ре байта копируются за один раз
+		BaseSize_t last = num & 0x03; // остаток
+		for(BaseSize_t i = 0; i<blocks; i++) {
+			*((u32*)destination) = *((u32*)source);
+			destination+=4; source+=4;
+		}
+		for(BaseSize_t i = 0; i<last; i++) {
+			*((byte_ptr)destination) = *((byte_ptr)source);
+			(byte_ptr)destination++; (byte_ptr)source++;
+		}
+#elif ARCH == 16
+		BaseSize_t blocks = num>>1;		// 2 байта копируются за один раз
+		BaseSize_t last = num & 0x03; // остаток
+		for(BaseSize_t i = 0; i<blocks; i++) {
+			*((u32*)destination) = *((u32*)source);
+			destination+=2; source+=2;
+		}
+		for(BaseSize_t i = 0; i<last; i++) {
+			*((byte_ptr)destination) = *((byte_ptr)source);
+			(byte_ptr)destination++; (byte_ptr)source++;
+		}
+#else
+			for (BaseSize_t i = 0; i < num; i++){ //Копирование будет побайтное
+				*((byte_ptr)destination + i) = *((byte_ptr)source + i); // Выполняем копирование данных
+			}
+#endif
+}
+
 #else // NOT QUICK
 // Функция Планировщика (Менеджера) задач. Она запускает ту функцию, которая должна сейчас выполнятся.
 /*	Берется первая функция из очереди задач (TaskLine[0]) и проверяется не пустая ли она. Если не пустая, то смещаем всю чередь

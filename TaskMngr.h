@@ -29,6 +29,7 @@
 #define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
 typedef char* string_t;
+typedef unsigned long long u64;
 typedef unsigned int   u32;
 typedef unsigned short u16;
 typedef unsigned char  u08;
@@ -107,6 +108,8 @@ void SetIdleTask(IdleTask_t Task);
 u32 getTick(void);
 
 void MaximizeErrorHandler();
+
+void memCpy(void * destination, const void * source, const BaseSize_t num);
 
 #ifdef EVENT_LOOP_TASKS
 #define EVENT_LIST_SIZE 15
@@ -208,6 +211,7 @@ typedef struct {
     u16 getYear();
     u08 getDaysInMonth(u08 month);
     Date_t getDateFromSeconds(Time_t sec);
+    Time_t getSecondsFromDate(Date_t* date);
     void setSeconds(u32 sec);
     void setDate(string_t date); //YY.MM.DD hh:mm:ss
     s08 compareDates(Date_t* date1, Date_t* date2); /* * return >0 if date1 > date2  * return 0 if date = date2  * return <0 if date1 < date2  */
