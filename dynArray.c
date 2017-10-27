@@ -8,6 +8,9 @@
 #include "dynArray.h"
 
 #ifdef _DYNAMIC_ARRAY
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 DynamicArray_t* createNewDynamicArray(u08 capasity) {
 	if(capasity > 0x7F) return NULL; // Size is to big
@@ -42,4 +45,10 @@ u08 append(DynamicArray_t* array, u08* data, u08 DataSize) {
 	for(u08 i = array->size; i<(array->size + DataSize); i++) array->data[i] = data[i];
 	return EVERYTHING_IS_OK;
 }
+
+#ifdef __cplusplus
+}
+#endif
+
+
 #endif //_DYNAMIC_ARRAY
