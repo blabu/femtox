@@ -1,6 +1,11 @@
 #include "TaskMngr.h"
 #include "MatrWork.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 void rotate90RightSqrtMatr(BaseSize_t size, BaseParam_t matr)
 {
   if(size>11) return;
@@ -38,7 +43,7 @@ void rotate90LeftSqrtMatr(BaseSize_t size, BaseParam_t matr)
     	original[k*size+j]=copy[j*size + i];
     }
   }
-  freeMem(copy);  
+  freeMem(copy);
 }
 
 void swapByte(byte_ptr byte1, byte_ptr byte2) {
@@ -54,3 +59,6 @@ void swapInt(unsigned int* int1, unsigned int* int2)
   *int1 = *int2;
   *int2 = temp;
 }
+#ifdef __cplusplus
+}
+#endif

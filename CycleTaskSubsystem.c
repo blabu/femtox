@@ -55,7 +55,7 @@ void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t toManager) {
     if(flag_int) INTERRUPT_ENABLE;
 }
 
-void delCycleTask(CycleFuncPtr_t CallBack) {
+void delCycleTask(BaseSize_t arg_n, CycleFuncPtr_t CallBack) {
     bool_t flag_int = FALSE;
     if(INTERRUPT_STATUS)
     {

@@ -59,13 +59,13 @@ s08 findSymb(const char symb, const string_t c_str){
 Вернет размер строки
 */
 BaseSize_t strSize(const string_t c_str){
-  u08 i = 0;
-  if(c_str == NULL) return 0;
-  while(c_str[i] != END_STRING){
-    i++;
-    if(!i) break; // Если переполнился выходим из функции с результатом 0 (не нашли конца строки)
-  }
-  return i;
+	BaseSize_t i = 0;
+	if(c_str == NULL) return 0;
+	while(c_str[i] != END_STRING){
+		i++;
+		if(!i) break; // Если переполнился выходим из функции с результатом 0 (не нашли конца строки)
+	}
+	return i;
 }
 
 /*
@@ -98,6 +98,12 @@ void strCopy(string_t result, const string_t c_str, BaseSize_t numb, BaseSize_t 
     result[i]=END_STRING;
 }
 
+char* strcpy (string_t destination, const string_t source) {
+	BaseSize_t size = strSize(source) + 1; // End byte too
+	memCpy(destination, source, size);
+	return destination;
+}
+
 void strClear(string_t str){
 	if(str == NULL) return;
 	str[0]='\0';
@@ -109,12 +115,14 @@ void toStringUnsignDec(u32 data, string_t c_str){
 	u08 i = 0;
 	if(data<10) size = 1;
 	else if(data<100) { size = 2; offset = 10; }
-	else if(data<1000){ size = 3; offset = 100; }
-	else if(data<10000){ size = 4; offset = 1000; }
-	else if(data<100000){ size = 5; offset = 10000; }
-	else if(data<1000000){ size = 6; offset = 100000; }
-	else if(data<10000000){ size = 7; offset = 1000000; }
-	else if(data<100000000){ size = 8; offset = 10000000; }
+	else if(data<1000UL){ size = 3; offset = 100; }
+	else if(data<10000UL){ size = 4; offset = 1000UL; }
+	else if(data<100000UL){ size = 5; offset = 10000UL; }
+	else if(data<1000000UL){ size = 6; offset = 100000UL; }
+	else if(data<10000000UL){ size = 7; offset = 1000000UL; }
+	else if(data<100000000UL){ size = 8; offset = 10000000UL; }
+	else if(data<1000000000UL){ size = 9; offset = 100000000UL; }
+	else if(data<10000000000UL){ size = 10; offset = 1000000000UL; }
 	while(size) {
 		if(size != 1){
 				 c_str[i] = (data/offset) + 0x30;
