@@ -121,6 +121,8 @@ void memCpy(void * destination, const void * source, const BaseSize_t num);
 #define NOT_FAUND_DATA_STRUCT_ERROR 1
 #define OVERFLOW_OR_EMPTY_ERROR     2
 #define OTHER_ERROR                 3
+#define NULL_PTR_ERROR              4
+#define NO_MEMORY_ERROR             5
 #define EVERYTHING_IS_OK            0
 u08 CreateDataStruct(const void * const D, const BaseSize_t sizeElement, const BaseSize_t sizeAll);
 u08 delDataStruct(const void * const Data);                                    // Удаляем структуру из списка структур
@@ -160,7 +162,7 @@ void showAllDataStruct(); // передает в ЮАРТ данные о все
 #define delStack(Stack)   delDataStruct((void*)(Stack))
 #endif //DATA_STRUCT_MANAGER
 
-#ifdef MUTEX_ENABLE 
+#ifdef MUTEX_ENABLE
       bool_t getMutex(const u08 mutexNumb, TaskMng TPTR, BaseSize_t n, BaseParam_t data); // Пытается захватить мьютекс Вернет TRUE если захватить не удалось
       bool_t freeMutex(const u08 mutexNumb);     // Освобождает мьютекс
 #define GET_MUTEX(mutexNumb, TaskPTR, arg_n, arg_p) if(getMutex((u08)mutexNumb, (TaskMng)TaskPTR,(BaseSize_t)arg_n, (BaseParam_t)arg_p)) return
@@ -182,7 +184,7 @@ void showAllDataStruct(); // передает в ЮАРТ данные о все
 #endif
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 10000 /*6500*/
+#define HEAP_SIZE 500 /*6500*/
     byte_ptr allocMem(u08 size);  //size - до 127 размер блока выделяемой памяти
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
     void freeMem(byte_ptr data);  // Освобождение памяти

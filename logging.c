@@ -7,25 +7,28 @@
 
 #include "TaskMngr.h"
 #include "MyString.h"
-#include "UART2.h"
+//#include "UART2.h"
+#include <stdio.h>
 
 void enableLogging() {
-	enableUART2();
+//	enableUART2();
 }
 
 void disableLogging(){
-	disableUART2();
+	//disableUART2();
 }
 
 void writeLogStr(const string_t c_str){
-	sendCOM2_buf(0, (u08*)c_str);
-	sendUART2_buf((u08)'\n');
+//	sendCOM2_buf(0, (u08*)c_str);
+//	sendUART2_buf((u08)'\n');
+    printf("%s\n",c_str);
 }
 
 void writeLogTempString(string_t tempStr){
 	u08 size =  strSize(tempStr);
-	for(u08 i = 0; i<size; i++) sendUART2_buf((u08)tempStr[i]);
-	sendUART2_buf((u08)'\n');
+//	for(u08 i = 0; i<size; i++) sendUART2_buf((u08)tempStr[i]);
+//	sendUART2_buf((u08)'\n');
+    printf("%s, %d\n",tempStr, size);
 }
 
 void writeLogFloat(float data) {

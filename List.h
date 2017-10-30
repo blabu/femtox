@@ -28,6 +28,7 @@ Node_t* putToFrontList(Node_t* list, void* data, u08 Flagalloc_Datasize);
 Node_t* getFromEndList(Node_t* list, void** result);
 Node_t* getFromFrontList(Node_t* list, void** result);
 BaseSize_t getSizeList(Node_t* list);
+void ForEachListNodes(Node_t* list, TaskMng task, bool_t flagToManager, BaseSize_t arg_n);
 #endif //_LIST_STRUCT
 
 #endif /* LIST_H_ */

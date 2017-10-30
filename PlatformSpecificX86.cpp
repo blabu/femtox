@@ -31,7 +31,7 @@ extern void TimerISR();
 
 void initWatchDog() {
     writeLogStr("start init watch dog");
-    exit(1);
+    exit(0);
 }
 
 void resetWatchDog() {
