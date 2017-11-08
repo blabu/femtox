@@ -109,6 +109,7 @@ u32 getTick(void);
 void MaximizeErrorHandler();
 
 void memCpy(void * destination, const void * source, const BaseSize_t num);
+void memSet(void* destination, const BaseSize_t size, const u08 value);
 
 #ifdef EVENT_LOOP_TASKS
 #define EVENT_LIST_SIZE 15

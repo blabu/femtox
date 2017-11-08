@@ -415,6 +415,12 @@ void memCpy(void* destination, const void* source, const BaseSize_t num) {
 #endif
 }
 
+void memSet(void* destination, const BaseSize_t size, const u08 value) {
+	for (BaseSize_t i = 0; i < size; i++){
+		*((byte_ptr)destination + i) = value;
+	}
+}
+
 
 #ifdef __cplusplus
 }
