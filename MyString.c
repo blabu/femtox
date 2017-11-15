@@ -109,9 +109,9 @@ void strClear(string_t str){
 	str[0]='\0';
 }
 
-void toStringUnsignDec(u32 data, string_t c_str){
+void toStringUnsignDec(u64 data, string_t c_str){
 	u08 size = 0;
-	u32 offset = 0;
+	u64 offset = 0;
 	u08 i = 0;
 	if(data<10) size = 1;
 	else if(data<100) { size = 2; offset = 10; }
@@ -121,8 +121,14 @@ void toStringUnsignDec(u32 data, string_t c_str){
 	else if(data<1000000UL){ size = 6; offset = 100000UL; }
 	else if(data<10000000UL){ size = 7; offset = 1000000UL; }
 	else if(data<100000000UL){ size = 8; offset = 10000000UL; }
-	else if(data<1000000000UL){ size = 9; offset = 100000000UL; }
-	else if(data<10000000000UL){ size = 10; offset = 1000000000UL; }
+	else if(data<1000000000ULL){ size = 9; offset = 100000000ULL; }
+	else if(data<10000000000ULL){ size = 10; offset = 1000000000ULL; }
+	else if(data<100000000000ULL){ size = 11; offset = 10000000000ULL; }
+	else if(data<1000000000000ULL){ size = 12; offset = 100000000000ULL; }
+	else if(data<10000000000000ULL){ size = 13; offset = 1000000000000ULL; }
+	else if(data<100000000000000ULL){ size = 14; offset = 10000000000000ULL; }
+	else if(data<1000000000000000ULL){ size = 15; offset = 100000000000000ULL; }
+	else if(data<10000000000000000ULL){ size = 16; offset = 1000000000000000ULL; }
 	while(size) {
 		if(size != 1){
 				 c_str[i] = (data/offset) + 0x30;
@@ -136,7 +142,7 @@ void toStringUnsignDec(u32 data, string_t c_str){
 	c_str[i] = END_STRING;
 }
 
-void toStringDec(s32 data, string_t c_str) {
+void toStringDec(s64 data, string_t c_str) {
 	if(data<0) {
 		c_str[0] ='-';
 		data = -data;
@@ -146,7 +152,7 @@ void toStringDec(s32 data, string_t c_str) {
 	toStringUnsignDec(data,c_str);
 }
 
-void toStringUnsign(u08 capacity, u32 data, string_t c_str){
+void toStringUnsign(u08 capacity, u64 data, string_t c_str){
     u08 size = (capacity)<<1; // Размер выходной строки
     u08 j = 0;
     for(;size != 0; size--) {
@@ -166,7 +172,7 @@ void toStringUnsign(u08 capacity, u32 data, string_t c_str){
     c_str[j]=END_STRING;
 }
 
-void toString(u08 capacity, s32 data, string_t c_str){
+void toString(u08 capacity, s64 data, string_t c_str){
 	if(data<0) {
 		 c_str[0] = '-';
 		 data=-data;
@@ -176,8 +182,8 @@ void toString(u08 capacity, s32 data, string_t c_str){
 	toStringUnsign(capacity,data,c_str);
 }
 
-static s32 toInt(s08 razryad, const string_t c_str){
-    s32 res = 0;
+static s64 toInt(s08 razryad, const string_t c_str){
+    s64 res = 0;
     if(c_str == NULL) return res;
     bool_t sign = FALSE;
     BaseSize_t i = 0;
@@ -202,8 +208,8 @@ static s32 toInt(s08 razryad, const string_t c_str){
     return res;
 }
 
-s32 toIntDec(const string_t c_str) {
-	s32 res = 0;
+s64 toIntDec(const string_t c_str) {
+	s64 res = 0;
 	if(c_str == NULL) return res;  // В каждом разряде по две цифры
 	s08 razryad = strSize(c_str);
     bool_t sign = FALSE;
@@ -223,6 +229,15 @@ s32 toIntDec(const string_t c_str) {
 	if(sign) res=-res;
 	return res;
 }
+
+
+s64 toInt64(const string_t c_str){
+    s64 res = strSize(c_str);
+    if(res<1) return 0;
+    res = toInt(8,c_str);
+    return res;
+}
+
 
 s32 toInt32(const string_t c_str){
     s32 res = strSize(c_str);
@@ -263,13 +278,14 @@ void shiftStringLeft(BaseSize_t poz, string_t c_str){
 }
 
 void shiftStringRight(BaseSize_t poz, string_t c_str) {
-	BaseSize_t size = strSize(c_str);
+	BaseSize_t size = strSize(c_str)+2; // With END_STRING
 	poz += size;
 	while(size) {
+        poz--; size--;
 		c_str[poz] = c_str[size];
-	    poz--; size--;
 	}
 }
+
 
 
 void doubleToString(double data, string_t c_str, u08 precision) {
@@ -286,8 +302,8 @@ void doubleToString(double data, string_t c_str, u08 precision) {
 		while(precision > 0) {
 			precision--;
 			fraction *= 10;
-			u08 d1 = ((u08)fraction) & 0x0F;
-			*endString++ = '0' + d1;
+			u08 d1 = ((u08)fraction) & 0x0F; // 0 - 9
+			if(d1 < 10) *endString++ = '0' + d1; // '0' - '9'
 			fraction -= d1;
 		}
 		*endString = END_STRING;
