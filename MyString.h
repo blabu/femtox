@@ -31,8 +31,9 @@ void strClear(string_t str);
 
 
 // razryad - количество знаков, например для чисел от 10 до 99 razryad = 2.
-s32 toIntDec(const string_t c_str);
+s64 toIntDec(const string_t c_str);
 
+s64 toInt64(const string_t c_str);
 // str - строка с символьной шестнадцатиричной переменной
 s32 toInt32(const string_t c_str);
 
@@ -41,14 +42,14 @@ s08 toInt08(const string_t c_str);
 s16 toInt16(const string_t c_str);
 
 // Переводит число в строку шестнадцатиричного формата
-void toString(u08 capacity, s32 data, string_t c_str);
-void toStringUnsign(u08 capacity, u32 data, string_t c_str);
+void toString(u08 capacity, s64 data, string_t c_str);
+void toStringUnsign(u08 capacity, u64 data, string_t c_str);
 
-void toStringDec(s32 data, string_t c_str);
+void toStringDec(s64 data, string_t c_str);
 
 bool_t isDigit(const char symb);
 
-void toStringUnsignDec(u32 data, string_t c_str);
+void toStringUnsignDec(u64 data, string_t c_str);
 
 void doubleToString(double data, string_t c_str, u08 precision);
 

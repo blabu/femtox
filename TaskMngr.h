@@ -29,6 +29,7 @@
 
 typedef char* string_t;
 typedef unsigned long long u64;
+typedef long long s64;
 typedef unsigned int   u32;
 typedef unsigned short u16;
 typedef unsigned char  u08;
@@ -127,7 +128,7 @@ void memSet(void* destination, const BaseSize_t size, const u08 value);
 #define EVERYTHING_IS_OK            0
 u08 CreateDataStruct(const void * const D, const BaseSize_t sizeElement, const BaseSize_t sizeAll);
 u08 delDataStruct(const void * const Data);                                    // Удаляем структуру из списка структур
-BaseSize_t getSizeDataStruct(const void* const Data);
+BaseSize_t getFreeSizeDataStruct(const void* const Data);
 u08 PutToCycleDataStruct(const void* Elem, const void* Array);
 u08 GetFromCycleDataStruct(void* returnValue, const void* Array);
 u08 PutToFrontDataStruct(const void * const Elem, const void * const Array);   // Кладем элемент в начало
@@ -185,7 +186,7 @@ void showAllDataStruct(); // передает в ЮАРТ данные о все
 #endif
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 500 /*6500*/
+#define HEAP_SIZE 10000UL /*6500*/
     byte_ptr allocMem(u08 size);  //size - до 127 размер блока выделяемой памяти
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
     void freeMem(byte_ptr data);  // Освобождение памяти

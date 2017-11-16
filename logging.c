@@ -10,25 +10,30 @@
 //#include "UART2.h"
 #include <stdio.h>
 
+static FILE *fs;
+
 void enableLogging() {
-//	enableUART2();
+      fs = fopen("log.txt", "w");
+      if(fs == NULL) writeLogStr("ERROR when try open file");
 }
 
 void disableLogging(){
-	//disableUART2();
+	 fclose(fs);
 }
 
 void writeLogStr(const string_t c_str){
-//	sendCOM2_buf(0, (u08*)c_str);
-//	sendUART2_buf((u08)'\n');
     printf("%s\n",c_str);
+    if(fs == NULL) return;
+    u16 size =  strSize(c_str);
+    fwrite(c_str, 1, size, fs);
+    printf("Write to file %d\n",size);
 }
 
 void writeLogTempString(string_t tempStr){
-	u08 size =  strSize(tempStr);
-//	for(u08 i = 0; i<size; i++) sendUART2_buf((u08)tempStr[i]);
-//	sendUART2_buf((u08)'\n');
+	u16 size =  strSize(tempStr);
     printf("%s, %d\n",tempStr, size);
+    if(fs == NULL) return;
+    fwrite(tempStr, 1, size, fs);
 }
 
 void writeLogFloat(float data) {
