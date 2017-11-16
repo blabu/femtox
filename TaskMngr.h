@@ -186,7 +186,7 @@ void showAllDataStruct(); // передает в ЮАРТ данные о все
 #endif
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 10000 /*6500*/
+#define HEAP_SIZE 10000UL /*6500*/
     byte_ptr allocMem(u08 size);  //size - до 127 размер блока выделяемой памяти
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
     void freeMem(byte_ptr data);  // Освобождение памяти

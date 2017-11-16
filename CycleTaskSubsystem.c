@@ -57,14 +57,12 @@ void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t toManager) {
 
 void delCycleTask(BaseSize_t arg_n, CycleFuncPtr_t CallBack) {
     bool_t flag_int = FALSE;
-    if(INTERRUPT_STATUS)
-    {
+    if(INTERRUPT_STATUS) {
         flag_int = TRUE;
         INTERRUPT_DISABLE;
     }
     u08 countDeletedTask = 0;  // Количество удаленных задач
-    for(register u08 i = 0; i<TIMERS_ARRAY_SIZE; i++)
-    {
+    for(register u08 i = 0; i<TIMERS_ARRAY_SIZE; i++) {
         if(!Timers_Array[i].value) break; // Если наткнулись на пустой таймер выходим из цикла(дальше искать нет смысла)
         if(Timers_Array[i].Call_Back == CallBack) // Если нашли нашу задачу
         {
