@@ -7,6 +7,7 @@
 
 #include "TaskMngr.h"
 #include "MyString.h"
+#include "logging.h"
 //#include "UART2.h"
 #include <stdio.h>
 
@@ -49,7 +50,7 @@ void writeLogU32(u32 data) {
 }
 
 void writeSymb(char symb) {
-    printf('%c', symb);
+    printf("%c ", symb);
 }
 
 void writeLogByteArray(u08 sizeBytes, byte_ptr array){

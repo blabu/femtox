@@ -14,11 +14,11 @@ bool_t strCompare(const string_t str1, const string_t str2);
 // answer  - строка, в которой ищут
 // Функция возвращает адресс начала входа подстроки в строку
 // Если не нашли вернем отрицательное число
-s08 findStr(const string_t small, const string_t big);
+s16 findStr(const string_t small, const string_t big);
 
 // Ищет символ symb в строке c_str
 // Если не найдет вернет отрицательное число
-s08 findSymb(const char symb, const string_t c_str);
+s16 findSymb(const char symb, const string_t c_str);
 
 // Добавляет к строке str1 строку str2
 // Размер строки str1 должен уместить str2
@@ -29,6 +29,19 @@ void strCopy(string_t result, const string_t c_str, BaseSize_t numb, BaseSize_t 
 char* strcpy (string_t destination, const string_t source);
 void strClear(string_t str);
 
+/*
+Разбивает строку на подстроки. Заменяет символ delim концом ситроки. Вернет кол-во подстрок в строке
+EXAMPLE
+    char str[] = "1122312;2;2;0;0;0;600.00;130.00;600.00;50.00;0.00;-20.00;50.00;3.00;12.50;250.00;1.00;600.00;-20.00";
+    BaseSize_t n = strSplit(';',str);
+    string_t tempStr = str;
+    for(BaseSize_t i = 0; i<n; i++) {
+        writeLogStr(tempStr);
+        u08 sz = strSize(tempStr);
+        tempStr = &tempStr[sz+1];
+    }
+*/
+BaseSize_t strSplit(char delim, string_t c_str);
 
 // razryad - количество знаков, например для чисел от 10 до 99 razryad = 2.
 s64 toIntDec(const string_t c_str);
