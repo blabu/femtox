@@ -10,7 +10,7 @@
 command - строка, которую ищут
 answer  - строка, в которой ищут
 */
-s08 findStr(const string_t small, const string_t big){
+s16 findStr(const string_t small, const string_t big){
 	if(small == NULL || big == NULL) return -1;
     BaseSize_t small_len = strSize(small);
     BaseSize_t len = strSize(big);
@@ -18,15 +18,16 @@ s08 findStr(const string_t small, const string_t big){
     register BaseSize_t i = 0, j=0;
     for(; i<len; i++) // перебираем строку в которой ишем
     {
-        if(big[i] == small[j])   // Если текущий символ исходной строки совпал с первым символом сравниваемой строки
-        {
+        if(big[i] == small[j]){   // Если текущий символ исходной строки совпал с первым символом сравниваемой строки
             if(j == small_len-1) return (i-j);    // Если все символы совпали и шли друг за другом
             j++;                      // Увеличиваем счетчик совпавших символов
         }
-        else j=0;
+        else if(j){
+            j=0; i--;
+        }
     }
     return -1;
-} 
+}
 
 bool_t str1_str2(const string_t small, const string_t big){ // Функция возвращает TRUE если small является подстрокой big
   if(findStr(small,big)<0) return FALSE;
@@ -44,7 +45,7 @@ bool_t strCompare(const string_t str1, const string_t str2){
 }
 
 // Ищет символ symb в строке c_str (вернет позицию этого символа в строке) Если не нашло вернет отрицательный результат
-s08 findSymb(const char symb, const string_t c_str){
+s16 findSymb(const char symb, const string_t c_str){
 	  if(c_str == NULL) return -1;
       BaseSize_t i= 0;
       while(c_str[i] != END_STRING)
@@ -54,7 +55,7 @@ s08 findSymb(const char symb, const string_t c_str){
       }
       return -1;
 }
-    
+
 /*
 Вернет размер строки
 */
@@ -76,8 +77,7 @@ void strCat(string_t c_str1, const string_t c_str2){
   BaseSize_t i = 0, j=0;
   if(c_str1 == NULL || c_str2 == NULL) return;
   while(c_str1[i] != END_STRING) ++i; // Ищем конец строки 1
-  while(c_str2[j] != END_STRING)
-  {
+  while(c_str2[j] != END_STRING){
     c_str1[i] = c_str2[j];
     ++j;
     ++i;
@@ -86,16 +86,14 @@ void strCat(string_t c_str1, const string_t c_str2){
 }
 
 void strCopy(string_t result, const string_t c_str, BaseSize_t numb, BaseSize_t pos){
-    u08 i=0;
+    BaseSize_t i=0;
     if(result == NULL || c_str == NULL) return;
-    u08 length = strSize(c_str);
     if(!numb) return;
     do{
-        if(pos==length) break;    // Если исходная строка закончилась выходим
         result[i] = c_str[pos];  // Если исходная строка еще есть копируем
+        if(c_str[pos] == END_STRING) break;
         pos++,numb--;i++;
     }while(numb);
-    result[i]=END_STRING;
 }
 
 char* strcpy (string_t destination, const string_t source) {
@@ -107,6 +105,21 @@ char* strcpy (string_t destination, const string_t source) {
 void strClear(string_t str){
 	if(str == NULL) return;
 	str[0]='\0';
+}
+
+// Разбивает строку на подстроки. Заменяет символ delim концом ситроки. Вернет кол-во подстрок в строке
+BaseSize_t strSplit(char delim, string_t c_str) {
+    BaseSize_t i = 0;
+    if(c_str == NULL) return 0;
+    BaseSize_t numb = 1;
+    while(c_str[i] != END_STRING) {
+        if(c_str[i] == delim) {
+                c_str[i] = END_STRING;
+                numb++;
+        }
+        i++;
+    }
+    return numb;
 }
 
 void toStringUnsignDec(u64 data, string_t c_str){
@@ -285,7 +298,6 @@ void shiftStringRight(BaseSize_t poz, string_t c_str) {
 		c_str[poz] = c_str[size];
 	}
 }
-
 
 
 void doubleToString(double data, string_t c_str, u08 precision) {
