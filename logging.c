@@ -9,11 +9,11 @@
 #include "MyString.h"
 #include "UART2.h"
 
-void enableLogging() {
+void enableLogging(void) {
 	enableUART2();
 }
 
-void disableLogging(){
+void disableLogging(void){
 	disableUART2();
 }
 

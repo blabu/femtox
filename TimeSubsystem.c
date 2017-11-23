@@ -89,17 +89,17 @@ static u16 getDayAndMonthFromDay(u16 dayInYear) { //LSB - day, MSB - mounth
 	return ((u16)month<<8) | day;
 }
 
-Time_t getAllSeconds(){
-	u32 temp = 0;
+Time_t getAllSeconds(void){
+	Time_t temp = 0;
 	while(temp != __systemSeconds) temp = __systemSeconds;
 	return temp;
 }
 
-u08 getMinutes(){
+u08 getMinutes(void){
 	return getMinutesFromSec(getAllSeconds());
 }
 
-u08 getHour(){
+u08 getHour(void){
 	u08 nowHour = getHourFromSec(getAllSeconds());
 #ifdef TIME_INDEX
 	nowHour += timeCorrectSummer;
@@ -108,16 +108,16 @@ u08 getHour(){
 	return nowHour;
 }
 
-u16 getYear(){
+u16 getYear(void){
 	return getYearFromSec(getAllSeconds());
 }
 
-u16 getDayInYear() { // День в году
+u16 getDayInYear(void) { // День в году
 	return getDayInYearFromSec(getAllSeconds());
 }
 
 //LSB - day, MSB - mounth
-u16 getDayAndMonth() {
+u16 getDayAndMonth(void) {
 	return getDayAndMonthFromDay(getDayInYear());
 }
 
@@ -152,32 +152,32 @@ Time_t getSecondsFromDate(Date_t* date) {
 
 void addOneSecondToDate(Date_t* date){
 	if(date->sec < 59) date->sec++;
-	else if(date->min < 59) date->min++;
-	else if(date->hour < 23) date->hour++;
-	else if(date->day < getDaysInMonth(date->mon)) date->day++;
-	else if(date->mon < 12) date->mon++;
-	else date->year++;
+	else {date->sec = 0;  if(date->min < 59) date->min++;
+	else {date->min = 0;  if(date->hour < 23) date->hour++;
+	else {date->hour = 0; if(date->day < getDaysInMonth(date->mon)) date->day++;
+	else {date->day = 0;  if(date->mon < 11) date->mon++;
+	else {date->mon = 0;  date->year++;}}}}}
 }
 
 void addOneMinutesToDate(Date_t* date){
 	if(date->min < 59) date->min++;
-	else if(date->hour < 23) date->hour++;
-	else if(date->day < getDaysInMonth(date->mon)) date->day++;
-	else if(date->mon < 12) date->mon++;
-	else date->year++;
+	else {date->min = 0;  if(date->hour < 23) date->hour++;
+	else {date->hour = 0; if(date->day < getDaysInMonth(date->mon)) date->day++;
+	else {date->day = 0;  if(date->mon < 11) date->mon++;
+	else {date->mon = 0;  date->year++;}}}}
 }
 
 void addOneHourToDate(Date_t* date){
 	if(date->hour < 23) date->hour++;
-	else if(date->day < getDaysInMonth(date->mon)) date->day++;
-	else if(date->mon < 12) date->mon++;
-	else date->year++;
+	else {date->hour = 0; if(date->day < getDaysInMonth(date->mon)) date->day++;
+	else {date->day = 0;  if(date->mon < 11) date->mon++;
+	else {date->mon = 0;  date->year++;}}}
 }
 
 void addOneDayToDate(Date_t* date){
 	if(date->day < getDaysInMonth(date->mon)) date->day++;
-	else if(date->mon < 12) date->mon++;
-	else date->year++;
+	else {date->day = 0; if(date->mon < 11) date->mon++;
+	else {date->mon = 0;  date->year++;}}
 }
 
 /*
@@ -231,6 +231,34 @@ void setDate(string_t date) {
 	Time_t tempSeconds = year*SECONDS_IN_YEAR + (daysInYear[mounth-1] + day + dayOffset)*SECONDS_IN_DAY + hour*3600 + minutes*60 + sec;
 	setSeconds(tempSeconds);
 }
+
+void dateToString(string_t out, Date_t* date) {
+    if(out == NULL) return;
+    char temp[8]; temp[0] = 0;
+    toStringUnsignDec(date->year,temp);
+    strCat(out,temp);
+    strCat(out,".");
+    temp[0] = 0;
+    toStringUnsignDec(date->mon,temp);
+    strCat(out,temp);
+    strCat(out,".");
+    temp[0] = 0;
+    toStringUnsignDec(date->day,temp);
+    strCat(out,temp);
+    strCat(out," ");
+    temp[0] = 0;
+    toStringUnsignDec(date->hour,temp);
+    strCat(out,temp);
+    strCat(out,":");
+    temp[0] = 0;
+    toStringUnsignDec(date->min,temp);
+    strCat(out,temp);
+    strCat(out,":");
+    temp[0] = 0;
+    toStringUnsignDec(date->sec,temp);
+    strCat(out,temp);
+}
+
 #endif
 
 #ifdef __cplusplus

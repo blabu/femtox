@@ -10,8 +10,8 @@
 
 #include "TaskMngr.h"
 
-void enableLogging();
-void disableLogging();
+void enableLogging(void);
+void disableLogging(void);
 void writeLogTempString(string_t tempStr);
 void writeLogStr(string_t c_str);
 void writeLogFloat(float data);

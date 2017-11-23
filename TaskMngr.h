@@ -23,8 +23,8 @@
 #define _LIST_STRUCT
 #define _DYNAMIC_ARRAY
 
-#define TASK_LIST_LEN 15U /*Длина очереди задач*/
-#define TIME_LINE_LEN 25U /*Максимальне количество системных таймеров*/
+#define TASK_LIST_LEN 10U /*Длина очереди задач*/
+#define TIME_LINE_LEN 30U /*Максимальне количество системных таймеров*/
 #define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
 typedef char* string_t;
@@ -75,8 +75,8 @@ void SetTask (TaskMng New_Task, BaseSize_t n, BaseParam_t data); /* Функци
  */
 
 bool_t isEmptyTaskList( void );
-u08 getFreePositionForTask();
-u08 getFreePositionForTimerTask();
+u08 getFreePositionForTask(void);
+u08 getFreePositionForTimerTask(void);
 
 #ifdef SET_FRONT_TASK_ENABLE
     void SetFrontTask (TaskMng New_Task, BaseSize_t n, BaseParam_t data); // Поставить задачу в начало очереди
@@ -107,7 +107,7 @@ void SetIdleTask(IdleTask_t Task);
 
 u32 getTick(void);
 
-void MaximizeErrorHandler();
+void MaximizeErrorHandler(void);
 
 void memCpy(void * destination, const void * source, const BaseSize_t num);
 void memSet(void* destination, const BaseSize_t size, const u08 value);
@@ -142,7 +142,7 @@ u08 peekFromEndData(void* returnValue, const void* Array);  // Посмотре�
 bool_t isEmptyDataStruct(const void * const Data); // Проверяет пустая ли структура данных
 void for_each(const void * const Array, TaskMng tsk);
 void clearDataStruct(const void * const Data); // Очистить структуру данных с указателем Data
-void showAllDataStruct(); // передает в ЮАРТ данные о всех структурах данных
+void showAllDataStruct(void); // передает в ЮАРТ данные о всех структурах данных
 /*---------------ОЧЕРЕДЬ-------------------*/
 // Создание очереди вернет ноль если очередь успешно создана
 #define CreateQ(Q, sizeElement, sizeAll)    CreateDataStruct((void*)(Q), (BaseSize_t)(sizeElement), (BaseSize_t)(sizeAll))
@@ -182,7 +182,7 @@ void showAllDataStruct(); // передает в ЮАРТ данные о все
      void setFlags(globalFlags_t flagMask);
      void clearFlags(globalFlags_t flagMask);
      bool_t getFlags(globalFlags_t flagMask);
-     globalFlags_t getGlobalFlags();
+     globalFlags_t getGlobalFlags(void);
 #endif
 
 #ifdef ALLOC_MEM
@@ -191,9 +191,9 @@ void showAllDataStruct(); // передает в ЮАРТ данные о все
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
     void freeMem(byte_ptr data);  // Освобождение памяти
     void defragmentation(void);         // Дефрагментация памяти
-    u16 getFreeMemmorySize();
+    u16 getFreeMemmorySize(void);
     u16 getAllocateMemmorySize(byte_ptr data);
-    void clearAllMemmory(); // Аварийное освобождение памяти
+    void clearAllMemmory(void); // Аварийное освобождение памяти
 #endif //ALLOC_MEM
 
 #ifdef CLOCK_SERVICE
@@ -205,13 +205,13 @@ typedef struct {
    	u08 mon;
    	u16 year;
 } Date_t;
-	Time_t getAllSeconds();
-    u08 getMinutes();
-    u08 getHour();
-    u16 getDay();
-    u16 getDayInYear();
-    u16 getDayAndMonth();
-    u16 getYear();
+	Time_t getAllSeconds(void);
+    u08 getMinutes(void);
+    u08 getHour(void);
+    u16 getDay(void);
+    u16 getDayInYear(void);
+    u16 getDayAndMonth(void);
+    u16 getYear(void);
     u08 getDaysInMonth(u08 month);
     Date_t getDateFromSeconds(Time_t sec);
     Time_t getSecondsFromDate(Date_t* date);
