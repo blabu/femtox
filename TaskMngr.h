@@ -198,11 +198,11 @@ void showAllDataStruct(void); // передает в ЮАРТ данные о в
 
 #ifdef CLOCK_SERVICE
 typedef struct {
-	u08 sec;
-  	u08 min;
-   	u08 hour;
-   	u08 day;
-   	u08 mon;
+	u08 sec;  //Начинаются с 0
+  	u08 min;  //Начинаются с 0
+   	u08 hour;  //Начинаются с 0
+   	u08 day;  //Начинаются с 1
+   	u08 mon;  //Начинаются с 1
    	u16 year;
 } Date_t;
 	Time_t getAllSeconds(void);

@@ -122,6 +122,7 @@ u16 getDayAndMonth(void) {
 }
 
 u08 getDaysInMonth(u08 month) {
+	if(month > 0) month--;
 	return daysInYear[month];
 }
 
@@ -154,30 +155,30 @@ void addOneSecondToDate(Date_t* date){
 	if(date->sec < 59) date->sec++;
 	else {date->sec = 0;  if(date->min < 59) date->min++;
 	else {date->min = 0;  if(date->hour < 23) date->hour++;
-	else {date->hour = 0; if(date->day < getDaysInMonth(date->mon)) date->day++;
-	else {date->day = 0;  if(date->mon < 11) date->mon++;
-	else {date->mon = 0;  date->year++;}}}}}
+	else {date->hour = 0; if(date->day < daysInYear[(date->mon - 1)]) date->day++;
+	else {date->day = 1;  if(date->mon < 12) date->mon++;
+	else {date->mon = 1;  date->year++;}}}}}
 }
 
 void addOneMinutesToDate(Date_t* date){
 	if(date->min < 59) date->min++;
 	else {date->min = 0;  if(date->hour < 23) date->hour++;
-	else {date->hour = 0; if(date->day < getDaysInMonth(date->mon)) date->day++;
-	else {date->day = 0;  if(date->mon < 11) date->mon++;
-	else {date->mon = 0;  date->year++;}}}}
+	else {date->hour = 0; if(date->day < daysInYear[(date->mon - 1)]) date->day++;
+	else {date->day = 1;  if(date->mon < 12) date->mon++;
+	else {date->mon = 1;  date->year++;}}}}
 }
 
 void addOneHourToDate(Date_t* date){
 	if(date->hour < 23) date->hour++;
-	else {date->hour = 0; if(date->day < getDaysInMonth(date->mon)) date->day++;
-	else {date->day = 0;  if(date->mon < 11) date->mon++;
-	else {date->mon = 0;  date->year++;}}}
+	else {date->hour = 0; if(date->day < getDaysInMonth(daysInYear[(date->mon - 1)])) date->day++;
+	else {date->day = 1;  if(date->mon < 12) date->mon++;
+	else {date->mon = 1;  date->year++;}}}
 }
 
-void addOneDayToDate(Date_t* date){
+void addOneDayToDate(Date_t* date) {
 	if(date->day < getDaysInMonth(date->mon)) date->day++;
-	else {date->day = 0; if(date->mon < 11) date->mon++;
-	else {date->mon = 0;  date->year++;}}
+	else {date->day = 1; if(date->mon < 12) date->mon++;
+	else {date->mon = 1;  date->year++;}}
 }
 
 /*
