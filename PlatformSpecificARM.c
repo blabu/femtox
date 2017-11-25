@@ -29,13 +29,13 @@ void initWatchDog(){
 	HAL_IWDG_Init(&watchDog);
 }
 
-void resetWatchDog(){
+void resetWatchDog(void){
 	HAL_IWDG_Refresh(&watchDog);
 }
 
 //#define RTC_CLOCK_SOURCE_LSI
 #define RTC_CLOCK_SOURCE_LSE
-static void lowLevelInitRTC() {
+static void lowLevelInitRTC(void) {
 	RCC_OscInitTypeDef        RCC_OscInitStruct;
 	RCC_PeriphCLKInitTypeDef  PeriphClkInitStruct;
 
@@ -84,14 +84,14 @@ static void lowLevelInitRTC() {
 }
 
 static RTC_HandleTypeDef RTC_Clock;
-void initRTC(){
+void initRTC(void){
 	RTC_Clock.Instance = RTC;
 	lowLevelInitRTC();
 	HAL_RTCEx_SetWakeUpTimer_IT(&RTC_Clock,(2048/TICK_PER_SECOND)-1,RTC_WAKEUPCLOCK_RTCCLK_DIV16);
 }
 
 
-void RTC_WKUP_IRQHandler() {
+void RTC_WKUP_IRQHandler(void) {
 	HAL_RTCEx_WakeUpTimerIRQHandler(&RTC_Clock);
 }
 
@@ -100,7 +100,7 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc) {
 }
 
 static TIM_HandleTypeDef TIM6InitStruct;
-void initTimer6(){ // APB1 = 8MHz
+void initTimer6(void){ // APB1 = 8MHz
 	__TIM6_CLK_ENABLE();
 	TIM6InitStruct.Instance = TIM6;
 	TIM6InitStruct.Init.CounterMode = TIM_COUNTERMODE_UP;

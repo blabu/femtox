@@ -21,7 +21,7 @@ extern "C" {
 static void* labelPointer[CALL_BACK_TASK_LIST_LEN]; // Массив указателей на функции по завершении которых следует вызвать callBack (по сути метка колбэка)
 static TaskList_t callBackList[CALL_BACK_TASK_LIST_LEN];	// Указатель на функцию которая будет вызвана
 
-void initCallBackTask(){
+void initCallBackTask(void){
 	for(u08 index = 0;index<CALL_BACK_TASK_LIST_LEN; index++){
 		labelPointer[index] = NULL;
 	}

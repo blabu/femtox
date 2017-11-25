@@ -305,7 +305,7 @@ bool_t isEmptyDataStruct(const void* const Data){
     return res;
 }
 
-BaseSize_t getSizeDataStruct(const void* const Data) {
+BaseSize_t getFreeSizeDataStruct(const void* const Data) {
 	register u08 i = findNumberDataStruct(Data);
 	if(i == ArraySize) return 0;
 	BaseSize_t first = 0;

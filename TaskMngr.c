@@ -82,7 +82,7 @@ u32 getTick(void) {
 }
 
 
-static void ClockService(){
+static void ClockService(void){
     GlobalTick++;
 #ifdef CLOCK_SERVICE
     if(GlobalTick >= TICK_PER_SECOND) {
@@ -152,7 +152,7 @@ void initFemtOS (void)   // Инициализация менеджера зад
     //INTERRUPT_ENABLE;
 }
 
-inline void runFemtOS( void )
+void runFemtOS( void )
 {
     while(1)
     {
@@ -232,7 +232,7 @@ bool_t isEmptyTaskList( void ){
 	return FALSE;
 }
 
-u08 getFreePositionForTask(){
+u08 getFreePositionForTask(void){
 	u08 end = 0;
 	u08 begin = 0;
 	while(begin != countBegin) begin = countBegin;
@@ -380,7 +380,7 @@ void delTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data)
     }
 }
 
-u08 getFreePositionForTimerTask() {
+u08 getFreePositionForTimerTask(void) {
 	return TIME_LINE_LEN - lastTimerIndex;
 }
 
