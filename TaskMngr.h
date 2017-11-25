@@ -208,16 +208,16 @@ typedef struct {
 	Time_t getAllSeconds(void);
     u08 getMinutes(void);
     u08 getHour(void);
-    u16 getDay(void);
     u16 getDayInYear(void);
     u16 getDayAndMonth(void);
     u16 getYear(void);
     u08 getDaysInMonth(u08 month);
     Date_t getDateFromSeconds(Time_t sec);
-    Time_t getSecondsFromDate(Date_t* date);
+    Time_t getSecondsFromDate(const Date_t*const date);
     void setSeconds(u32 sec);
     void setDate(string_t date); //YY.MM.DD hh:mm:ss
-    s08 compareDates(Date_t* date1, Date_t* date2); /* * return >0 if date1 > date2  * return 0 if date = date2  * return <0 if date1 < date2  */
+    void dateToString(string_t out, Date_t* date);
+    s08 compareDates(const Date_t*const date1, const Date_t*const date2); /* * return >0 if date1 > date2  * return 0 if date = date2  * return <0 if date1 < date2  */
     void addOneSecondToDate(Date_t* date);
     void addOneMinutesToDate(Date_t* date);
     void addOneHourToDate(Date_t* date);
