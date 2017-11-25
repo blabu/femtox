@@ -210,7 +210,6 @@ typedef struct {
     u08 getHour(void);
     u16 getDayInYear(void);
     u16 getDayAndMonth(void);
-    u16 getYear(void);
     u08 getDaysInMonth(u08 month);
     Date_t getDateFromSeconds(Time_t sec);
     Time_t getSecondsFromDate(const Date_t*const date);

@@ -70,24 +70,20 @@ static u08 getDayOffset(u16 year) {
 	return dataOffset;
 }
 
-static u16 getYearFromSec(Time_t sec) {
-	return (u16)(sec/SECONDS_IN_YEAR);
-}
-
 static u16 getDayInYearFromSec(Time_t sec) { // День в году
-	u16 result = (u16)(sec/SECONDS_IN_DAY); // Кол-во дней с 1970 года
-	u16 year = 0;
-	while(result > 365) {
-		result-=365; year++;
+	u16 days = (u16)(sec/SECONDS_IN_DAY); // Кол-во дней с 1970 года
+	u16 year = 1970;
+	while(days > 365) {
+		days-=365; year++;
 	}
 	u08 dataOffset = getDayOffset(year);
-	if(result < dataOffset) {
+	if(days <= dataOffset) {
 		year--;
-		if(!isUpYear(year)) result += 365;
-		else result += 366;
+		if(!isUpYear(year)) days += 365;
+		else days += 366;
 	}
-	result -= dataOffset;
-	return result;
+	days -= dataOffset;
+	return days;
 }
 
 static u16 getDayAndMonthFromDayInYear(u16 dayInYear) { //LSB - day, MSB - mounth
@@ -113,11 +109,12 @@ static u16 getDayAndMonthFromDayInYear(u16 dayInYear) { //LSB - day, MSB - mount
 }
 
 static u16 getDayInYearFromDate(const Date_t*const d) {
-	u16 day = 0;
+	u16 day = 1;
 	u08 mounth = d->mon;
 	while(--mounth) {
 		day += daysInMounth[mounth];
 	}
+	if(day) day--;
 	day += d->day;
 	return day;
 }
@@ -135,15 +132,9 @@ u08 getMinutes(void){
 
 u08 getHour(void){
 	u08 nowHour = getHourFromSec(getAllSeconds());
-#ifdef TIME_INDEX
 	nowHour += timeCorrectSummer;
 	if(nowHour > 23) nowHour -= 24; // Если часы равны 24 и более
-#endif
 	return nowHour;
-}
-
-u16 getYear(void){
-	return getYearFromSec(getAllSeconds());
 }
 
 u16 getDayInYear(void) { // День в году
@@ -167,18 +158,14 @@ void setSeconds(u32 sec) {
 Date_t getDateFromSeconds(Time_t sec){
 	Date_t res;
 	u32 minutes, hours, days, year, month;
-	/* calculate minutes */
 	minutes  = sec / 60;
 	sec -= minutes * 60;
-	/* calculate hours */
 	hours    = minutes / 60;
 	minutes -= hours   * 60;
-	/* calculate days */
 	days     = hours   / 24;
 	hours   -= days    * 24;
-	/* Unix time starts in 1970 on a Thursday */
 	year      = 1970;
-	while(1){
+	while(1) {
 		bool_t leapYear = isUpYear(year);
 		u16 daysInYear = leapYear ? 366 : 365;
 		if (days >= daysInYear) {
@@ -186,10 +173,8 @@ Date_t getDateFromSeconds(Time_t sec){
 			++year;
 		}
 		else {
-			/* calculate the month and day */
 			for(month = 0; month < 12; ++month) {
 				u08 dim = daysInMounth[month];
-				/* add a day to feburary if this is a leap year */
 				if (month==1 && leapYear) ++dim;
 				if (days >= dim) days -= dim;
 				else
@@ -199,7 +184,8 @@ Date_t getDateFromSeconds(Time_t sec){
 		}
 	}
 	res.sec = (u08)sec;   res.min = (u08)minutes; res.hour = (u08)hours;
-	res.day = (u08)days;  res.mon = (u08)month;   res.year = (u16)year;
+	res.day = (u08)days+1;  res.mon = (u08)month+1;   res.year = (u16)year;
+	for(u08 i = 0; i<timeCorrectSummer; i++) addOneHourToDate(&res);
 	return res;
 }
 
@@ -207,7 +193,10 @@ Time_t getSecondsFromDate(const Date_t*const date) {
 	u16 year = toStandartYear(date->year);
 	u08 dayOffset = getDayOffset(year); // Поправка в днях на высокосные годы
 	year -= 1970;
-	Time_t tempSeconds = (Time_t)year*SECONDS_IN_YEAR + ((u32)getDayInYearFromDate(date) + dayOffset)*SECONDS_IN_DAY + (u32)(date->hour)*3600 + (u32)(date->min)*60 + date->sec;
+	Time_t tempSeconds = (Time_t)year*SECONDS_IN_YEAR +
+						 ((u32)getDayInYearFromDate(date) + dayOffset)*SECONDS_IN_DAY +
+						 (u32)(date->hour)*3600 + (u32)(date->min)*60 + date->sec -
+/*Корректировка времени*/timeCorrectSummer*3600;
 	return tempSeconds;
 }
 
@@ -326,7 +315,6 @@ void dateToString(string_t out, Date_t* date) {
 }
 
 #endif
-
 #ifdef __cplusplus
 }
 #endif
