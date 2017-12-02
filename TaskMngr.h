@@ -20,8 +20,8 @@
 #define CLOCK_SERVICE
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
-#define _LIST_STRUCT
-#define _DYNAMIC_ARRAY
+//#define _LIST_STRUCT
+//#define _DYNAMIC_ARRAY
 
 #define TASK_LIST_LEN 10U /*Длина очереди задач*/
 #define TIME_LINE_LEN 30U /*Максимальне количество системных таймеров*/
@@ -128,7 +128,7 @@ void memSet(void* destination, const BaseSize_t size, const u08 value);
 #define EVERYTHING_IS_OK            0
 u08 CreateDataStruct(const void * const D, const BaseSize_t sizeElement, const BaseSize_t sizeAll);
 u08 delDataStruct(const void * const Data);                                    // Удаляем структуру из списка структур
-BaseSize_t getFreeSizeDataStruct(const void* const Data);
+BaseSize_t getCurrentSizeDataStruct(const void* const Data);
 u08 PutToCycleDataStruct(const void* Elem, const void* Array);
 u08 GetFromCycleDataStruct(void* returnValue, const void* Array);
 u08 PutToFrontDataStruct(const void * const Elem, const void * const Array);   // Кладем элемент в начало

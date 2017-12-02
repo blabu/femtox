@@ -164,7 +164,7 @@ Date_t getDateFromSeconds(Time_t sec){
 	minutes -= hours   * 60;
 	days     = hours   / 24;
 	hours   -= days    * 24;
-	year      = 1970;
+	year     = 1970;
 	while(1) {
 		bool_t leapYear = isUpYear(year);
 		u16 daysInYear = leapYear ? 366 : 365;
@@ -237,7 +237,9 @@ void subOneDayFromDate(Date_t * date) {
  */
 s08 compareDates(const Date_t*const date1, const Date_t*const date2){
 	if(date1 == NULL || date2 == NULL) return 0;
-	s16 different = date1->year - date2->year;
+	u16 yearDate1 = toStandartYear(date1->year);
+	u16 yearDate2 = toStandartYear(date2->year);
+	s16 different = yearDate1 - yearDate2;
 	if(different) return (s08)(different);
 	different = date1->mon - date2->mon;
 	if(different) return (s08)(different);
