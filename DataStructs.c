@@ -79,7 +79,7 @@ u08 CreateDataStruct(const void* D, const BaseSize_t sizeElement, const BaseSize
     Data_Array[i].Data = (void*)D; // Адрес начала
     Data_Array[i].sizeElement = sizeElement; // размер одного элемента в байтах
     Data_Array[i].sizeAllElements = sizeAll; // Размер всей очереди в элементах
-    Data_Array[i].firstCount= sizeAll;
+    Data_Array[i].firstCount= 0;
     Data_Array[i].lastCount = sizeAll;
     if(flag_int) INTERRUPT_ENABLE;
     return EVERYTHING_IS_OK;
@@ -258,7 +258,8 @@ u08 peekFromFrontData(void* returnValue, const void* Array) {
         flag_int = TRUE;
         INTERRUPT_DISABLE;
     }
-    u08 count = (Data_Array[i].firstCount)? Data_Array[i].firstCount-1 : Data_Array[i].sizeAllElements-1;
+    u08 count = (Data_Array[i].firstCount)? Data_Array[i].firstCount : Data_Array[i].sizeAllElements;
+    count--;
     unsigned int offset = count * Data_Array[i].sizeElement;  // Определяем смещение на элемент, который надо достать
     void* dst = (void*)((byte_ptr)Data_Array[i].Data + offset); // Записываем адрес памяти свободной ячейки
     memCpy(returnValue, dst, Data_Array[i].sizeElement);   // Если структура данных найдена, читаем от туда первый (самый старый) элемент
@@ -311,11 +312,10 @@ BaseSize_t getCurrentSizeDataStruct(const void* const Data) {
 	BaseSize_t last = 0;
 	while(first != Data_Array[i].firstCount) first = Data_Array[i].firstCount;
 	while(last != Data_Array[i].lastCount) last = Data_Array[i].lastCount;
-	if(last > first) return (first + (Data_Array[i].sizeAllElements-last) + 1);
+	if(last > first) return (first + (Data_Array[i].sizeAllElements-last));
 	if(first > last) return (first - last);
 	return 0;
 }
-
 
 void for_each(const void* const Array, TaskMng tsk) {
     register u08 i = findNumberDataStruct(Array);
