@@ -7,34 +7,30 @@
 
 #include "TaskMngr.h"
 #include "MyString.h"
-#include "logging.h"
 //#include "UART2.h"
-#include <stdio.h>
+#include "stdio.h"
 
-static FILE *fs;
-
-void enableLogging() {
-      fs = fopen("log.txt", "w");
-      if(fs == NULL) writeLogStr("ERROR when try open file");
+void enableLogging(void) {
+//	enableUART2();
 }
 
-void disableLogging(){
-	 fclose(fs);
+void disableLogging(void){
+//	disableUART2();
 }
 
 void writeLogStr(const string_t c_str){
-    printf("%s\n",c_str);
-    if(fs == NULL) return;
-    u16 size =  strSize(c_str);
-    fwrite(c_str, 1, size, fs);
-    printf("Write to file %d\n",size);
+//	sendCOM2_buf(0, (u08*)c_str);
+//	sendUART2_buf((u08)'\n');
+	printf("%s\n",c_str);
 }
 
 void writeLogTempString(string_t tempStr){
-	u16 size =  strSize(tempStr);
-    printf("%s, %d\n",tempStr, size);
-    if(fs == NULL) return;
-    fwrite(tempStr, 1, size, fs);
+/*
+	u08 size =  strSize(tempStr);
+	for(u08 i = 0; i<size; i++) sendUART2_buf((u08)tempStr[i]);
+	sendUART2_buf((u08)'\n');
+	*/
+	writeLogStr(tempStr);
 }
 
 void writeLogFloat(float data) {
@@ -50,7 +46,8 @@ void writeLogU32(u32 data) {
 }
 
 void writeSymb(char symb) {
-    printf("%c ", symb);
+	//sendUART2_buf((u08)symb);
+	printf("%c",symb);
 }
 
 void writeLogByteArray(u08 sizeBytes, byte_ptr array){
