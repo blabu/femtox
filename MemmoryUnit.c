@@ -32,7 +32,7 @@ void initHeap(void)
   }
 }
 
-u16 getFreeMemmorySize(){
+u16 getFreeMemmorySize(void){
     return sizeAllFreeMemmory;
 }
 
@@ -85,7 +85,7 @@ void defragmentation(void){
     }
 }
 
-void clearAllMemmory(){
+void clearAllMemmory(void){
 	u16 i = 0;
     bool_t flag_int = FALSE;
     if(INTERRUPT_STATUS)

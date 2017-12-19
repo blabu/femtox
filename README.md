@@ -8,6 +8,7 @@ All platform specific file are concentrated in PlatformSpecific.c and PlatformSp
 ###Usage
 <h1 align='center'>Code example main.c </h1>
 
+```c
 #include "TaskMng.h"
 
 void task(BaseSize_t arg_n, BaseParam_t arg_p) {
@@ -21,3 +22,4 @@ int main(void) {
   runFemtOS();
   return 0;
 }
+```
