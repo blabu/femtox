@@ -26,56 +26,8 @@ static u08 heap[HEAP_SIZE];  // Сама куча
 static u16 sizeAllFreeMemmory = HEAP_SIZE;
 
 
-#ifdef MEMMORY_LEAK_CONTROL
-struct {
-	byte_ptr data;
-	byte_ptr* dataPtr;
-}memmoryAllocateList[MAX_DATA_ALOCATE_COUNTER];
-
-#include <stdio.h>
-
-void checkLeak() {
-	for(u08 i = 0; i<MAX_DATA_ALOCATE_COUNTER; i++) {
-		if(memmoryAllocateList[i].data != NULL) {
-			if(memmoryAllocateList[i].dataPtr == NULL) {
-				freeMem(memmoryAllocateList[i].data);
-				continue;
-			}
-			printf("%p, %p\n", memmoryAllocateList[i].data, *memmoryAllocateList[i].dataPtr);
-			if(memmoryAllocateList[i].data != *memmoryAllocateList[i].dataPtr) {
-				freeMem(memmoryAllocateList[i].data);
-				memmoryAllocateList[i].data = NULL;
-			}
-		}
-	}
-}
-
-byte_ptr** leakControlAlloc(u08 size, byte_ptr** res) {
-	u08 i = 0;
-	for(; i<MAX_DATA_ALOCATE_COUNTER; i++) { // Поиск пустого места для данных
-		if(memmoryAllocateList[i].data == NULL) break; // Нашли пустышку
-	}
-	if(i == MAX_DATA_ALOCATE_COUNTER) {
-		return NULL;
-	}
-	memmoryAllocateList[i].data = allocMem(size); // Выделяем память
-	if(memmoryAllocateList[i].data == NULL) return NULL;
-	memmoryAllocateList[i].dataPtr = &(memmoryAllocateList[i].data);
-	if(res != NULL)	*res = memmoryAllocateList[i].dataPtr;// Модифицируем то на что раньше указывал res (это дает возможность удалить память)
-	return &memmoryAllocateList[i].dataPtr; // Вернем новое значение
-}
-#endif
-
-
-
 void initHeap(void)
 {
-#ifdef MEMMORY_LEAK_CONTROL
-	for(u08 i = 0; i<MAX_DATA_ALOCATE_COUNTER; i++){
-		memmoryAllocateList[i].data = NULL;
-		memmoryAllocateList[i].dataPtr = NULL;
-	}
-#endif
   if(heap == NULL) {
       heap[0]=(1<<7)+1; // Заблокируем начало памяти для выделения
   }
@@ -194,9 +146,6 @@ void defragmentation(void){
         blockSize = currentBlockSize;
         i += blockSize + 1;
     }
-#ifdef MEMMORY_LEAK_CONTROL
-    checkLeak();
-#endif
 }
 
 #endif //ALLOC_MEM
