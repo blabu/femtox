@@ -6,8 +6,24 @@
  */
 
 #include "TaskMngr.h"
+#include "PlatformSpecific.h"
 #include "MyString.h"
+
+#ifdef _X86
+#include <stdio.h>
+void enableUART2() {}
+void disableUART2() {}
+static void sendCOM2_buf(u08 size, byte_ptr data) {
+	printf("size: %d, data: %s\n", size, data);
+}
+
+static void sendUART2_buf(u08 c) {
+	printf("%c",c);
+}
+
+#else
 #include "UART2.h"
+#endif
 
 void enableLogging(void) {
 	enableUART2();
@@ -16,6 +32,7 @@ void enableLogging(void) {
 void disableLogging(void){
 	disableUART2();
 }
+
 
 void writeLogStr(const string_t c_str){
 	sendCOM2_buf(0, (u08*)c_str);

@@ -173,7 +173,7 @@ void showAllDataStruct(void); // передает в ЮАРТ данные о в
 
 #ifdef CYCLE_FUNC
      #define TIMERS_ARRAY_SIZE 10
-     void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t toManager); // toManager == 0(false) выполняется прям в прерывании
+     void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t flagToQueue); // toManager == 0(false) выполняется прям в прерывании
      void delCycleTask(BaseSize_t arg_n, CycleFuncPtr_t CallBack);
 #endif //CYCLE_FUNC
 
@@ -186,7 +186,12 @@ void showAllDataStruct(void); // передает в ЮАРТ данные о в
 #endif
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 10000UL /*6500*/
+#define HEAP_SIZE 200UL /*6500*/
+#define MEMMORY_LEAK_CONTROL /*Контроль за утечкой памяти експеримент*/
+#ifdef MEMMORY_LEAK_CONTROL
+#define MAX_DATA_ALOCATE_COUNTER 25
+     byte_ptr** leakControlAlloc(u08 size, byte_ptr** dataPtr); // Алгоритм работает только при условии
+#endif
     byte_ptr allocMem(u08 size);  //size - до 127 размер блока выделяемой памяти
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
     void freeMem(byte_ptr data);  // Освобождение памяти

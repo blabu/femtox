@@ -25,8 +25,57 @@ extern "C" {
 static u08 heap[HEAP_SIZE];  // Сама куча
 static u16 sizeAllFreeMemmory = HEAP_SIZE;
 
+
+#ifdef MEMMORY_LEAK_CONTROL
+struct {
+	byte_ptr data;
+	byte_ptr* dataPtr;
+}memmoryAllocateList[MAX_DATA_ALOCATE_COUNTER];
+
+#include <stdio.h>
+
+void checkLeak() {
+	for(u08 i = 0; i<MAX_DATA_ALOCATE_COUNTER; i++) {
+		if(memmoryAllocateList[i].data != NULL) {
+			if(memmoryAllocateList[i].dataPtr == NULL) {
+				freeMem(memmoryAllocateList[i].data);
+				continue;
+			}
+			printf("%p, %p\n", memmoryAllocateList[i].data, *memmoryAllocateList[i].dataPtr);
+			if(memmoryAllocateList[i].data != *memmoryAllocateList[i].dataPtr) {
+				freeMem(memmoryAllocateList[i].data);
+				memmoryAllocateList[i].data = NULL;
+			}
+		}
+	}
+}
+
+byte_ptr** leakControlAlloc(u08 size, byte_ptr** res) {
+	u08 i = 0;
+	for(; i<MAX_DATA_ALOCATE_COUNTER; i++) { // Поиск пустого места для данных
+		if(memmoryAllocateList[i].data == NULL) break; // Нашли пустышку
+	}
+	if(i == MAX_DATA_ALOCATE_COUNTER) {
+		return NULL;
+	}
+	memmoryAllocateList[i].data = allocMem(size); // Выделяем память
+	if(memmoryAllocateList[i].data == NULL) return NULL;
+	memmoryAllocateList[i].dataPtr = &(memmoryAllocateList[i].data);
+	if(res != NULL)	*res = memmoryAllocateList[i].dataPtr;// Модифицируем то на что раньше указывал res (это дает возможность удалить память)
+	return &memmoryAllocateList[i].dataPtr; // Вернем новое значение
+}
+#endif
+
+
+
 void initHeap(void)
 {
+#ifdef MEMMORY_LEAK_CONTROL
+	for(u08 i = 0; i<MAX_DATA_ALOCATE_COUNTER; i++){
+		memmoryAllocateList[i].data = NULL;
+		memmoryAllocateList[i].dataPtr = NULL;
+	}
+#endif
   if(heap == NULL) {
       heap[0]=(1<<7)+1; // Заблокируем начало памяти для выделения
   }
@@ -45,44 +94,6 @@ u16 getAllocateMemmorySize(byte_ptr data) {
 		if(!(size & (1<<7))) size = 0; // Если старший бит не установлен значит память пустая
     }
 	return size;
-}
-
-void defragmentation(void){
-    u16 i = 0;
-    u08 blockSize = 0;
-    sizeAllFreeMemmory=HEAP_SIZE;
-    bool_t flag_int = FALSE;
-    while(i < HEAP_SIZE)    // Пока не закончится куча
-    {
-        u08 currentBlockSize = heap[i]&0x7F; //Выделяем размер блока (младшие 7 байт)
-        if(!currentBlockSize) return;   // Если размер нулевой, значит выделения памяти еще не было
-        if(heap[i] & (1<<7))    // Если блок памяти занят
-        {
-            blockSize = 0;
-            i += currentBlockSize + 1;  // переходим к концу этого блока
-            sizeAllFreeMemmory -= currentBlockSize + 1;
-            continue;
-        }
-        if(blockSize) //Если блок памяти свободен
-        {
-            u08 SumBlock = (u08)(blockSize + currentBlockSize + 1);
-            if(SumBlock < 127)
-            {
-                if(INTERRUPT_STATUS)
-                {
-                    flag_int = TRUE;
-                    INTERRUPT_DISABLE;
-                }
-                heap[i - (blockSize+1)] = SumBlock;
-                blockSize = SumBlock;
-                i += currentBlockSize + 1;
-                if(flag_int) INTERRUPT_ENABLE;
-                continue;
-            }
-        }
-        blockSize = currentBlockSize;
-        i += blockSize + 1;
-    }
 }
 
 void clearAllMemmory(void){
@@ -149,6 +160,43 @@ void freeMem(byte_ptr data) {
     {
         *(data-1) &= ~(1<<7); // Очистим флаг занятости данных (не трогая при этом сами данные и их размер)
     }
+}
+
+
+void defragmentation(void){
+    u16 i = 0;
+    u08 blockSize = 0;
+    sizeAllFreeMemmory=HEAP_SIZE;
+    bool_t flag_int = FALSE;
+    while(i < HEAP_SIZE) {   // Пока не закончится куча
+        u08 currentBlockSize = heap[i]&0x7F; //Выделяем размер блока (младшие 7 байт)
+        if(!currentBlockSize) break;   // Если размер нулевой, значит выделения памяти еще не было
+        if(heap[i] & (1<<7)) {   // Если блок памяти занят
+            blockSize = 0;
+            i += currentBlockSize + 1;  // переходим к концу этого блока
+            sizeAllFreeMemmory -= currentBlockSize + 1;
+            continue;
+        }
+        if(blockSize) { //Если блок памяти свободен
+            u08 SumBlock = (u08)(blockSize + currentBlockSize + 1);
+            if(SumBlock < 127) {
+                if(INTERRUPT_STATUS){
+                    flag_int = TRUE;
+                    INTERRUPT_DISABLE;
+                }
+                heap[i - (blockSize+1)] = SumBlock;
+                blockSize = SumBlock;
+                i += currentBlockSize + 1;
+                if(flag_int) INTERRUPT_ENABLE;
+                continue;
+            }
+        }
+        blockSize = currentBlockSize;
+        i += blockSize + 1;
+    }
+#ifdef MEMMORY_LEAK_CONTROL
+    checkLeak();
+#endif
 }
 
 #endif //ALLOC_MEM
