@@ -3,6 +3,9 @@
 
 #include "TaskMngr.h"
 
+void setSeed(u32 seed);
+u32 myRandom();
+
 // #define the macros below to 1/0 to enable/disable the mode of operation.
 // CBC enables AES encryption in CBC-mode of operation.
 // ECB enables the basic ECB 16-byte block algorithm. Both can be enabled simultaneously.

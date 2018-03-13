@@ -5,9 +5,11 @@ extern "C" {
 #include "PlatformSpecific.h"
 #include "logging.h"
 #include "MyString.h"
+#include "crypt.h"
 #ifdef __cplusplus
 }
 #endif
+#include <time.h>
 #include <iostream>
 //
 void testAddr(BaseSize_t count, BaseParam_t res) {
@@ -45,15 +47,18 @@ void showAllMemmory(){
 	writeLogStr(data);
 }
 
+
+
+void checkRandom() {
+	//writeLogU32(myRandom());
+	myRandom();
+}
+
 int main() {
 	initFemtOS();
-	heapStart = allocMem(1);
-	for(s16 i=-1; i<HEAP_SIZE; i++) {
-		heapStart[i] = 0;
-	}
-	SetTask(testAddr,0,(BaseParam_t)112);
-	SetCycleTask(TICK_PER_SECOND*15, defragmentation, TRUE);
-	SetCycleTask(TICK_PER_SECOND*10, showAllMemmory,TRUE);
+	setSeconds(time(NULL));
+	setSeed(getTick());
+	SetCycleTask(5, checkRandom,TRUE);
 	runFemtOS();
 	return 0;
 }

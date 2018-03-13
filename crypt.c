@@ -586,3 +586,44 @@ void AES_CBC_decrypt_buffer(byte_ptr output, byte_ptr input, u32 length, const b
 }
 
 #endif // #if defined(CBC) && (CBC == 1)
+
+static u32 s1, s2, s3, s4;
+unsigned long long count1 = 0, count2 = 0;
+static u32 taus88 () {
+	count1++;
+    u32 b = (((s1 << 13) ^ s1) >> 19);
+    s1 = (((s1 & 4294967294) << 12) ^ b);
+    b = (((s2 << 2) ^ s2) >> 25);
+    s2 = (((s2 & 4294967288) << 4) ^ b);
+    b = (((s3 << 3) ^ s3) >> 11);
+    s3 = (((s3 & 4294967280) << 17) ^ b);
+    return (s1 ^ s2 ^ s3);
+}
+
+static u32 lfsr113 (void){
+   count2++;
+   u32 b = ((s1 << 6) ^ s1) >> 13;
+   s1 = ((s1 & 4294967294UL) << 18) ^ b;
+   b  = ((s2 << 2) ^ s2) >> 27; 
+   s2 = ((s2 & 4294967288UL) << 2) ^ b;
+   b  = ((s3 << 13) ^ s3) >> 21;
+   s3 = ((s3 & 4294967280UL) << 7) ^ b;
+   b  = ((s4 << 3) ^ s4) >> 12;
+   s4 = ((s4 & 4294967168UL) << 13) ^ b;
+   return (s1 ^ s2 ^ s3 ^ s4);
+}
+
+void compareRandomFunc() {
+	char tmp[10];
+
+}
+
+void setSeed(u32 seed) {
+    s1 = s2 = s3 = s4 = seed;
+}
+
+u32 myRandom() {
+    if(s1 & (0x55)<<(s2 & 0x1F)) return lfsr113();
+    return taus88();
+}
+
