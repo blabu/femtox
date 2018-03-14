@@ -49,16 +49,45 @@ void showAllMemmory(){
 
 
 
+#include <map>
+
+std::map<u16,u16> randomNumbers;
+u32 countCheck = 0;
 void checkRandom() {
-	//writeLogU32(myRandom());
-	myRandom();
+	countCheck++;
+	u16 rand = RandomSimple() % 10;
+	randomNumbers[rand] += 1;
+	rand = RandomMultiply() % 10;
+	randomNumbers[rand] += 1;
+}
+
+void showMap() {
+	static u16 maxData = 1;
+	std::cout<<"Call Random numbers: "<<countCheck<<std::endl;
+	u16 KeyMax = 0;
+	u16 KeyMin = randomNumbers.cbegin()->first;
+	for(auto i = randomNumbers.cbegin(); i != randomNumbers.cend(); ++i) {
+		u16 count = i->second;
+		if(count > randomNumbers[KeyMax]) {KeyMax = i->first;}
+		if(count < randomNumbers[KeyMin]) {KeyMin = i->first;}
+	}
+	std::cout<<"\nMax count: "<<randomNumbers[KeyMax]<<" for digit: "<<KeyMax<<std::endl;
+	std::cout<<"\nMin count: "<<randomNumbers[KeyMin]<<" for digit: "<<KeyMin<<std::endl;
+	std::cout<<RandomMultiply() % 6<<std::endl;
+}
+
+void showAllMap() {
+	for(auto i = randomNumbers.cbegin(); i != randomNumbers.cend(); ++i) {
+		std::cout<<i->first<<" "<<i->second<<std::endl;
+	}
+	std::cout<<std::endl;
 }
 
 int main() {
 	initFemtOS();
 	setSeconds(time(NULL));
-	setSeed(getTick());
-	SetCycleTask(5, checkRandom,TRUE);
+	SetCycleTask(2, checkRandom,TRUE);
+	SetCycleTask(TICK_PER_SECOND<<2,showAllMap,TRUE);
 	runFemtOS();
 	return 0;
 }

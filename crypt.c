@@ -515,7 +515,7 @@ static void XorWithIv(byte_ptr buf)
 
 void AES_CBC_encrypt_buffer(byte_ptr output, byte_ptr input, u32 length, const byte_ptr key, const byte_ptr iv)
 {
-  u32* i;
+  u32 i;
   u08 extra = length % BLOCKLEN; /* Remaining bytes in the last non-full block */
 
   // Skip the key expansion if key is passed as 0
@@ -527,7 +527,7 @@ void AES_CBC_encrypt_buffer(byte_ptr output, byte_ptr input, u32 length, const b
 
   if (iv != 0)
   {
-    Iv = (uint8_t*)iv;
+    Iv = (byte_ptr)iv;
   }
 
   for (i = 0; i < length; i += BLOCKLEN)
@@ -550,7 +550,7 @@ void AES_CBC_encrypt_buffer(byte_ptr output, byte_ptr input, u32 length, const b
 
 void AES_CBC_decrypt_buffer(byte_ptr output, byte_ptr input, u32 length, const byte_ptr key, const byte_ptr iv)
 {
-  u32* i;
+  u32 i;
   u08 extra = length % BLOCKLEN; /* Remaining bytes in the last non-full block */
 
   // Skip the key expansion if key is passed as 0
@@ -563,7 +563,7 @@ void AES_CBC_decrypt_buffer(byte_ptr output, byte_ptr input, u32 length, const b
   // If iv is passed as 0, we continue to encrypt without re-setting the Iv
   if (iv != 0)
   {
-    Iv = (uint8_t*)iv;
+    Iv = (byte_ptr)iv;
   }
 
   for (i = 0; i < length; i += BLOCKLEN)
@@ -588,9 +588,7 @@ void AES_CBC_decrypt_buffer(byte_ptr output, byte_ptr input, u32 length, const b
 #endif // #if defined(CBC) && (CBC == 1)
 
 static u32 s1, s2, s3, s4;
-unsigned long long count1 = 0, count2 = 0;
 static u32 taus88 () {
-	count1++;
     u32 b = (((s1 << 13) ^ s1) >> 19);
     s1 = (((s1 & 4294967294) << 12) ^ b);
     b = (((s2 << 2) ^ s2) >> 25);
@@ -601,7 +599,6 @@ static u32 taus88 () {
 }
 
 static u32 lfsr113 (void){
-   count2++;
    u32 b = ((s1 << 6) ^ s1) >> 13;
    s1 = ((s1 & 4294967294UL) << 18) ^ b;
    b  = ((s2 << 2) ^ s2) >> 27; 
@@ -613,17 +610,27 @@ static u32 lfsr113 (void){
    return (s1 ^ s2 ^ s3 ^ s4);
 }
 
-void compareRandomFunc() {
-	char tmp[10];
-
-}
-
 void setSeed(u32 seed) {
     s1 = s2 = s3 = s4 = seed;
 }
 
-u32 myRandom() {
-    if(s1 & (0x55)<<(s2 & 0x1F)) return lfsr113();
+u32 RandomSimple() {
+	if(s1 == 0 || s2 == 0 || s3 == 0) {
+		s1 = s2 = s3 = getTick();
+	}
+    if(s1 & (0x55)<<(s2 & 0x1F)) {
+    	if(s2 & (0x55)<<(s3 & 0x1F))
+    		return lfsr113();
+    }
     return taus88();
+}
+
+static const u32 A = 16807; // Math.pow(7, 5); (Prime root of M, passes statistical tests and produces a full cycle)
+static const u32 M = 2147483647; // Math.pow(2, 31) - 1 (A large prime number)
+static u32 seed = 0;
+u32 RandomMultiply() {
+	if(!seed) seed = getTick();
+	seed = (A*seed)%M;
+	return seed;
 }
 

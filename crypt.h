@@ -4,7 +4,8 @@
 #include "TaskMngr.h"
 
 void setSeed(u32 seed);
-u32 myRandom();
+u32 RandomSimple();
+u32 RandomMultiply();
 
 // #define the macros below to 1/0 to enable/disable the mode of operation.
 // CBC enables AES encryption in CBC-mode of operation.
@@ -12,7 +13,7 @@ u32 myRandom();
 
 // The #ifndef-guard allows it to be configured before #include'ing or at compile time.
 #ifndef CBC
-  #define CBC 0
+  #define CBC 1
 #endif
 
 #ifndef ECB
