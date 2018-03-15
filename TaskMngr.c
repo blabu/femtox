@@ -410,6 +410,7 @@ void memCpy(void* destination, const void* source, const BaseSize_t num) {
 				*((byte_ptr)destination + i) = *((byte_ptr)source + i); // Выполняем копирование данных
 			}
 #endif
+
 }
 
 void memSet(void* destination, const BaseSize_t size, const u08 value) {

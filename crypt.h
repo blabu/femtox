@@ -6,6 +6,7 @@
 void setSeed(u32 seed);
 u32 RandomSimple();
 u32 RandomMultiply();
+u16 CRC16(BaseSize_t size, byte_ptr msg);
 
 // #define the macros below to 1/0 to enable/disable the mode of operation.
 // CBC enables AES encryption in CBC-mode of operation.
