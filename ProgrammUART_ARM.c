@@ -77,26 +77,31 @@ static bool_t isStartBit1() // Для инициализации события 
   }
   return FALSE;
 }
+
 static void StartReceive1() // Запуск приема
 {
   CLEAR_TIMER;
   UART_RX_DATA[1].curentCount = UART_RX_DATA[1].Baud + (UART_RX_DATA[1].Baud>>2);
 }
+
 static bool_t UART_RX1_predicate()  // Если байт принят вернем истину
 {
     if(UART_RECEIV_IS_READY(1)) return TRUE;
     return FALSE;
 }
+
 static void UART_RX1_to_buff()  // Запись принятого байта в буфер
 {
     UART_RECEIV_DISABLE(1); // Выключаем UART 
     PutToBackQ(&UART_RX_DATA[1].Data, UART_RX_DATA[1].buffer); // Записывае байт в буфер
 }
+
 static bool_t UART_TX1_predicate()  // Если байт принят вернем истину
 {
     if(UART_TRANS_IS_READY(1)) return TRUE;
     return FALSE;
 }
+
 static void UART_TX1_to_buff(){  // Запись принятого байта в буфер
     unsigned char temp = 0;
     if(GetFromQ(&temp, UART_TX_DATA[1].buffer) == EVERYTHING_IS_OK) {
@@ -122,6 +127,7 @@ static bool_t isStartBit2(){ // Для инициализации события
   }
   return FALSE;
 }
+
 static void StartReceive2(){ // Запуск приема
   CLEAR_TIMER;
   UART_RX_DATA[2].curentCount = UART_RX_DATA[2].Baud + (UART_RX_DATA[2].Baud>>2);

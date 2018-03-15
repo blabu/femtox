@@ -45,7 +45,7 @@ u16 getAllocateMemmorySize(byte_ptr data) {
 		size = *(data-1);
 		if(!(size & (1<<7))) size = 0; // Если старший бит не установлен значит память пустая
     }
-	return size;
+	return size & 0x7F;
 }
 
 void clearAllMemmory(void){
