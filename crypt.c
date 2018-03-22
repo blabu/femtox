@@ -472,9 +472,9 @@ static void InvCipher(void)
 #if defined(ECB) && (ECB == 1)
 
 
-void AES_ECB_encrypt(const byte_ptr input, const byte_ptr key, byte_ptr output, const u32 length){
+void AesEcbEncrypt(const byte_ptr input, const byte_ptr key, byte_ptr output){
   // Copy input to output, and work in-memory on output
-  memCpy(output, input, length);
+  memCpy(output, input, BLOCKLEN);
   state = (state_t*)output;
 
   Key = key;
@@ -484,10 +484,10 @@ void AES_ECB_encrypt(const byte_ptr input, const byte_ptr key, byte_ptr output, 
   Cipher();
 }
 
-void AES_ECB_decrypt(const byte_ptr input, const byte_ptr key, byte_ptr output, const u32 length)
+void AesEcbDecrypt(const byte_ptr input, const byte_ptr key, byte_ptr output)
 {
   // Copy input to output, and work in-memory on output
-  memCpy(output, input, length);
+  memCpy(output, input, BLOCKLEN);
   state = (state_t*)output;
 
   // The KeyExpansion routine must be called before encryption.
@@ -516,7 +516,7 @@ static void XorWithIv(byte_ptr buf)
   }
 }
 
-void AES_CBC_encrypt_buffer(byte_ptr output, byte_ptr input, u32 length, const byte_ptr key, const byte_ptr iv)
+void AesCbcEncrypt_buffer(byte_ptr output, byte_ptr input, u32 length, const byte_ptr key, const byte_ptr iv)
 {
   u32 i;
   u08 extra = length % BLOCKLEN; /* Remaining bytes in the last non-full block */
@@ -551,7 +551,7 @@ void AES_CBC_encrypt_buffer(byte_ptr output, byte_ptr input, u32 length, const b
   }
 }
 
-void AES_CBC_decrypt_buffer(byte_ptr output, byte_ptr input, u32 length, const byte_ptr key, const byte_ptr iv)
+void AesCbcDecrypt_buffer(byte_ptr output, byte_ptr input, u32 length, const byte_ptr key, const byte_ptr iv)
 {
   u32 i;
   u08 extra = length % BLOCKLEN; /* Remaining bytes in the last non-full block */

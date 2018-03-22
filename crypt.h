@@ -27,15 +27,15 @@ u16 CRC16(BaseSize_t size, byte_ptr msg);
 
 #if defined(ECB) && (ECB == 1)
 
-void AES_ECB_encrypt(const byte_ptr input, const byte_ptr key, byte_ptr output, const u32 length);
-void AES_ECB_decrypt(const byte_ptr input, const byte_ptr key, byte_ptr output, const u32 length);
+void AesEcbEncrypt(const byte_ptr input, const byte_ptr key, byte_ptr output);
+void AesEcbDecrypt(const byte_ptr input, const byte_ptr key, byte_ptr output);
 
 #endif // #if defined(ECB) && (ECB == !)
 
 #if defined(CBC) && (CBC == 1)
 
-void AES_CBC_encrypt_buffer(byte_ptr output, byte_ptr input, u32 length, const byte_ptr key, const byte_ptr iv);
-void AES_CBC_decrypt_buffer(byte_ptr output, byte_ptr input, u32 length, const byte_ptr key, const byte_ptr iv);
+void AesCbcEncrypt_buffer(byte_ptr output, byte_ptr input, u32 length, const byte_ptr key, const byte_ptr iv);
+void AesCbcDecrypt_buffer(byte_ptr output, byte_ptr input, u32 length, const byte_ptr key, const byte_ptr iv);
 
 #endif // #if defined(CBC) && (CBC == 1)
 
