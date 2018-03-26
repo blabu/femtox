@@ -13,7 +13,7 @@ extern "C" {
 #endif
 
 #ifdef GLOBAL_FLAGS
-globalFlags_t GlobalFlags = 0;
+static globalFlags_t GlobalFlags = 0;
 
 void setFlags(globalFlags_t flagMask) {
 	bool_t flag_int = FALSE;
@@ -40,7 +40,7 @@ bool_t getFlags(globalFlags_t flagMask){
 	return FALSE;
 }
 
-globalFlags_t getGlobalFlags(){
+globalFlags_t getGlobalFlags(void){
 	globalFlags_t result = 0;
 	while(result != GlobalFlags) result = GlobalFlags;
 	return result;
