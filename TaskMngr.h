@@ -5,6 +5,7 @@
 #define NULL 0
 #endif
 
+extern const char* osVersion;
 
 #define ABS(XX) (((XX) > 0)?(XX):(-(XX)))
 #define BASE_DALAY(x)  for(register volatile unsigned int ccii=0; ccii<(x); ccii++) /*Задержка*/
