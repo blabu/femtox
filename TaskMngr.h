@@ -173,7 +173,7 @@ void showAllDataStruct(void); // передает в ЮАРТ данные о в
 
 #ifdef CYCLE_FUNC
      #define TIMERS_ARRAY_SIZE 10
-     void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t toManager); // toManager == 0(false) выполняется прям в прерывании
+     void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t flagToQueue); // toManager == 0(false) выполняется прям в прерывании
      void delCycleTask(BaseSize_t arg_n, CycleFuncPtr_t CallBack);
 #endif //CYCLE_FUNC
 

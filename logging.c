@@ -6,31 +6,43 @@
  */
 
 #include "TaskMngr.h"
+#include "PlatformSpecific.h"
 #include "MyString.h"
-//#include "UART2.h"
-#include "stdio.h"
+
+#ifdef _X86
+#include <stdio.h>
+void enableUART2() {}
+void disableUART2() {}
+static void sendCOM2_buf(u08 size, byte_ptr data) {
+	printf("size: %d, data: %s\n", size, data);
+}
+
+static void sendUART2_buf(u08 c) {
+	printf("%c",c);
+}
+
+#else
+#include "UART2.h"
+#endif
 
 void enableLogging(void) {
-//	enableUART2();
+	enableUART2();
 }
 
 void disableLogging(void){
-//	disableUART2();
+	disableUART2();
 }
 
+
 void writeLogStr(const string_t c_str){
-//	sendCOM2_buf(0, (u08*)c_str);
-//	sendUART2_buf((u08)'\n');
-	printf("%s\n",c_str);
+	sendCOM2_buf(0, (u08*)c_str);
+	sendUART2_buf((u08)'\n');
 }
 
 void writeLogTempString(string_t tempStr){
-/*
 	u08 size =  strSize(tempStr);
 	for(u08 i = 0; i<size; i++) sendUART2_buf((u08)tempStr[i]);
 	sendUART2_buf((u08)'\n');
-	*/
-	writeLogStr(tempStr);
 }
 
 void writeLogFloat(float data) {
@@ -46,8 +58,7 @@ void writeLogU32(u32 data) {
 }
 
 void writeSymb(char symb) {
-	//sendUART2_buf((u08)symb);
-	printf("%c",symb);
+	sendUART2_buf((u08)symb);
 }
 
 void writeLogByteArray(u08 sizeBytes, byte_ptr array){
