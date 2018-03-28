@@ -10,6 +10,8 @@ extern "C" {
 инициализируется таймер счетчик, и включает прерывание по переполнению Т/С0
 */
 
+const char* osVersion = "V1.0.1";
+
 static void TaskManager(void);
 static void TimerService(void);
 #ifdef ALLOC_MEM

@@ -8,8 +8,8 @@
 #ifndef PLATFORMSPECIFIC_H_
 #define PLATFORMSPECIFIC_H_
 
-//#include "PlatformSpecificARM.h"
+#include "PlatformSpecificARM.h"
 //#include "PlatformSpecificMSP430.h"
-#include "PlatformSpecificX86.h"
+//#include "PlatformSpecificX86.h"
 
 #endif /* PLATFORMSPECIFIC_H_ */
