@@ -8,6 +8,7 @@
 
 #define ABS(XX) (((XX) > 0)?(XX):(-(XX)))
 #define BASE_DALAY(x)  for(register volatile unsigned int ccii=0; ccii<(x); ccii++) /*Задержка*/
+#define PAIR(T,V) struct{T first; V second;}
 
 //#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
 #define DATA_STRUCT_MANAGER   /*Включаем работу с очередями средствами деспетчера*/
