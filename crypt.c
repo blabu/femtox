@@ -184,8 +184,7 @@ static void KeyExpansion(void){
   u08 tempa[4]; // Used for the column/row operations
 
   // The first round key is the key itself.
-  for (i = 0; i < Nk; ++i)
-  {
+  for (i = 0; i < Nk; ++i) {
     RoundKey[(i * 4) + 0] = Key[(i * 4) + 0];
     RoundKey[(i * 4) + 1] = Key[(i * 4) + 1];
     RoundKey[(i * 4) + 2] = Key[(i * 4) + 2];
@@ -194,8 +193,7 @@ static void KeyExpansion(void){
 
   // All other round keys are found from the previous round keys.
   //i == Nk
-  for (; i < Nb * (Nr + 1); ++i)
-  {
+  for (; i < Nb * (Nr + 1); ++i) {
     {
       tempa[0]=RoundKey[(i-1) * 4 + 0];
       tempa[1]=RoundKey[(i-1) * 4 + 1];

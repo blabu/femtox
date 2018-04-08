@@ -25,7 +25,7 @@ volatile static struct
     CycleFuncPtr_t Call_Back;
     Time_t value;
     Time_t time;
-    bool_t flagToManager;
+    bool_t flagToQueue;
 }Timers_Array[TIMERS_ARRAY_SIZE];
 
 void initCycleTask(void)
@@ -38,7 +38,7 @@ void initCycleTask(void)
     }
 }
 
-void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t toManager) {
+void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t flagToQueue) {
     bool_t flag_int = FALSE;
     if(INTERRUPT_STATUS) {
         flag_int = TRUE;
@@ -47,7 +47,7 @@ void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t toManager) {
     for(register u08 i = 0; i<TIMERS_ARRAY_SIZE; i++){
         if(Timers_Array[i].value) continue; // Если таймер уже занят (не нулевой) переходим к следющему
         Timers_Array[i].Call_Back = CallBack;  // Запоминаем новый колбэк
-        Timers_Array[i].flagToManager = toManager;      // Флаг определяет выполняется задача в таймере или ставится в глобальную очередь
+        Timers_Array[i].flagToQueue = flagToQueue;      // Флаг определяет выполняется задача в таймере или ставится в глобальную очередь
         Timers_Array[i].value = time;       // Первый свободный таймер мы займем своей задачей
         Timers_Array[i].time = time;
         break;                          // выходим из цикла
@@ -75,7 +75,7 @@ void delCycleTask(BaseSize_t arg_n, CycleFuncPtr_t CallBack) {
             Timers_Array[i-countDeletedTask].Call_Back = Timers_Array[i].Call_Back;  // Переносим текущую
             Timers_Array[i-countDeletedTask].time = Timers_Array[i].time;  // Переносим текущую
             Timers_Array[i-countDeletedTask].value = Timers_Array[i].value;
-            Timers_Array[i-countDeletedTask].flagToManager = Timers_Array[i].flagToManager;
+            Timers_Array[i-countDeletedTask].flagToQueue = Timers_Array[i].flagToQueue;
             Timers_Array[i].value = 0; // После перемещения удаляем текущую задачу
         }
 
@@ -92,7 +92,7 @@ void CycleService(void) {
         if(!Timers_Array[i].time) // Если таймер дотикал
     	{
             Timers_Array[i].time = Timers_Array[i].value;     // Если таймер дотикал обновляем его значение
-            if(!Timers_Array[i].flagToManager) // Если флаг поставить задачу в очередь не выставлен выполняем функцию здесь же
+            if(!Timers_Array[i].flagToQueue) // Если флаг поставить задачу в очередь не выставлен выполняем функцию здесь же
                 (*Timers_Array[i].Call_Back)();
             else
                 SetTask((TaskMng)Timers_Array[i].Call_Back,0,0); // Если флаг установлен ставим задачу в очередь таймеров

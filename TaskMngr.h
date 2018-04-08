@@ -9,6 +9,7 @@ extern const char* osVersion;
 
 #define ABS(XX) (((XX) > 0)?(XX):(-(XX)))
 #define BASE_DALAY(x)  for(register volatile unsigned int ccii=0; ccii<(x); ccii++) /*Задержка*/
+#define PAIR(T,V) struct{T first; V second;}
 
 //#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
 #define DATA_STRUCT_MANAGER   /*Включаем работу с очередями средствами деспетчера*/
@@ -21,7 +22,7 @@ extern const char* osVersion;
 #define CLOCK_SERVICE
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
-//#define _LIST_STRUCT
+#define _LIST_STRUCT
 //#define _DYNAMIC_ARRAY
 
 #define TASK_LIST_LEN 10U /*Длина очереди задач*/
@@ -38,9 +39,13 @@ typedef signed int     s32;
 typedef signed short   s16;
 typedef signed char    s08;
 typedef unsigned int   Time_t;
+#ifndef __MINGW32__
 typedef enum {FALSE=0, TRUE = !FALSE} bool_t;
-
-
+#else
+typedef u08 bool_t;
+#define TRUE 1
+#define FALSE 0
+#endif
 typedef unsigned char* byte_ptr;
 
 typedef unsigned short  BaseSize_t; // Первый аргумент для задачи в диспетчере
@@ -187,7 +192,7 @@ void showAllDataStruct(void); // передает в ЮАРТ данные о в
 #endif
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 10000UL /*6500*/
+#define HEAP_SIZE 200UL /*6500*/
     byte_ptr allocMem(u08 size);  //size - до 127 размер блока выделяемой памяти
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
     void freeMem(byte_ptr data);  // Освобождение памяти
