@@ -10,7 +10,9 @@ extern "C" {
 #include "PlatformSpecific.h"
 #include "TaskMngr.h"
 #include "logging.h"
-
+#ifdef __cplusplus
+}
+#endif
 
 extern void TimerISR();
 
@@ -83,6 +85,3 @@ void _initTimerSoftUart() {
 void initProgramUartGPIO(unsigned short RX_MASK, unsigned short TX_MASK) {
 
 }
-#ifdef __cplusplus
-}
-#endif
