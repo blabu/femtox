@@ -29,7 +29,7 @@ typedef struct
 } EventsType;
 EventsType EventList[EVENT_LIST_SIZE];
 
-void initEventList()
+void initEventList(void)
 {
     for(u08 i = 0; i<EVENT_LIST_SIZE; i++)
     {

@@ -1,5 +1,5 @@
-#ifndef PLATFORMSPECIFIC
-#define PLATFORMSPECIFIC
+#ifndef PLATFORMSPECIFIC_X86
+#define PLATFORMSPECIFIC_X86
 
 #define ARCH 32 /*Архитектура процессора 8, 16, 32 байта (разрядность шины данных)*/
 
@@ -23,7 +23,7 @@ void unBlockIt();
 
 void _init_Timer(void);	// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
 
-
+#define _X86
 /*
  * Для программного UART
  * Все програмные UART задействует прерывания одного таймера
@@ -33,4 +33,4 @@ void _init_Timer(void);	// Инициализация таймера 0, наст
 void _initTimerSoftUart();
 void initProgramUartGPIO(unsigned short RX_MASK, unsigned short TX_MASK);
 
-#endif // PLATFORMSPECIFIC
+#endif // PLATFORMSPECIFIC_X86

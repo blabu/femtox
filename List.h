@@ -16,18 +16,19 @@ typedef struct node {
 	struct node* prev;
 	struct node* next;
 	void* data;
-}Node_t;
+}ListNode_t;
 
-Node_t* createNewList(void* data);
-void deleteList(Node_t* listPtr);
-Node_t* findHead(Node_t* listPtr);
-
+ListNode_t* createNewList(void* data);
+void deleteList(ListNode_t* listPtr);
+ListNode_t* findHead(ListNode_t* listPtr);
+ListNode_t* findTail(ListNode_t* listPtr);
 // flag 0...6 bits is a size of data, and last 7's bit is a flag for allocate memmory
-Node_t* putToEndList(Node_t* list, void* data, u08 Flagalloc_Datasize);
-Node_t* putToFrontList(Node_t* list, void* data, u08 Flagalloc_Datasize);
-Node_t* getFromEndList(Node_t* list, void** result);
-Node_t* getFromFrontList(Node_t* list, void** result);
-BaseSize_t getSizeList(Node_t* list);
+ListNode_t* putToEndList(ListNode_t* list, void* data, u08 Flagalloc_Datasize);
+ListNode_t* putToFrontList(ListNode_t* list, void* data, u08 Flagalloc_Datasize);
+ListNode_t* getFromEndList(ListNode_t* list, void** result);
+ListNode_t* getFromFrontList(ListNode_t* list, void** result);
+BaseSize_t getSizeList(ListNode_t* list);
+void ForEachListNodes(ListNode_t* list, TaskMng task, bool_t flagToManager, BaseSize_t arg_n);
 #endif //_LIST_STRUCT
 
 #endif /* LIST_H_ */

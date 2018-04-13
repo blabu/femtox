@@ -79,7 +79,7 @@ u08 CreateDataStruct(const void* D, const BaseSize_t sizeElement, const BaseSize
     Data_Array[i].Data = (void*)D; // Адрес начала
     Data_Array[i].sizeElement = sizeElement; // размер одного элемента в байтах
     Data_Array[i].sizeAllElements = sizeAll; // Размер всей очереди в элементах
-    Data_Array[i].firstCount= sizeAll;
+    Data_Array[i].firstCount= 0;
     Data_Array[i].lastCount = sizeAll;
     if(flag_int) INTERRUPT_ENABLE;
     return EVERYTHING_IS_OK;
@@ -98,11 +98,12 @@ u08 PutToCycleDataStruct(const void* Elem, const void* Array) {
     bool_t flag_int = FALSE;
     register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return NOT_FAUND_DATA_STRUCT_ERROR;    // Если мы не нашли абстрактную структуру данных с указанным идентификтором выходим
-    BaseSize_t frontCount = (Data_Array[i].firstCount < Data_Array[i].sizeAllElements)? Data_Array[i].firstCount+1:0;
     if(INTERRUPT_STATUS){
         flag_int = TRUE;
         INTERRUPT_DISABLE;
     }
+    if(Data_Array[i].firstCount >= Data_Array[i].sizeAllElements) Data_Array[i].firstCount = 0; // Обнуляем потому что сейчас мы будем туду добавлять
+    BaseSize_t frontCount = Data_Array[i].firstCount+1; // Будущий указатель на СВОБОДНЫЙ элемент
     unsigned int offset = Data_Array[i].firstCount * Data_Array[i].sizeElement; //вычисляем смещение в байтах
     void* dst = (void*)((byte_ptr)Data_Array[i].Data + offset);     // Определяем адресс куда копировать
     memCpy(dst, Elem, Data_Array[i].sizeElement); // Вставляем наш элемент
@@ -112,8 +113,7 @@ u08 PutToCycleDataStruct(const void* Elem, const void* Array) {
     return EVERYTHING_IS_OK;
 }
 
-u08 GetFromCycleDataStruct(void* returnValue, const void* Array)
-{
+u08 GetFromCycleDataStruct(void* returnValue, const void* Array){
     bool_t flag_int = FALSE;
     register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return NOT_FAUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
@@ -122,9 +122,9 @@ u08 GetFromCycleDataStruct(void* returnValue, const void* Array)
     		flag_int = TRUE;
     		INTERRUPT_DISABLE;
     	}
-    	Data_Array[i].lastCount--;
     	Data_Array[i].firstCount = (Data_Array[i].firstCount)? Data_Array[i].firstCount : Data_Array[i].sizeAllElements;
     	Data_Array[i].firstCount--;
+        Data_Array[i].lastCount--;
     	unsigned int offset = Data_Array[i].firstCount * Data_Array[i].sizeElement;  // Определяем смещение на элемент, который надо достать
     	void* dst = (void*)((byte_ptr)Data_Array[i].Data + offset);     // Записываем адрес памяти свободной ячейки
     	memCpy(returnValue, dst, Data_Array[i].sizeElement);   // Если структура данных найдена, читаем от туда первый (самый старый) элемент
@@ -138,15 +138,14 @@ u08 GetFromCycleDataStruct(void* returnValue, const void* Array)
 }
 
 //Положить элемент Elem в начало структуры данных Array
-u08 PutToFrontDataStruct(const void* Elem, const void* Array)
-{
+u08 PutToFrontDataStruct(const void* Elem, const void* Array){
     bool_t flag_int = FALSE;
     register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return NOT_FAUND_DATA_STRUCT_ERROR;    // Если мы не нашли абстрактную структуру данных с указанным идентификтором выходим
-    BaseSize_t frontCount = (Data_Array[i].firstCount < Data_Array[i].sizeAllElements)? Data_Array[i].firstCount+1:0;
+    if(Data_Array[i].firstCount >= Data_Array[i].sizeAllElements) Data_Array[i].firstCount = 0; // Обнуляем потому что сейчас мы будем туда добавлять
+    BaseSize_t frontCount = Data_Array[i].firstCount+1; // Будущий указатель на СВОБОДНЫЙ элемент
     if(frontCount == Data_Array[i].lastCount) return OVERFLOW_OR_EMPTY_ERROR;  // Если после добавления мы догоним lastCount, значит структура заполнена
-    if(INTERRUPT_STATUS)
-    {
+    if(INTERRUPT_STATUS) {
         flag_int = TRUE;
         INTERRUPT_DISABLE;
     }
@@ -259,7 +258,8 @@ u08 peekFromFrontData(void* returnValue, const void* Array) {
         flag_int = TRUE;
         INTERRUPT_DISABLE;
     }
-    u08 count = (Data_Array[i].firstCount)? Data_Array[i].firstCount-1 : Data_Array[i].sizeAllElements-1;
+    u08 count = (Data_Array[i].firstCount)? Data_Array[i].firstCount : Data_Array[i].sizeAllElements;
+    count--;
     unsigned int offset = count * Data_Array[i].sizeElement;  // Определяем смещение на элемент, который надо достать
     void* dst = (void*)((byte_ptr)Data_Array[i].Data + offset); // Записываем адрес памяти свободной ячейки
     memCpy(returnValue, dst, Data_Array[i].sizeElement);   // Если структура данных найдена, читаем от туда первый (самый старый) элемент
@@ -305,14 +305,14 @@ bool_t isEmptyDataStruct(const void* const Data){
     return res;
 }
 
-BaseSize_t getSizeDataStruct(const void* const Data) {
+BaseSize_t getCurrentSizeDataStruct(const void* const Data) {
 	register u08 i = findNumberDataStruct(Data);
 	if(i == ArraySize) return 0;
 	BaseSize_t first = 0;
 	BaseSize_t last = 0;
 	while(first != Data_Array[i].firstCount) first = Data_Array[i].firstCount;
 	while(last != Data_Array[i].lastCount) last = Data_Array[i].lastCount;
-	if(last > first) return (first + (Data_Array[i].sizeAllElements-last) + 1);
+	if(last > first) return (first + (Data_Array[i].sizeAllElements-last));
 	if(first > last) return (first - last);
 	return 0;
 }
@@ -320,11 +320,15 @@ BaseSize_t getSizeDataStruct(const void* const Data) {
 void for_each(const void* const Array, TaskMng tsk) {
     register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return;
-    for(BaseSize_t j=Data_Array[i].firstCount; j!=Data_Array[i].lastCount;)
-    {
-      BaseParam_t ptr = (BaseParam_t)((byte_ptr)Data_Array[i].Data + j*Data_Array[i].sizeElement);
-      tsk(0,ptr);
-      j=(j < Data_Array[i].sizeAllElements)? j+1:0;
+    BaseSize_t j= (Data_Array[i].firstCount)?Data_Array[i].firstCount:Data_Array[i].sizeAllElements;
+    while(j!=Data_Array[i].lastCount){
+        if(j) j--;
+        else {
+            j = Data_Array[i].sizeAllElements;
+            continue;
+        }
+        BaseParam_t ptr = (BaseParam_t)((byte_ptr)Data_Array[i].Data + j*Data_Array[i].sizeElement);
+        tsk(0,ptr);
     }
 }
 

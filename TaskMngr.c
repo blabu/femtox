@@ -10,6 +10,8 @@ extern "C" {
 инициализируется таймер счетчик, и включает прерывание по переполнению Т/С0
 */
 
+const char* osVersion = "V1.0.1";
+
 static void TaskManager(void);
 static void TimerService(void);
 #ifdef ALLOC_MEM
@@ -82,7 +84,7 @@ u32 getTick(void) {
 }
 
 
-static void ClockService(){
+static void ClockService(void){
     GlobalTick++;
 #ifdef CLOCK_SERVICE
     if(GlobalTick >= TICK_PER_SECOND) {
@@ -232,7 +234,7 @@ bool_t isEmptyTaskList( void ){
 	return FALSE;
 }
 
-u08 getFreePositionForTask(){
+u08 getFreePositionForTask(void){
 	u08 end = 0;
 	u08 begin = 0;
 	while(begin != countBegin) begin = countBegin;
@@ -380,7 +382,7 @@ void delTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data)
     }
 }
 
-u08 getFreePositionForTimerTask() {
+u08 getFreePositionForTimerTask(void) {
 	return TIME_LINE_LEN - lastTimerIndex;
 }
 
@@ -388,31 +390,60 @@ u08 getFreePositionForTimerTask() {
 void memCpy(void* destination, const void* source, const BaseSize_t num) {
 #if ARCH == 32
 		BaseSize_t blocks = num>>2;		// 4-ре байта копируются за один раз
-		BaseSize_t last = num & 0x03; // остаток
+		u08 last = num & 0x03; // остаток
 		for(BaseSize_t i = 0; i<blocks; i++) {
 			*((u32*)destination) = *((u32*)source);
 			destination+=4; source+=4;
 		}
-		for(BaseSize_t i = 0; i<last; i++) {
+		for(u08 i = 0; i<last; i++) {
 			*((byte_ptr)destination) = *((byte_ptr)source);
 			(byte_ptr)destination++; (byte_ptr)source++;
 		}
 #elif ARCH == 16
 		BaseSize_t blocks = num>>1;		// 2 байта копируются за один раз
-		BaseSize_t last = num & 0x03; // остаток
+		BaseSize_t last = num & 0x01; // остаток
 		for(BaseSize_t i = 0; i<blocks; i++) {
-			*((u32*)destination) = *((u32*)source);
+			*((u16*)destination) = *((u16*)source);
 			destination+=2; source+=2;
 		}
-		for(BaseSize_t i = 0; i<last; i++) {
-			*((byte_ptr)destination) = *((byte_ptr)source);
-			(byte_ptr)destination++; (byte_ptr)source++;
-		}
+		if(last) *((byte_ptr)destination) = *((byte_ptr)source);
 #else
 			for (BaseSize_t i = 0; i < num; i++){ //Копирование будет побайтное
 				*((byte_ptr)destination + i) = *((byte_ptr)source + i); // Выполняем копирование данных
 			}
 #endif
+
+}
+
+void memSet(void* destination, const BaseSize_t size, const u08 value) {
+#if ARCH == 32
+    BaseSize_t blocks = size>>2; // 4-ре байта копируются за один раз
+	u08 last = size & 0x03;      // остаток
+	if(blocks > 0) {
+        u32 val = (u32)value<<24 | (u32)value<<16 | (u16)value<<8 | value;
+        for(BaseSize_t i = 0; i<blocks; i++) {
+			*((u32*)destination) = val;
+			destination+=4;
+		}
+	}
+    for(BaseSize_t i = 0; i<last; i++) {
+		*((byte_ptr)destination) = value;
+		(byte_ptr)destination++;
+	}
+#elif ARCH == 16
+    BaseSize_t blocks = size>>1;		// 2 байта копируются за один раз
+	u08 last = size & 0x01; // остаток
+    u16 val = (u16)value<<8 | value;
+    for(BaseSize_t i = 0; i<blocks; i++) {
+        *((u16*)destination) = val;
+		destination+=2;
+    }
+    if(last) *((byte_ptr)destination) = value;
+#else
+	for (BaseSize_t i = 0; i < size; i++){
+		*((byte_ptr)destination + i) = value;
+	}
+#endif // ARCH
 }
 
 
