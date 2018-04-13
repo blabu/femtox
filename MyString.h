@@ -54,6 +54,8 @@ s08 toInt08(const string_t c_str);
 
 s16 toInt16(const string_t c_str);
 
+double toDouble(const string_t c_str);
+
 // Переводит число в строку шестнадцатиричного формата
 void toString(u08 capacity, s64 data, string_t c_str);
 void toStringUnsign(u08 capacity, u64 data, string_t c_str);
