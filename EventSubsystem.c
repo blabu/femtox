@@ -39,10 +39,9 @@ void initEventList(void)
 
 void EventManager( void )
 {
-    for(u08 i = 0; i<EVENT_LIST_SIZE; i++)
-    {
+    for(u08 i = 0; i<EVENT_LIST_SIZE; i++) {
         if(EventList[i].Predicat == NULL) break;        // При первом
-        if(EventList[i].Predicat()) EventList[i].CallBack();
+        if(EventList[i].Predicat()) SetTask((TaskMng)EventList[i].CallBack,0,0);
     }
 }
 
