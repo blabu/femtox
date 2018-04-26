@@ -1,8 +1,14 @@
 #ifndef PLATFORMSPECIFIC
 #define PLATFORMSPECIFIC
+//
+//#include "stm32f1xx_hal.h"
+//#include "cmsis_gcc.h"
+//#include "stm32f1xx.h"
+
 #include "stm32l1xx_hal.h"
 #include "cmsis_gcc.h"
 #include "stm32l152xe.h"
+
 
 #define ARCH 32 /*Архитектура процессора 8, 16, 32 байта (разрядность шины данных)*/
 
@@ -17,6 +23,8 @@ void resetWatchDog();
 #define INTERRUPT_DISABLE __disable_irq()  //{__asm__ __volatile__("dint nop"); asm("nop");}
 #define INTERRUPT_STATUS  (__get_CONTROL() & (uint32_t)(1<<7))
 #define WATCH_DOG_ON  initWatchDog()/*Генерируем Reset*/
+
+//#define TICK_PER_SECOND 100 /*Колличество тиков в секунду*/
 #define TICK_PER_SECOND 128 /*Колличество тиков в секунду*/
 
 void _init_Timer(void);	// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
