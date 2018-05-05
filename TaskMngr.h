@@ -2,7 +2,7 @@
 #define Task_Manager
 
 #ifndef NULL
-#define NULL 0
+#define NULL ((void*)0)
 #endif
 
 extern const char* osVersion;
@@ -17,11 +17,12 @@ extern const char* osVersion;
 //#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
 //#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 #define ALLOC_MEM   /*Включение динамического выделения памяти*/
-//#define EVENT_LOOP_TASKS
+#define EVENT_LOOP_TASKS
 //#define USE_SOFT_UART
 #define CLOCK_SERVICE
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
+#define SIGNALS_TASK
 #define _LIST_STRUCT
 //#define _DYNAMIC_ARRAY
 
@@ -39,13 +40,9 @@ typedef signed int     s32;
 typedef signed short   s16;
 typedef signed char    s08;
 typedef unsigned int   Time_t;
-#ifndef __MINGW32__
 typedef enum {FALSE=0, TRUE = !FALSE} bool_t;
-#else
-typedef u08 bool_t;
-#define TRUE 1
-#define FALSE 0
-#endif
+
+
 typedef unsigned char* byte_ptr;
 
 typedef unsigned short  BaseSize_t; // Первый аргумент для задачи в диспетчере
@@ -119,7 +116,7 @@ void memCpy(void * destination, const void * source, const BaseSize_t num);
 void memSet(void* destination, const BaseSize_t size, const u08 value);
 
 #ifdef EVENT_LOOP_TASKS
-#define EVENT_LIST_SIZE 15
+#define EVENT_LIST_SIZE 10
    bool_t CreateEvent(Predicat_t condition, CycleFuncPtr_t effect); // Регистрирует новое событие в списке событий
    void delEvent(Predicat_t condition); //Удаляем обработку события  condition
 #endif
@@ -178,7 +175,7 @@ void showAllDataStruct(void); // передает в ЮАРТ данные о в
 #endif //MUTEX_ENABLE
 
 #ifdef CYCLE_FUNC
-     #define TIMERS_ARRAY_SIZE 10
+     #define TIMERS_ARRAY_SIZE 15
      void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t flagToQueue); // toManager == 0(false) выполняется прям в прерывании
      void delCycleTask(BaseSize_t arg_n, CycleFuncPtr_t CallBack);
 #endif //CYCLE_FUNC
@@ -192,7 +189,7 @@ void showAllDataStruct(void); // передает в ЮАРТ данные о в
 #endif
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 200UL /*6500*/
+#define HEAP_SIZE 10000UL /*6500*/
     byte_ptr allocMem(u08 size);  //size - до 127 размер блока выделяемой памяти
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
     void freeMem(byte_ptr data);  // Освобождение памяти
@@ -244,6 +241,12 @@ typedef struct {
     void execErrorCallBack(BaseSize_t errorCode, void* labelPtr);
     void deleteCallBack(BaseSize_t arg_n, void* labelPtr);
     u08 changeCallBackLabel(void* oldLabel, void* newLabel);
+#endif
+#ifdef SIGNALS_TASK
+#define SIGNAL_LIST_LEN 10
+    void connectTaskToSignal(TaskMng task, void* signal);
+    void disconnectTaskFromSignal(TaskMng task, void* signal);
+    void emitSignal(void* signal, BaseSize_t arg_n, BaseParam_t arg_p);
 #endif
 //---------------------------------------------------------	СИНОНИМЫ API функций ядра ------------------------------------------------------------
 #define Scheduler()	runFemtOS()		/*Функция диспетчера*/

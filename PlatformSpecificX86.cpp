@@ -1,6 +1,6 @@
-#include <mingw.thread.h>
+#include <thread>
 #include <chrono>
-#include <mingw.mutex.h>
+#include <mutex>
 static std::thread* timerThread;
 static std::mutex mt;
 
@@ -58,9 +58,9 @@ void unBlockIt(){
     mt.unlock();
 }
 
-static void __timer() {
+static void timer() {
     while(1) {
-    	std::this_thread::sleep_for(std::chrono::milliseconds(1000UL/TICK_PER_SECOND));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000/TICK_PER_SECOND));
         blockIt();
         TimerISR();
         unBlockIt();
@@ -69,7 +69,7 @@ static void __timer() {
 
 void _init_Timer(void){// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
     writeLogStr("start init timer");
-    timerThread = new std::thread(__timer);
+    timerThread = new std::thread(timer);
 }
 
 /*
@@ -85,4 +85,3 @@ void _initTimerSoftUart() {
 void initProgramUartGPIO(unsigned short RX_MASK, unsigned short TX_MASK) {
 
 }
-

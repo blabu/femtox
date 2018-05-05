@@ -62,15 +62,17 @@ ListNode_t* putToEndList(ListNode_t* list, void* data, u08 Flagalloc_Datasize) {
 		writeLogStr("putToEndList Memory error");
 		return NULL;
 	}
-	byte_ptr temp = NULL;
+	byte_ptr temp;
 	list = findTail(list);
 	if(Flagalloc_Datasize>>7) {
-		temp = (byte_ptr)allocMem(Flagalloc_Datasize & 0x7F);
+		u08 size = Flagalloc_Datasize & 0x7F;
+		temp = (byte_ptr)allocMem(size);
 		if(temp == NULL) {
+			writeLogStr("Error when try alloc mem for data");
 			freeMem((byte_ptr)newNode);
 			return NULL;
 		}
-		memCpy(temp, data, (Flagalloc_Datasize & 0x7F));
+		memCpy(temp, data, size);
 		newNode->data = temp;
 	}
 	else newNode->data = data;
@@ -154,13 +156,11 @@ void ForEachListNodes(ListNode_t* list, TaskMng task, bool_t flagToManager, Base
     if(list == NULL) return;
 	ListNode_t* head = findHead(list);
 	if(head != NULL) {
-        if(flagToManager)SetTask(task, arg_n, (BaseParam_t)head->data);
-        else task(arg_n, (BaseParam_t)head->data);
-        while(head->next != NULL) {
-                head = head->next;
-                if(flagToManager) SetTask(task, arg_n, (BaseParam_t)head->data);
-                else task(arg_n, (BaseParam_t)head->data);
-        }
+		do {
+			if(flagToManager)SetTask(task, arg_n, (BaseParam_t)head->data);
+			else task(arg_n, (BaseParam_t)head->data);
+			head = head->next;
+		}while(head != NULL);
 	}
 }
 
