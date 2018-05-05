@@ -2,7 +2,7 @@
 #define Task_Manager
 
 #ifndef NULL
-#define NULL 0
+#define NULL ((void*)0)
 #endif
 
 extern const char* osVersion;
@@ -116,7 +116,7 @@ void memCpy(void * destination, const void * source, const BaseSize_t num);
 void memSet(void* destination, const BaseSize_t size, const u08 value);
 
 #ifdef EVENT_LOOP_TASKS
-#define EVENT_LIST_SIZE 15
+#define EVENT_LIST_SIZE 10
    bool_t CreateEvent(Predicat_t condition, CycleFuncPtr_t effect); // Регистрирует новое событие в списке событий
    void delEvent(Predicat_t condition); //Удаляем обработку события  condition
 #endif
@@ -175,7 +175,7 @@ void showAllDataStruct(void); // передает в ЮАРТ данные о в
 #endif //MUTEX_ENABLE
 
 #ifdef CYCLE_FUNC
-     #define TIMERS_ARRAY_SIZE 10
+     #define TIMERS_ARRAY_SIZE 15
      void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t flagToQueue); // toManager == 0(false) выполняется прям в прерывании
      void delCycleTask(BaseSize_t arg_n, CycleFuncPtr_t CallBack);
 #endif //CYCLE_FUNC
@@ -189,7 +189,7 @@ void showAllDataStruct(void); // передает в ЮАРТ данные о в
 #endif
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 3000UL /*6500*/
+#define HEAP_SIZE 10000UL /*6500*/
     byte_ptr allocMem(u08 size);  //size - до 127 размер блока выделяемой памяти
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
     void freeMem(byte_ptr data);  // Освобождение памяти
