@@ -107,7 +107,7 @@ void initTimer2(void){ // APB1 = 72MHz
 	TIM2InitStruct.Init.CounterMode = TIM_COUNTERMODE_UP;
 	TIM2InitStruct.Init.Period = 5000-1;
 	TIM2InitStruct.Init.Prescaler = 72-1;
-	TIM2InitStruct.Init.ClockDivision = TIM_CLOCKDIVISION_DIV2;
+	TIM2InitStruct.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	HAL_TIM_Base_Init(&TIM2InitStruct);     // Init timer
 	HAL_TIM_Base_Start_IT(&TIM2InitStruct);
 	HAL_NVIC_EnableIRQ(TIM2_IRQn);

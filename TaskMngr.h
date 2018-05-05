@@ -17,11 +17,12 @@ extern const char* osVersion;
 //#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
 //#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 #define ALLOC_MEM   /*Включение динамического выделения памяти*/
-//#define EVENT_LOOP_TASKS
+#define EVENT_LOOP_TASKS
 //#define USE_SOFT_UART
 #define CLOCK_SERVICE
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
+#define SIGNALS_TASK
 #define _LIST_STRUCT
 //#define _DYNAMIC_ARRAY
 
@@ -240,6 +241,12 @@ typedef struct {
     void execErrorCallBack(BaseSize_t errorCode, void* labelPtr);
     void deleteCallBack(BaseSize_t arg_n, void* labelPtr);
     u08 changeCallBackLabel(void* oldLabel, void* newLabel);
+#endif
+#ifdef SIGNALS_TASK
+#define SIGNAL_LIST_LEN 10
+    void connectTaskToSignal(TaskMng task, void* signal);
+    void disconnectTaskFromSignal(TaskMng task, void* signal);
+    void emitSignal(void* signal, BaseSize_t arg_n, BaseParam_t arg_p);
 #endif
 //---------------------------------------------------------	СИНОНИМЫ API функций ядра ------------------------------------------------------------
 #define Scheduler()	runFemtOS()		/*Функция диспетчера*/

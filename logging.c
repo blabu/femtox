@@ -5,9 +5,9 @@
  *      Author: oleksiy.khanin
  */
 
-#include "TaskMngr.h"
 #include "PlatformSpecific.h"
 #include "MyString.h"
+#include "logging.h"
 
 #ifdef _X86
 #include <stdio.h>
@@ -22,8 +22,13 @@ static void sendUART2_buf(u08 c) {
 }
 
 #else
-#include "UART2.h"
+#include "usbd_cdc_if.h"
+void enableUART2(){}
+void disableUART2(){}
+void sendUART2_buf(u08 ch) {}
+void sendCOM2_buf(u08 size, byte_ptr data) { if(!size) size = strSize(data); CDC_Transmit_FS(data,size);}
 #endif
+
 
 void enableLogging(void) {
 	enableUART2();
