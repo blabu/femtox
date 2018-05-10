@@ -9,7 +9,6 @@
 #include "cmsis_gcc.h"
 #include "stm32l152xe.h"
 
-
 #define ARCH 32 /*Архитектура процессора 8, 16, 32 байта (разрядность шины данных)*/
 
 void initWatchDog();

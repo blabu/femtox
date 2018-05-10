@@ -274,13 +274,13 @@ s08 toInt08(const string_t c_str){
 }
 
 double toDouble(const string_t c_str) {
-	s32 whole = toInt32(c_str);
+	s32 whole = toIntDec(c_str);
 	s16 poz = findSymb('.',c_str);
 	if(poz < 0) {
 		poz = findSymb(',',c_str);
 		if(poz < 0) return (double)whole;
 	}
-	double fract = (double)toInt32(c_str+poz+1);
+	double fract = (double)toIntDec(c_str+poz+1);
 	while(fract > 1) {
 		fract /= 10;
 	}
