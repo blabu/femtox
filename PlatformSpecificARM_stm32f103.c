@@ -34,78 +34,16 @@ void resetWatchDog(void){
 	HAL_IWDG_Refresh(&watchDog);
 }
 
-////#define RTC_CLOCK_SOURCE_LSI
-//#define RTC_CLOCK_SOURCE_LSE
-//static void lowLevelInitRTC(void) {
-//	RCC_OscInitTypeDef        RCC_OscInitStruct;
-//	RCC_PeriphCLKInitTypeDef  PeriphClkInitStruct;
-//
-//	HAL_PWR_EnableBkUpAccess(); // Enable write access using HAL_PWR_EnableBkUpAccess()
-//
-//	/*##-2- Configue LSE/LSI as RTC clock soucre ###############################*/
-//#ifdef RTC_CLOCK_SOURCE_LSE
-//	RCC_OscInitStruct.OscillatorType =  RCC_OSCILLATORTYPE_LSI | RCC_OSCILLATORTYPE_LSE;
-//	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-//	RCC_OscInitStruct.LSEState = RCC_LSE_ON;
-//	RCC_OscInitStruct.LSIState = RCC_LSI_OFF;
-//	if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK){
-//		MaximizeErrorHandler();
-//	}
-//
-//	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
-//	PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
-//	if(HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK) {
-//		MaximizeErrorHandler();
-//	}
-//#elif defined (RTC_CLOCK_SOURCE_LSI)
-//	RCC_OscInitStruct.OscillatorType =  RCC_OSCILLATORTYPE_LSI | RCC_OSCILLATORTYPE_LSE;
-//	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
-//	RCC_OscInitStruct.LSIState = RCC_LSI_ON;
-//	RCC_OscInitStruct.LSEState = RCC_LSE_OFF;
-//	if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)  {
-//		MaximizeErrorHandler();
-//	}
-//
-//	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
-//	PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
-//	if(HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
-//	{
-//		MaximizeErrorHandler();
-//	}
-//#else
-//#error Please select the RTC Clock source inside the main.h file
-//#endif /*RTC_CLOCK_SOURCE_LSE*/
-//
-//	/*##-2- Enable RTC peripheral Clocks Enable RTC Clock */
-//	__HAL_RCC_RTC_ENABLE();
-//
-//	/*##-4- Configure the NVIC for RTC Tamper ###################################*/
-//	HAL_NVIC_SetPriority(RTC_WKUP_IRQn, 0x0F, 0);
-//	HAL_NVIC_EnableIRQ(RTC_WKUP_IRQn);
-//}
-/*
-static RTC_HandleTypeDef RTC_Clock;
-void initRTC(void){
-	RTC_Clock.Instance = RTC;
-	lowLevelInitRTC();
-	HAL_RTCEx_SetWakeUpTimer_IT(&RTC_Clock,(2048/TICK_PER_SECOND)-1,RTC_WAKEUPCLOCK_RTCCLK_DIV16);
-}
-
-
-void RTC_WKUP_IRQHandler(void) {
-	HAL_RTCEx_WakeUpTimerIRQHandler(&RTC_Clock);
-}
-
-void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc) {
-	TimerISR();
-}
-*/
 static TIM_HandleTypeDef TIM2InitStruct;
 void initTimer2(void){ // APB1 = 72MHz
 	__TIM2_CLK_ENABLE();
 	TIM2InitStruct.Instance = TIM2;
 	TIM2InitStruct.Init.CounterMode = TIM_COUNTERMODE_UP;
+#ifdef SERVER
+	TIM2InitStruct.Init.Period = 1000-1;
+#else
 	TIM2InitStruct.Init.Period = 5000-1;
+#endif
 	TIM2InitStruct.Init.Prescaler = 72-1;
 	TIM2InitStruct.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	HAL_TIM_Base_Init(&TIM2InitStruct);     // Init timer

@@ -14,7 +14,7 @@ extern const char* osVersion;
 //#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
 #define DATA_STRUCT_MANAGER   /*Включаем работу с очередями средствами деспетчера*/
 #define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/
-//#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
+#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
 //#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 #define ALLOC_MEM   /*Включение динамического выделения памяти*/
 #define EVENT_LOOP_TASKS
@@ -26,7 +26,7 @@ extern const char* osVersion;
 #define _LIST_STRUCT
 //#define _DYNAMIC_ARRAY
 
-#define TASK_LIST_LEN 10U /*Длина очереди задач*/
+#define TASK_LIST_LEN 15U /*Длина очереди задач*/
 #define TIME_LINE_LEN 30U /*Максимальне количество системных таймеров*/
 #define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
@@ -168,8 +168,21 @@ void showAllDataStruct(void); // передает в ЮАРТ данные о в
 #endif //DATA_STRUCT_MANAGER
 
 #ifdef MUTEX_ENABLE
-      bool_t getMutex(const u08 mutexNumb, TaskMng TPTR, BaseSize_t n, BaseParam_t data); // Пытается захватить мьютекс Вернет TRUE если захватить не удалось
-      bool_t freeMutex(const u08 mutexNumb);     // Освобождает мьютекс
+#define MUTEX_SIZE 8
+#if MUTEX_SIZE <= 8
+typedef u08 mutexType;
+#elif MUTEX_SIZE <= 16
+typedef u16 mutexType;
+#elif MUTEX_SIZE <= 32
+typedef u32 mutexType;
+#else
+#error "Too long size for mutex"
+#endif
+	  // TRUE - Если мьютекс захватить НЕ УДАЛОСЬ
+	  bool_t tryGetMutex(const mutexType mutexNumb);
+	  // TRUE - Если мьютекс захватить НЕ УДАЛОСЬ
+	  bool_t getMutex(const mutexType mutexNumb, TaskMng TPTR, BaseSize_t n, BaseParam_t data); // Пытается захватить мьютекс Вернет TRUE если захватить не удалось
+      void freeMutex(const mutexType mutexNumb);     // Освобождает мьютекс
 #define GET_MUTEX(mutexNumb, TaskPTR, arg_n, arg_p) if(getMutex((u08)mutexNumb, (TaskMng)TaskPTR,(BaseSize_t)arg_n, (BaseParam_t)arg_p)) return
 #define FREE_MUTEX(mutexNumb) freeMutex((u08)mutexNumb)
 #endif //MUTEX_ENABLE
@@ -189,7 +202,7 @@ void showAllDataStruct(void); // передает в ЮАРТ данные о в
 #endif
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 10000UL /*6500*/
+#define HEAP_SIZE 600UL /*6500*/
     byte_ptr allocMem(u08 size);  //size - до 127 размер блока выделяемой памяти
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
     void freeMem(byte_ptr data);  // Освобождение памяти

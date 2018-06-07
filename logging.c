@@ -22,42 +22,49 @@ static void sendUART2_buf(u08 c) {
 }
 
 #else
-#include "usbd_cdc_if.h"
-void enableUART2(){}
-void disableUART2(){}
-void sendUART2_buf(u08 ch) {}
-void sendCOM2_buf(u08 size, byte_ptr data) { if(!size) size = strSize(data); CDC_Transmit_FS(data,size);}
+#include "UART2.h"
 #endif
 
 
 void enableLogging(void) {
-	enableUART2();
+	enableUART2(115200);
 }
 
 void disableLogging(void){
 	disableUART2();
 }
 
+void writeLogWhithStr(const string_t c_str, u32 n) {
+	char str[50];
+	u08 size = strSize(c_str);
+	if(size > 50) {
+		writeLogStr("Error: too long string");
+		return;
+	}
+	strClear(str); strCat(str,c_str);
+	toStringDec(n,str+size); strCat(str,"\r\n");
+	writeLogTempString(str);
+}
 
 void writeLogStr(const string_t c_str){
-	sendCOM2_buf(0, (u08*)c_str);
-	sendUART2_buf((u08)'\n');
+	sendCOM2_buf(0, (byte_ptr)c_str);
+	sendCOM2_buf(0,(byte_ptr)"\r\n");
 }
 
 void writeLogTempString(string_t tempStr){
 	u08 size =  strSize(tempStr);
-	for(u08 i = 0; i<size; i++) sendUART2_buf((u08)tempStr[i]);
-	sendUART2_buf((u08)'\n');
+	for(u08 i = 0; i<size; i++) sendUART2_buf(tempStr[i]);
+	sendCOM2_buf(0,(byte_ptr)"\r\n");
 }
 
 void writeLogFloat(float data) {
-	char tempStr[12];
+	char tempStr[10];
 	doubleToString(data,tempStr,2);
 	writeLogTempString(tempStr);
 }
 
 void writeLogU32(u32 data) {
-	char tempStr[14];
+	char tempStr[10];
 	toStringDec(data,tempStr);
 	writeLogTempString(tempStr);
 }
