@@ -42,7 +42,7 @@ void initTimer2(void){ // APB1 = 72MHz
 #ifdef SERVER
 	TIM2InitStruct.Init.Period = 1000-1;
 #else
-	TIM2InitStruct.Init.Period = 5000-1;
+	TIM2InitStruct.Init.Period = 10000-1;
 #endif
 	TIM2InitStruct.Init.Prescaler = 72-1;
 	TIM2InitStruct.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;

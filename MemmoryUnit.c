@@ -63,7 +63,9 @@ void clearAllMemmory(void){
 
 byte_ptr allocMem(u08 size)  //size - до 127 размер блока выделяемой памяти
 {
-    if(size > 127 || !size) return NULL;  // Если попросили больше чем можем дать возвращаем ноль
+    if(size > 127 || !size) {
+    	return NULL;  // Если попросили больше чем можем дать возвращаем ноль
+    }
     u16 i = 0;  // Поиск свободного места начнем с нулевого элемента, максимум определен размером u16
     bool_t flag_int = FALSE;
     if(INTERRUPT_STATUS) {

@@ -303,8 +303,7 @@ static void TimerService (void)
     }
 }
 
-void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
-{
+void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time){
     bool_t flag_inter = FALSE;  // флаг состояния прерывания
     if (INTERRUPT_STATUS) //Если прерывания разрешены, то запрещаем их
     {
@@ -347,11 +346,9 @@ static u08 findTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data)
 bool_t updateTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
 {
     u08 index = findTimer(TPTR,n,data);
-    if(index < lastTimerIndex)
-    {
+    if(index < lastTimerIndex){
         bool_t flag_inter = FALSE;
-        if(INTERRUPT_STATUS)
-        {
+        if(INTERRUPT_STATUS){
             INTERRUPT_DISABLE;
             flag_inter = TRUE;
         }

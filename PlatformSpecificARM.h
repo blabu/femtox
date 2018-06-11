@@ -20,14 +20,14 @@ void resetWatchDog();
 *********************************************************************************************************************/
 #define INTERRUPT_ENABLE  __enable_irq()   //{asm("nop"); __asm__ __volatile__("eint");}
 #define INTERRUPT_DISABLE __disable_irq()  //{__asm__ __volatile__("dint nop"); asm("nop");}
-#define INTERRUPT_STATUS  (__get_CONTROL() & (uint32_t)(1<<7))
+#define INTERRUPT_STATUS  TRUE
 #define WATCH_DOG_ON  initWatchDog()/*Генерируем Reset*/
 
 #include "config.h"
 #ifdef SERVER
 #define TICK_PER_SECOND 1000 /*Колличество тиков в секунду*/
 #else
-#define TICK_PER_SECOND 200 /*Колличество тиков в секунду*/
+#define TICK_PER_SECOND 100 /*Колличество тиков в секунду*/
 #endif
 //#define TICK_PER_SECOND 128 /*Колличество тиков в секунду*/
 
