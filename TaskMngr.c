@@ -343,10 +343,9 @@ static u08 findTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data)
     return index;
 }
 
-bool_t updateTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
-{
+bool_t updateTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time) {
     u08 index = findTimer(TPTR,n,data);
-    if(index < lastTimerIndex){
+    if(index < lastTimerIndex) {
         bool_t flag_inter = FALSE;
         if(INTERRUPT_STATUS){
             INTERRUPT_DISABLE;

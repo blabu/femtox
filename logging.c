@@ -42,7 +42,7 @@ void writeLogWhithStr(const string_t c_str, u32 n) {
 		return;
 	}
 	strClear(str); strCat(str,c_str);
-	toStringDec(n,str+size); strCat(str,"\r\n");
+	toStringDec(n,str+size);
 	writeLogTempString(str);
 }
 

@@ -46,7 +46,7 @@ extern "C" {
 /*****************************************************************************/
 // The number of columns comprising a state in AES. This is a constant in AES. Value=4
 #define Nb 4
-#define BLOCKLEN 16 //Block length in bytes AES is 128b block only
+#define BLOCKLEN 24 //Block length in bytes AES is 128b block only
 
 #if defined(AES256) && (AES256 == 1)
     #define Nk 8

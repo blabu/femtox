@@ -28,7 +28,7 @@ extern const char* osVersion;
 
 #define TASK_LIST_LEN 15U /*Длина очереди задач*/
 #define TIME_LINE_LEN 30U /*Максимальне количество системных таймеров*/
-#define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
+#define TIME_DELAY_IF_BUSY 2U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
 typedef char* string_t;
 typedef unsigned long long u64;
@@ -242,7 +242,7 @@ typedef struct {
 #endif
 
 #ifdef CALL_BACK_TASK
-#define CALL_BACK_TASK_LIST_LEN 30
+#define CALL_BACK_TASK_LIST_LEN 35
 #ifndef OVERFLOW_OR_EMPTY_ERROR
 #define OVERFLOW_OR_EMPTY_ERROR 2
 #endif

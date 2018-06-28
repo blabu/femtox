@@ -74,6 +74,8 @@ void shiftStringRight(BaseSize_t poz, string_t c_str);
 // Заменяет все символы в строке длиной size (если size==0 определит длину сама)
 void replaceAllSymbols(string_t c_str, const char symbolOrigin, const char symbolReplacement, BaseSize_t size);
 
+void fillRightStr(u16 size, string_t str, char symb);
+
 //Вернет размер строки
 BaseSize_t strSize(const string_t c_str);
 

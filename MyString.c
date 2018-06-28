@@ -344,3 +344,15 @@ void replaceAllSymbols(string_t c_str, const char symbolOrigin, const char symbo
 	}
 	c_str[size] = END_STRING;
 }
+
+
+// Заполняет строку одним символом справа
+// Например: исходная строка "113" после выполнения этой функции строка может быть "00113"
+void fillRightStr(u16 size, string_t str, char symb) {
+	s16 s = size - strSize(str);
+	if(s <= 0) return;
+	shiftStringRight(s,str);
+	for(s16 i = 0; i<s; i++) {
+		str[i] = symb;
+	}
+}
