@@ -46,7 +46,7 @@ extern "C" {
 /*****************************************************************************/
 // The number of columns comprising a state in AES. This is a constant in AES. Value=4
 #define Nb 4
-#define BLOCKLEN 24 //Block length in bytes AES is 128b block only
+#define BLOCKLEN 16 //Block length in bytes AES is 128b block only
 
 #if defined(AES256) && (AES256 == 1)
     #define Nk 8
@@ -78,18 +78,6 @@ extern "C" {
 /*****************************************************************************/
 // state - array holding the intermediate results during decryption.
 typedef u08 state_t[4][4];
-static state_t* state;
-
-// The array that stores the round keys.
-static u08 RoundKey[keyExpSize];
-
-// The Key input to the AES Program
-static byte_ptr Key;
-
-#if defined(CBC) && CBC
-  // Initial Vector used only for CBC mode
-  static byte_ptr Iv;
-#endif
 
 // The lookup-tables are marked const so they can be placed in read-only storage instead of RAM
 // The numbers below can be computed dynamically trading ROM for RAM -
@@ -137,54 +125,31 @@ static const u08 Rcon[11] = {
   0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36 };
 
 /*
- * Jordan Goulder points out in PR #12 (https://github.com/kokke/tiny-AES128-C/pull/12),
+ * Jordan Goulder points out in PR #12 (https://github.com/kokke/tiny-AES-C/pull/12),
  * that you can remove most of the elements in the Rcon array, because they are unused.
  *
  * From Wikipedia's article on the Rijndael key schedule @ https://en.wikipedia.org/wiki/Rijndael_key_schedule#Rcon
  *
  * "Only the first some of these constants are actually used – up to rcon[10] for AES-128 (as 11 round keys are needed),
  *  up to rcon[8] for AES-192, up to rcon[7] for AES-256. rcon[0] is not used in AES algorithm."
- *
- * ... which is why the full array below has been 'disabled' below.
  */
-#if 0
-static const u08 Rcon[256] = {
-  0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a,
-  0x2f, 0x5e, 0xbc, 0x63, 0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef, 0xc5, 0x91, 0x39,
-  0x72, 0xe4, 0xd3, 0xbd, 0x61, 0xc2, 0x9f, 0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a,
-  0x74, 0xe8, 0xcb, 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8,
-  0xab, 0x4d, 0x9a, 0x2f, 0x5e, 0xbc, 0x63, 0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef,
-  0xc5, 0x91, 0x39, 0x72, 0xe4, 0xd3, 0xbd, 0x61, 0xc2, 0x9f, 0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc,
-  0x83, 0x1d, 0x3a, 0x74, 0xe8, 0xcb, 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b,
-  0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a, 0x2f, 0x5e, 0xbc, 0x63, 0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3,
-  0x7d, 0xfa, 0xef, 0xc5, 0x91, 0x39, 0x72, 0xe4, 0xd3, 0xbd, 0x61, 0xc2, 0x9f, 0x25, 0x4a, 0x94,
-  0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a, 0x74, 0xe8, 0xcb, 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20,
-  0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a, 0x2f, 0x5e, 0xbc, 0x63, 0xc6, 0x97, 0x35,
-  0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef, 0xc5, 0x91, 0x39, 0x72, 0xe4, 0xd3, 0xbd, 0x61, 0xc2, 0x9f,
-  0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a, 0x74, 0xe8, 0xcb, 0x8d, 0x01, 0x02, 0x04,
-  0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a, 0x2f, 0x5e, 0xbc, 0x63,
-  0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef, 0xc5, 0x91, 0x39, 0x72, 0xe4, 0xd3, 0xbd,
-  0x61, 0xc2, 0x9f, 0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a, 0x74, 0xe8, 0xcb, 0x8d };
-#endif
+
 
 /*****************************************************************************/
 /* Private functions:                                                        */
 /*****************************************************************************/
-static u08 getSBoxValue(u08 num){
-  return sbox[num];
-}
+#define getSBoxValue(num) (sbox[(num)])
 
-static u08 getSBoxInvert(u08 num){
-  return rsbox[num];
-}
+#define getSBoxInvert(num) (rsbox[(num)])
+
 
 // This function produces Nb(Nr+1) round keys. The round keys are used in each round to decrypt the states.
-static void KeyExpansion(void){
-  u32 i, k;
+static void KeyExpansion(byte_ptr RoundKey, const byte_ptr Key){
+  u32 i, k, j;
   u08 tempa[4]; // Used for the column/row operations
-
   // The first round key is the key itself.
-  for (i = 0; i < Nk; ++i) {
+  for (i = 0; i < Nk; ++i)
+  {
     RoundKey[(i * 4) + 0] = Key[(i * 4) + 0];
     RoundKey[(i * 4) + 1] = Key[(i * 4) + 1];
     RoundKey[(i * 4) + 2] = Key[(i * 4) + 2];
@@ -192,13 +157,15 @@ static void KeyExpansion(void){
   }
 
   // All other round keys are found from the previous round keys.
-  //i == Nk
-  for (; i < Nb * (Nr + 1); ++i) {
+  for (i = Nk; i < Nb * (Nr + 1); ++i)
+  {
     {
-      tempa[0]=RoundKey[(i-1) * 4 + 0];
-      tempa[1]=RoundKey[(i-1) * 4 + 1];
-      tempa[2]=RoundKey[(i-1) * 4 + 2];
-      tempa[3]=RoundKey[(i-1) * 4 + 3];
+      k = (i - 1) * 4;
+      tempa[0]=RoundKey[k + 0];
+      tempa[1]=RoundKey[k + 1];
+      tempa[2]=RoundKey[k + 2];
+      tempa[3]=RoundKey[k + 3];
+
     }
 
     if (i % Nk == 0)
@@ -226,7 +193,7 @@ static void KeyExpansion(void){
         tempa[3] = getSBoxValue(tempa[3]);
       }
 
-      tempa[0] =  tempa[0] ^ Rcon[i/Nk];
+      tempa[0] = tempa[0] ^ Rcon[i/Nk];
     }
 #if defined(AES256) && (AES256 == 1)
     if (i % Nk == 4)
@@ -240,30 +207,31 @@ static void KeyExpansion(void){
       }
     }
 #endif
-    RoundKey[i * 4 + 0] = RoundKey[(i - Nk) * 4 + 0] ^ tempa[0];
-    RoundKey[i * 4 + 1] = RoundKey[(i - Nk) * 4 + 1] ^ tempa[1];
-    RoundKey[i * 4 + 2] = RoundKey[(i - Nk) * 4 + 2] ^ tempa[2];
-    RoundKey[i * 4 + 3] = RoundKey[(i - Nk) * 4 + 3] ^ tempa[3];
+    j = i * 4; k=(i - Nk) * 4;
+    RoundKey[j + 0] = RoundKey[k + 0] ^ tempa[0];
+    RoundKey[j + 1] = RoundKey[k + 1] ^ tempa[1];
+    RoundKey[j + 2] = RoundKey[k + 2] ^ tempa[2];
+    RoundKey[j + 3] = RoundKey[k + 3] ^ tempa[3];
   }
 }
 
 // This function adds the round key to state.
 // The round key is added to the state by an XOR function.
-static void AddRoundKey(u08 round)
+static void AddRoundKey(u08 round,state_t* state, byte_ptr RoundKey)
 {
   u08 i,j;
-  for (i=0;i<4;++i)
+  for (i = 0; i < 4; ++i)
   {
     for (j = 0; j < 4; ++j)
     {
-      (*state)[i][j] ^= RoundKey[round * Nb * 4 + i * Nb + j];
+      (*state)[i][j] ^= RoundKey[(round * Nb * 4) + (i * Nb) + j];
     }
   }
 }
 
 // The SubBytes Function Substitutes the values in the
 // state matrix with values in an S-box.
-static void SubBytes(void)
+static void SubBytes(state_t* state)
 {
   u08 i, j;
   for (i = 0; i < 4; ++i)
@@ -278,7 +246,7 @@ static void SubBytes(void)
 // The ShiftRows() function shifts the rows in the state to the left.
 // Each row is shifted with different offset.
 // Offset = Row number. So the first row is not shifted.
-static void ShiftRows(void)
+static void ShiftRows(state_t* state)
 {
   u08 temp;
 
@@ -312,7 +280,7 @@ static u08 xtime(u08 x)
 }
 
 // MixColumns function mixes the columns of the state matrix
-static void MixColumns(void)
+static void MixColumns(state_t* state)
 {
   u08 i;
   u08 Tmp,Tm,t;
@@ -350,12 +318,11 @@ static u08 Multiply(u08 x, u08 y)
 // MixColumns function mixes the columns of the state matrix.
 // The method used to multiply may be difficult to understand for the inexperienced.
 // Please use the references to gain more information.
-static void InvMixColumns(void)
+static void InvMixColumns(state_t* state)
 {
   int i;
   u08 a, b, c, d;
-  for (i = 0; i < 4; ++i)
-  {
+  for (i = 0; i < 4; ++i)  {
     a = (*state)[i][0];
     b = (*state)[i][1];
     c = (*state)[i][2];
@@ -371,7 +338,7 @@ static void InvMixColumns(void)
 
 // The SubBytes Function Substitutes the values in the
 // state matrix with values in an S-box.
-static void InvSubBytes(void)
+static void InvSubBytes(state_t* state)
 {
   u08 i,j;
   for (i = 0; i < 4; ++i)
@@ -383,7 +350,7 @@ static void InvSubBytes(void)
   }
 }
 
-static void InvShiftRows(void)
+static void InvShiftRows(state_t* state)
 {
   u08 temp;
 
@@ -413,54 +380,52 @@ static void InvShiftRows(void)
 
 
 // Cipher is the main function that encrypts the PlainText.
-static void Cipher(void)
+static void Cipher(state_t* state, byte_ptr RoundKey)
 {
   u08 round = 0;
 
   // Add the First round key to the state before starting the rounds.
-  AddRoundKey(0);
+  AddRoundKey(0, state, RoundKey);
 
   // There will be Nr rounds.
   // The first Nr-1 rounds are identical.
   // These Nr-1 rounds are executed in the loop below.
   for (round = 1; round < Nr; ++round)
   {
-    SubBytes();
-    ShiftRows();
-    MixColumns();
-    AddRoundKey(round);
+    SubBytes(state);
+    ShiftRows(state);
+    MixColumns(state);
+    AddRoundKey(round, state, RoundKey);
   }
 
   // The last round is given below.
   // The MixColumns function is not here in the last round.
-  SubBytes();
-  ShiftRows();
-  AddRoundKey(Nr);
+  SubBytes(state);
+  ShiftRows(state);
+  AddRoundKey(Nr, state, RoundKey);
 }
 
-static void InvCipher(void)
+static void InvCipher(state_t* state, byte_ptr RoundKey)
 {
   u08 round=0;
-
-  // Add the First round key to the state before starting the rounds.
-  AddRoundKey(Nr);
+  AddRoundKey(Nr, state, RoundKey);
 
   // There will be Nr rounds.
   // The first Nr-1 rounds are identical.
   // These Nr-1 rounds are executed in the loop below.
   for (round = (Nr - 1); round > 0; --round)
   {
-    InvShiftRows();
-    InvSubBytes();
-    AddRoundKey(round);
-    InvMixColumns();
+    InvShiftRows(state);
+    InvSubBytes(state);
+    AddRoundKey(round, state, RoundKey);
+    InvMixColumns(state);
   }
 
   // The last round is given below.
   // The MixColumns function is not here in the last round.
-  InvShiftRows();
-  InvSubBytes();
-  AddRoundKey(0);
+  InvShiftRows(state);
+  InvSubBytes(state);
+  AddRoundKey(0, state, RoundKey);
 }
 
 
@@ -469,43 +434,30 @@ static void InvCipher(void)
 /*****************************************************************************/
 #if defined(ECB) && (ECB == 1)
 
+static u08 RoundKey[keyExpSize];
 
-void AesEcbEncrypt(const byte_ptr input, const byte_ptr key, byte_ptr output){
-  // Copy input to output, and work in-memory on output
-  memCpy(output, input, BLOCKLEN);
-  state = (state_t*)output;
-
-  Key = key;
-  KeyExpansion();
-
-  // The next function call encrypts the PlainText with the Key using AES algorithm.
-  Cipher();
+void AesEcbEncrypt(byte_ptr buf, const byte_ptr key){
+	// The KeyExpansion routine must be called before encryption.
+	KeyExpansion(RoundKey, key);
+	// The next function call encrypts the PlainText with the Key using AES algorithm.
+	Cipher((state_t*)buf,RoundKey);
 }
 
-void AesEcbDecrypt(const byte_ptr input, const byte_ptr key, byte_ptr output)
+void AesEcbDecrypt(byte_ptr buf, const byte_ptr key)
 {
-  // Copy input to output, and work in-memory on output
-  memCpy(output, input, BLOCKLEN);
-  state = (state_t*)output;
-
   // The KeyExpansion routine must be called before encryption.
-  Key = key;
-  KeyExpansion();
-
-  InvCipher();
+  KeyExpansion(RoundKey, key);
+  // The next function call decrypts the PlainText with the Key using AES algorithm.
+  InvCipher((state_t*)buf,RoundKey);
 }
-
 
 #endif // #if defined(ECB) && (ECB == 1)
-
-
-
 
 
 #if defined(CBC) && (CBC == 1)
 
 
-static void XorWithIv(byte_ptr buf)
+static void XorWithIv(byte_ptr buf, byte_ptr Iv)
 {
   u08 i;
   for (i = 0; i < BLOCKLEN; ++i) //WAS for(i = 0; i < KEYLEN; ++i) but the block in AES is always 128bit so 16 bytes!
@@ -514,75 +466,41 @@ static void XorWithIv(byte_ptr buf)
   }
 }
 
-void AesCbcEncrypt_buffer(byte_ptr output, byte_ptr input, u32 length, const byte_ptr key, const byte_ptr iv)
+void AesCbcEncrypt_buffer(byte_ptr buf, u32 length, const byte_ptr key, const byte_ptr iv)
 {
   u32 i;
-  u08 extra = length % BLOCKLEN; /* Remaining bytes in the last non-full block */
-
+  byte_ptr Iv;
+  if(iv) Iv = iv;
   // Skip the key expansion if key is passed as 0
-  if (0 != key)
-  {
-    Key = key;
-    KeyExpansion();
+  if (key) {
+    KeyExpansion(RoundKey,key); // Генерируем кулючи на все раунды
   }
-
-  if (iv != 0)
-  {
-    Iv = (byte_ptr)iv;
+  for (i = 0; i < length; i += BLOCKLEN) {
+    XorWithIv(buf,Iv);
+    Cipher((state_t*)buf,RoundKey);
+    Iv = buf;
+    buf += BLOCKLEN;
   }
-
-  for (i = 0; i < length; i += BLOCKLEN)
-  {
-    XorWithIv(input);
-    memCpy(output, input, BLOCKLEN);
-    state = (state_t*)output;
-    Cipher();
-    Iv = output;
-    input += BLOCKLEN;
-    output += BLOCKLEN;
-  }
-
-  if (extra)  {
-    memCpy(output, input, extra);
-    state = (state_t*)output;
-    Cipher();
-  }
+  /* store Iv for next call */
+  memCpy(iv,Iv,BLOCKLEN);
 }
 
-void AesCbcDecrypt_buffer(byte_ptr output, byte_ptr input, u32 length, const byte_ptr key, const byte_ptr iv)
+void AesCbcDecrypt_buffer(byte_ptr buf, u32 length, const byte_ptr key, const byte_ptr iv)
 {
   u32 i;
-  u08 extra = length % BLOCKLEN; /* Remaining bytes in the last non-full block */
+  u08 storeNextIv[BLOCKLEN];
 
   // Skip the key expansion if key is passed as 0
-  if (0 != key)
-  {
-    Key = key;
-    KeyExpansion();
+  if (key) {
+    KeyExpansion(RoundKey, key);
   }
 
-  // If iv is passed as 0, we continue to encrypt without re-setting the Iv
-  if (iv != 0)
-  {
-    Iv = (byte_ptr)iv;
-  }
-
-  for (i = 0; i < length; i += BLOCKLEN)
-  {
-    memCpy(output, input, BLOCKLEN);
-    state = (state_t*)output;
-    InvCipher();
-    XorWithIv(output);
-    Iv = input;
-    input += BLOCKLEN;
-    output += BLOCKLEN;
-  }
-
-  if (extra)
-  {
-    memCpy(output, input, extra);
-    state = (state_t*)output;
-    InvCipher();
+  for (i = 0; i < length; i += BLOCKLEN) {
+	memCpy(storeNextIv, buf, BLOCKLEN);
+    InvCipher((state_t*)buf,RoundKey);
+    XorWithIv(buf, iv);
+    memCpy(iv,storeNextIv,BLOCKLEN);
+    buf += BLOCKLEN;
   }
 }
 

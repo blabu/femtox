@@ -25,6 +25,7 @@ static void sendUART2_buf(u08 c) {
 #include "UART2.h"
 #endif
 
+static string_t disableLavel = NULL;
 
 void enableLogging(void) {
 	enableUART2(115200);
@@ -34,8 +35,13 @@ void disableLogging(void){
 	disableUART2();
 }
 
+void disableLogLevel(string_t level) {
+	disableLavel = level;
+}
+
 void writeLogWhithStr(const string_t c_str, u32 n) {
 	char str[50];
+	if(str1_str2(disableLavel,c_str)) return;
 	u08 size = strSize(c_str);
 	if(size > 50) {
 		writeLogStr("Error: too long string");
@@ -47,11 +53,13 @@ void writeLogWhithStr(const string_t c_str, u32 n) {
 }
 
 void writeLogStr(const string_t c_str){
+	if(str1_str2(disableLavel,c_str)) return;
 	sendCOM2_buf(0, (byte_ptr)c_str);
 	sendCOM2_buf(0,(byte_ptr)"\r\n");
 }
 
 void writeLogTempString(string_t tempStr){
+	if(str1_str2(disableLavel,tempStr)) return;
 	u08 size =  strSize(tempStr);
 	for(u08 i = 0; i<size; i++) sendUART2_buf(tempStr[i]);
 	sendCOM2_buf(0,(byte_ptr)"\r\n");

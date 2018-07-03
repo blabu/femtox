@@ -12,6 +12,7 @@
 
 void enableLogging(void);
 void disableLogging(void);
+void disableLogLevel(string_t level); // Фильтр для исключения каких-либо логов
 void writeLogWhithStr(const string_t c_str, u32 n);
 void writeLogTempString(string_t tempStr);
 void writeLogStr(string_t c_str);

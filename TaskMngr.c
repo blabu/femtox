@@ -10,7 +10,7 @@ extern "C" {
 инициализируется таймер счетчик, и включает прерывание по переполнению Т/С0
 */
 
-const char* osVersion = "V1.0.2";
+const char* osVersion = "V1.1.0";
 
 static void TaskManager(void);
 static void TimerService(void);
@@ -225,6 +225,7 @@ void SetTask(TaskMng New_Task, BaseSize_t n, BaseParam_t data)
         if(flag_inter) INTERRUPT_ENABLE;
         return;
     }// Здесь мы окажемся в редких случаях когда oчередь переполнена
+    writeLogStr("ERROR: task queue overflow");
     SetTimerTask(New_Task, n, data, TIME_DELAY_IF_BUSY);  //Ставим задачу в очередь(попытаемся записать ее позже)
     if (flag_inter) INTERRUPT_ENABLE;  //предварительно восстановив прерывания, если надо.
 }
@@ -325,6 +326,7 @@ void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
      	 MaximizeErrorHandler();
     #else
         if(flag_inter) INTERRUPT_ENABLE;
+        writeLogStr("PANIC: HAVE NOT MORE TIMERS");
         return; //  тут можно сделать return c кодом ошибки - нет свободных таймеров
     #endif
 }
@@ -442,6 +444,61 @@ void memSet(void* destination, const BaseSize_t size, const u08 value) {
 #endif // ARCH
 }
 
+void shiftLeftArray(BaseParam_t source, BaseSize_t sourceSize, BaseSize_t shiftSize) {
+	BaseSize_t i = 0, j = shiftSize;
+	byte_ptr src = (byte_ptr)source;
+	while(j < sourceSize) {
+		src[i++] = src[j++];
+	}
+}
+
+#ifdef _TRY_IT_TASK
+#ifdef CALL_BACK_TASK
+#ifdef ALLOC_MEM
+
+typedef struct {
+	Time_t delayTime;
+	TaskList_t tsk;
+	Predicat_t isOK;
+} tryTask_t;
+
+static void tempTryTask(BaseSize_t attemt, tryTask_t* t) {
+	if(t->isOK()) {
+		execCallBack((u32*)tempTryTask + (u32)(t->tsk.Task));
+		freeMem((byte_ptr)t);
+		return;
+	}
+	if(attemt) {
+		attemt--;
+		SetTask(t->tsk.Task,t->tsk.arg_n,t->tsk.arg_p);
+		SetTimerTask((TaskMng)tempTryTask,attemt,(BaseParam_t)t,t->delayTime);
+		return;
+	}
+	freeMem((byte_ptr)t);
+	execCallBack((u32*)tempTryTask + (u32)(t->tsk.Task));
+}
+
+void tryItTask(BaseSize_t attempt, Time_t delayTime, TaskMng task, BaseSize_t arg_n, BaseParam_t arg_p, Predicat_t isOK) {
+	if(attempt && delayTime && task != NULL && isOK != NULL) {
+		tryTask_t* t = (tryTask_t*)allocMem(sizeof(tryTask_t));
+		if(t == NULL) {
+			execCallBack((u32*)tryItTask + (u32)task);
+			return;
+		}
+		t->delayTime = delayTime;
+		t->isOK = isOK;
+		t->tsk.Task = task;
+		t->tsk.arg_n = arg_n;
+		t->tsk.arg_p = arg_p;
+		changeCallBackLabel( ((u32*)tryItTask + (u32)task), (u32*)tempTryTask + (u32)(t->tsk.Task) );
+		SetTask((TaskMng)tempTryTask,attempt,(BaseParam_t)t);
+		return;
+	}
+	execCallBack((u32*)tryItTask + (u32)task);
+}
+#endif
+#endif
+#endif
 
 #ifdef __cplusplus
 }

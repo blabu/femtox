@@ -17,7 +17,7 @@
 *********************************************************************************************************************
 *********************************************************************************************************************/
 #define TIME_WATCH_DOG 5000UL /*Время перезапуска таймера в мс*/
-#define RELOAD_VALUE ((40UL*TIME_WATCH_DOG)/128UL)
+#define RELOAD_VALUE ((40UL*TIME_WATCH_DOG)/128UL) // Встроенный генератор низкой частоты 40 кГц
 #if(RELOAD_VALUE > 0xFFF)
 #error "RELOAD value to longer"
 #endif
@@ -27,7 +27,11 @@ void initWatchDog(){
 	watchDog.Instance = IWDG;
 	watchDog.Init.Prescaler = IWDG_PRESCALER_128;
 	watchDog.Init.Reload = RELOAD_VALUE;
-	HAL_IWDG_Init(&watchDog);
+	if(HAL_IWDG_Init(&watchDog) == HAL_OK) {
+		HAL_IWDG_Start(&watchDog);
+	}else {
+		writeLogStr("ERROR: Watchdog init error");
+	}
 }
 
 void resetWatchDog(void){

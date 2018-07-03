@@ -21,23 +21,22 @@ u16 CRC16(BaseSize_t size, byte_ptr msg);
   #define ECB 1
 #endif
 
+#ifndef CTR
+  #define CTR 0
+#endif
+
 //#define AES128 1
 #define AES192 1
 //#define AES256 1
 
 #if defined(ECB) && (ECB == 1)
-
-void AesEcbEncrypt(const byte_ptr input, const byte_ptr key, byte_ptr output);
-void AesEcbDecrypt(const byte_ptr input, const byte_ptr key, byte_ptr output);
-
+void AesEcbEncrypt(byte_ptr buf, const byte_ptr key);
+void AesEcbDecrypt(byte_ptr buf, const byte_ptr key);
 #endif // #if defined(ECB) && (ECB == !)
 
 #if defined(CBC) && (CBC == 1)
-
-void AesCbcEncrypt_buffer(byte_ptr output, byte_ptr input, u32 length, const byte_ptr key, const byte_ptr iv);
-void AesCbcDecrypt_buffer(byte_ptr output, byte_ptr input, u32 length, const byte_ptr key, const byte_ptr iv);
-
+void AesCbcEncrypt_buffer(byte_ptr buf, u32 length, const byte_ptr key, const byte_ptr iv);
+void AesCbcDecrypt_buffer(byte_ptr buf, u32 length, const byte_ptr key, const byte_ptr iv);
 #endif // #if defined(CBC) && (CBC == 1)
-
 
 #endif //_AES_H_

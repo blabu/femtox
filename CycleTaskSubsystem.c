@@ -50,6 +50,7 @@ void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t flagToQueue) {
         Timers_Array[i].flagToQueue = flagToQueue;      // Флаг определяет выполняется задача в таймере или ставится в глобальную очередь
         Timers_Array[i].value = time;       // Первый свободный таймер мы займем своей задачей
         Timers_Array[i].time = time;
+        writeLogU32(i);
         break;                          // выходим из цикла
     }
     if(flag_int) INTERRUPT_ENABLE;
@@ -98,7 +99,7 @@ void CycleService(void) {
                 SetTask((TaskMng)Timers_Array[i].Call_Back,0,0); // Если флаг установлен ставим задачу в очередь таймеров
         }
         i++;
-        if(i>TIMERS_ARRAY_SIZE) break;
+        if(i>=TIMERS_ARRAY_SIZE) break;
     }
 }
 #endif  //CYCLE_FUNC

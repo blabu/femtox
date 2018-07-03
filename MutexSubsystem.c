@@ -38,6 +38,7 @@ bool_t getMutex(const mutexType mutexNumb, TaskMng TPTR, BaseSize_t n, BaseParam
     if(mutexNumb >= MUTEX_SIZE) return FALSE;// Если номер мьютекса больше возможного варианта выходим из функции
     if(MyMutex & (1<<mutexNumb)) // Если мьютекс с таким номером захвачен
     {
+    	writeLogStr("WARN: Mutex is locked");
         SetTimerTask(TPTR, n, data, 2); // Попытаем счастья позже
         return TRUE; // Мьютекс уже захвачен кем-то возвращаем результат
     }

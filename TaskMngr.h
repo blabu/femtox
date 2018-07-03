@@ -25,8 +25,9 @@ extern const char* osVersion;
 #define SIGNALS_TASK
 #define _LIST_STRUCT
 //#define _DYNAMIC_ARRAY
+#define _TRY_IT_TASK  /*Експериментальная функция*/
 
-#define TASK_LIST_LEN 15U /*Длина очереди задач*/
+#define TASK_LIST_LEN 20U /*Длина очереди задач*/
 #define TIME_LINE_LEN 30U /*Максимальне количество системных таймеров*/
 #define TIME_DELAY_IF_BUSY 2U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
@@ -88,6 +89,23 @@ u08 getFreePositionForTimerTask(void);
 
 void delAllTask(void);
 
+#ifdef _TRY_IT_TASK
+#ifdef CALL_BACK_TASK
+#ifdef ALLOC_MEM
+/*
+ * Экспериментальная функция
+ * Аргументы:
+ * attempt - колличество попыток выполнить задачу
+ * delayTime - задержка между выполнениями задачи
+ * task - указатель на саму задачу, которую надо выполнить.
+ * arg_n, arg_p - аргументы задачи, которую надо выполнить.
+ * isOK - указатель на функцию предикат, которая возвращает истину если задача выполнилась успешно
+*/
+	void tryItTask(BaseSize_t attempt, Time_t delayTime, TaskMng task, BaseSize_t arg_n, BaseParam_t arg_p, Predicat_t isOK);
+#endif
+#endif
+#endif
+
 //********************************СИСТЕМНЫЙ ТАЙМЕР*********************************************
 void TimerISR(void); //Обработчик прерывания по совпадению теущего значения таймера и счетчика.
 
@@ -114,6 +132,7 @@ void MaximizeErrorHandler(void);
 
 void memCpy(void * destination, const void * source, const BaseSize_t num);
 void memSet(void* destination, const BaseSize_t size, const u08 value);
+void shiftLeftArray(BaseParam_t source, BaseSize_t sourceSize, BaseSize_t shiftSize);
 
 #ifdef EVENT_LOOP_TASKS
 #define EVENT_LIST_SIZE 10
