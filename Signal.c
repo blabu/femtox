@@ -6,7 +6,7 @@
  */
 #include "TaskMngr.h"
 #include "PlatformSpecific.h"
-
+#ifdef SIGNALS_TASK
 #if SIGNAL_LIST_LEN>0xFF
 #error "SIGNAL MUST BE LESS 0xFF"
 #endif
@@ -54,3 +54,4 @@ void disconnectTaskFromSignal(TaskMng task, void* signal){
 		}
 	}
 }
+#endif

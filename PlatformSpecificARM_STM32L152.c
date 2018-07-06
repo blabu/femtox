@@ -90,7 +90,6 @@ void initRTC(void){
 	HAL_RTCEx_SetWakeUpTimer_IT(&RTC_Clock,(2048/TICK_PER_SECOND)-1,RTC_WAKEUPCLOCK_RTCCLK_DIV16);
 }
 
-
 void RTC_WKUP_IRQHandler(void) {
 	HAL_RTCEx_WakeUpTimerIRQHandler(&RTC_Clock);
 }
@@ -126,6 +125,9 @@ void _init_Timer(){
 	HAL_PWR_DisableSleepOnExit(); // После пробуждения мы работаем в активном режиме
 }
 
+unsigned int _setTickTime(unsigned int timerTicks) {
+	//FIXME Not implemented yet
+}
 
 #ifdef USE_SOFT_UART
 /*

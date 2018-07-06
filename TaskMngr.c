@@ -12,8 +12,16 @@ extern "C" {
 
 const char* osVersion = "V1.1.0";
 
+#ifdef _PWR_SAVE
+u32 minTimeOut = 1; // Минимальное время таймоута для задач из списка таймеров
+#endif
+
 static void TaskManager(void);
+#ifdef _PWR_SAVE
+static u32 TimerService(void);
+#else
 static void TimerService(void);
+#endif
 #ifdef ALLOC_MEM
 extern void initHeap(void);
 #endif
@@ -24,7 +32,11 @@ extern void initDataStruct( void );
 
 #ifdef CYCLE_FUNC
 extern void initCycleTask( void );
+#ifdef _PWR_SAVE
+extern u32 CycleService( void );
+#else
 extern void CycleService( void );
+#endif
 #endif
 
 #ifdef EVENT_LOOP_TASKS
@@ -85,11 +97,15 @@ u32 getTick(void) {
 
 
 static void ClockService(void){
-    GlobalTick++;
+#ifdef _PWR_SAVE
+	GlobalTick+=minTimeOut;
+#else
+	GlobalTick++;
+#endif
 #ifdef CLOCK_SERVICE
     if(GlobalTick >= TICK_PER_SECOND) {
     	__systemSeconds++;
-    	GlobalTick = 0;
+    	GlobalTick -= TICK_PER_SECOND;
     }
 #endif
 }
@@ -170,14 +186,32 @@ void ResetFemtOS(void){
     while(1);
 }
 
-void TimerISR(void)
-{
-#ifdef CYCLE_FUNC
-	CycleService();
+void TimerISR(void) {
+    ClockService();
+#ifdef _PWR_SAVE
+	u32 minTimerService = TimerService();	// Пересчет всех системных таймеров из очереди
+	#ifdef CYCLE_FUNC
+		u32 minCycleService = CycleService();
+		if(minTimerService && minCycleService) {
+			if(minTimerService < minCycleService) minTimeOut = minTimerService;
+			else if(minCycleService) minTimeOut = minCycleService;
+		}
+		else if(minTimerService) minTimeOut = minTimerService;
+		else if(minCycleService) minTimeOut = minCycleService;
+		else minTimeOut = 1;
+		minTimeOut = _setTickTime(minTimeOut);
+	#else
+		if(minTimerService) minTimeOut = minTimerService;
+		else minTimeOut = 1;
+		minTimeOut = _setTickTime(minTimerService);
+	#endif
+#else
+    TimerService();	// Пересчет всех системных таймеров из очереди
+	#ifdef CYCLE_FUNC
+    	CycleService();
+	#endif
 #endif
-      TimerService();	// Пересчет всех системных таймеров из очереди
-      ClockService();
-} 	//Отработка прерывания по переполнению TCNT0
+} 	//Отработка прерывания по таймеру
 
 static u08 countBegin = 0;    // Указатель на НАЧАЛО очереди (нужен для быстрого диспетчера)
 static u08 countEnd = 0;      // Указатель на КОНЕЦ очереди (нужен для быстрого диспетчера)
@@ -280,14 +314,34 @@ void delAllTask(void) {
 *********************************************************************************************************************
 ---------------------------------------------------------------------------------------------------------------------*/
 static u08 lastTimerIndex = 0; // Указывает на индекс следующего СВОБОДНОГО таймера
-
-static void TimerService (void)
-{
+#ifdef _PWR_SAVE
+static u32 TimerService (void) {
     u08 index = 0;
-    while(index < lastTimerIndex)  // Перебираем всю очередь таймеров
-    {
-        if(MainTime[index] != 1)    // Если таймер еще не дотикал (наиболее вероятно)
-        {
+    u32 tempMinTime = 0;
+    while(index < lastTimerIndex) {  // Перебираем всю очередь таймеров
+        if(MainTime[index] > minTimeOut) {    // Если таймер еще не дотикал (наиболее вероятно)
+            MainTime[index] -= minTimeOut;      // Тикаем им
+            if( MainTime[index] < tempMinTime || !tempMinTime) tempMinTime = MainTime[index]; // Сохраняем новое значения минимального
+            index++;                			// И переходим на следующую итерацию цикла
+            continue;
+        }
+        SetTask (MainTimer[index].Task,  // Ставим нашу задачу в конец очередь
+                 MainTimer[index].arg_n,
+                 MainTimer[index].arg_p);
+        tempMinTime = 0;
+        lastTimerIndex--;
+        MainTimer[index].Task  = MainTimer[lastTimerIndex].Task;    // На место этого таймера перемещаем последний
+        MainTimer[index].arg_n = MainTimer[lastTimerIndex].arg_n;
+        MainTimer[index].arg_p = MainTimer[lastTimerIndex].arg_p;
+        MainTime[index] = MainTime[lastTimerIndex];
+    }
+    return tempMinTime;
+}
+#else // Класический таймер. Без регулирования скорости работы таймер ОС
+static void TimerService (void) {
+    u08 index = 0;
+    while(index < lastTimerIndex) {  // Перебираем всю очередь таймеров
+        if(MainTime[index] > 1) {  // Если таймер еще не дотикал (наиболее вероятно)
             MainTime[index]--;      // Тикаем им
             index++;                // И переходим на следующую итерацию цикла
             continue;
@@ -303,6 +357,7 @@ static void TimerService (void)
         MainTime[index] = MainTime[lastTimerIndex];
     }
 }
+#endif
 
 void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time){
     bool_t flag_inter = FALSE;  // флаг состояния прерывания
@@ -451,54 +506,6 @@ void shiftLeftArray(BaseParam_t source, BaseSize_t sourceSize, BaseSize_t shiftS
 		src[i++] = src[j++];
 	}
 }
-
-#ifdef _TRY_IT_TASK
-#ifdef CALL_BACK_TASK
-#ifdef ALLOC_MEM
-
-typedef struct {
-	Time_t delayTime;
-	TaskList_t tsk;
-	Predicat_t isOK;
-} tryTask_t;
-
-static void tempTryTask(BaseSize_t attemt, tryTask_t* t) {
-	if(t->isOK()) {
-		execCallBack((u32*)tempTryTask + (u32)(t->tsk.Task));
-		freeMem((byte_ptr)t);
-		return;
-	}
-	if(attemt) {
-		attemt--;
-		SetTask(t->tsk.Task,t->tsk.arg_n,t->tsk.arg_p);
-		SetTimerTask((TaskMng)tempTryTask,attemt,(BaseParam_t)t,t->delayTime);
-		return;
-	}
-	freeMem((byte_ptr)t);
-	execCallBack((u32*)tempTryTask + (u32)(t->tsk.Task));
-}
-
-void tryItTask(BaseSize_t attempt, Time_t delayTime, TaskMng task, BaseSize_t arg_n, BaseParam_t arg_p, Predicat_t isOK) {
-	if(attempt && delayTime && task != NULL && isOK != NULL) {
-		tryTask_t* t = (tryTask_t*)allocMem(sizeof(tryTask_t));
-		if(t == NULL) {
-			execCallBack((u32*)tryItTask + (u32)task);
-			return;
-		}
-		t->delayTime = delayTime;
-		t->isOK = isOK;
-		t->tsk.Task = task;
-		t->tsk.arg_n = arg_n;
-		t->tsk.arg_p = arg_p;
-		changeCallBackLabel( ((u32*)tryItTask + (u32)task), (u32*)tempTryTask + (u32)(t->tsk.Task) );
-		SetTask((TaskMng)tempTryTask,attempt,(BaseParam_t)t);
-		return;
-	}
-	execCallBack((u32*)tryItTask + (u32)task);
-}
-#endif
-#endif
-#endif
 
 #ifdef __cplusplus
 }

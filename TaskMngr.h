@@ -14,18 +14,18 @@ extern const char* osVersion;
 //#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
 #define DATA_STRUCT_MANAGER   /*Включаем работу с очередями средствами деспетчера*/
 #define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/
-#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
+//#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
 //#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 #define ALLOC_MEM   /*Включение динамического выделения памяти*/
-#define EVENT_LOOP_TASKS
+//#define EVENT_LOOP_TASKS
 //#define USE_SOFT_UART
-#define CLOCK_SERVICE
-#define GLOBAL_FLAGS
-#define CALL_BACK_TASK
-#define SIGNALS_TASK
-#define _LIST_STRUCT
+//#define CLOCK_SERVICE
+//#define GLOBAL_FLAGS
+//#define CALL_BACK_TASK
+//#define SIGNALS_TASK
+//#define _LIST_STRUCT
 //#define _DYNAMIC_ARRAY
-#define _TRY_IT_TASK  /*Експериментальная функция*/
+#define _PWR_SAVE
 
 #define TASK_LIST_LEN 20U /*Длина очереди задач*/
 #define TIME_LINE_LEN 30U /*Максимальне количество системных таймеров*/
@@ -88,23 +88,6 @@ u08 getFreePositionForTimerTask(void);
 //Сами задачи следует делать небольшими.
 
 void delAllTask(void);
-
-#ifdef _TRY_IT_TASK
-#ifdef CALL_BACK_TASK
-#ifdef ALLOC_MEM
-/*
- * Экспериментальная функция
- * Аргументы:
- * attempt - колличество попыток выполнить задачу
- * delayTime - задержка между выполнениями задачи
- * task - указатель на саму задачу, которую надо выполнить.
- * arg_n, arg_p - аргументы задачи, которую надо выполнить.
- * isOK - указатель на функцию предикат, которая возвращает истину если задача выполнилась успешно
-*/
-	void tryItTask(BaseSize_t attempt, Time_t delayTime, TaskMng task, BaseSize_t arg_n, BaseParam_t arg_p, Predicat_t isOK);
-#endif
-#endif
-#endif
 
 //********************************СИСТЕМНЫЙ ТАЙМЕР*********************************************
 void TimerISR(void); //Обработчик прерывания по совпадению теущего значения таймера и счетчика.

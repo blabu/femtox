@@ -14,7 +14,12 @@
 void enableUART2() {}
 void disableUART2() {}
 static void sendCOM2_buf(u08 size, byte_ptr data) {
-	printf("size: %d, data: %s\n", size, data);
+	if(size == 0) printf("%s\n", data);
+	else {
+		for(u08 i = 0; i<size; i++) {
+			printf("%x ",data[i]);
+		}
+	}
 }
 
 static void sendUART2_buf(u08 c) {

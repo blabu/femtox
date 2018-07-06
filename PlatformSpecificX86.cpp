@@ -58,9 +58,14 @@ void unBlockIt(){
     mt.unlock();
 }
 
+static unsigned int timerTickCount = 1;
+const unsigned int standartTimerTick = 1000/TICK_PER_SECOND;
+
 static void timer() {
     while(1) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000/TICK_PER_SECOND));
+    	unsigned int temp = 0;
+    	while(temp != timerTickCount) temp = timerTickCount;
+        std::this_thread::sleep_for(std::chrono::milliseconds( temp * standartTimerTick ));
         blockIt();
         TimerISR();
         unBlockIt();
@@ -69,7 +74,20 @@ static void timer() {
 
 void _init_Timer(void){// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
     writeLogStr("start init timer");
+    timerTickCount = 1;
     timerThread = new std::thread(timer);
+}
+
+unsigned int  _setTickTime(unsigned int timerTicks) {
+	if(timerTicks) {
+		if(timerTickCount != timerTicks) {
+			timerTickCount = timerTicks;
+			//printf("%d\n",timerTicks);
+		}
+	}
+	u32 t = 0;
+	while(t!= timerTickCount) t = timerTickCount;
+	return t;
 }
 
 /*

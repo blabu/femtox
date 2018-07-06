@@ -20,18 +20,15 @@ extern "C" {
 Эта часть содержит набор функция для реализации циклически выполняемых коротких функций
 Функции выполняются внутри прерывания и не должны содержать задержек или разрешений прерываний
 */
-volatile static struct
-{
+volatile static struct {
     CycleFuncPtr_t Call_Back;
     Time_t value;
     Time_t time;
     bool_t flagToQueue;
 }Timers_Array[TIMERS_ARRAY_SIZE];
 
-void initCycleTask(void)
-{
-    for(u08 i=0; i<TIMERS_ARRAY_SIZE; i++)
-    {
+void initCycleTask(void) {
+	for(u08 i=0; i<TIMERS_ARRAY_SIZE; i++) {
         Timers_Array[i].Call_Back = 0;
         Timers_Array[i].value = 0;
         Timers_Array[i].time = 0;
@@ -50,7 +47,6 @@ void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t flagToQueue) {
         Timers_Array[i].flagToQueue = flagToQueue;      // Флаг определяет выполняется задача в таймере или ставится в глобальную очередь
         Timers_Array[i].value = time;       // Первый свободный таймер мы займем своей задачей
         Timers_Array[i].time = time;
-        writeLogU32(i);
         break;                          // выходим из цикла
     }
     if(flag_int) INTERRUPT_ENABLE;
@@ -84,7 +80,31 @@ void delCycleTask(BaseSize_t arg_n, CycleFuncPtr_t CallBack) {
     if(flag_int) INTERRUPT_ENABLE;
 }
 
-
+#ifdef _PWR_SAVE
+extern u32 minTimeOut;
+u32 CycleService(void) {
+    register u08 i = 0;
+    u32 tempMinTickCount = 0;
+    while(Timers_Array[i].value) // Перебираем массив таймеров пока не встретили пустышку
+    {
+    	if(Timers_Array[i].time > minTimeOut) {
+    		Timers_Array[i].time -= minTimeOut;// Если нашли не путой таймер тикаем
+    		if(Timers_Array[i].time < tempMinTickCount || !tempMinTickCount) tempMinTickCount = Timers_Array[i].time;
+    	}
+    	else { // Если таймер дотикал
+            Timers_Array[i].time = Timers_Array[i].value;     // Если таймер дотикал обновляем его значение
+            if(Timers_Array[i].time < tempMinTickCount || !tempMinTickCount) tempMinTickCount = Timers_Array[i].time;
+            if(!Timers_Array[i].flagToQueue) // Если флаг поставить задачу в очередь не выставлен выполняем функцию здесь же
+                (*Timers_Array[i].Call_Back)();
+            else
+                SetTask((TaskMng)Timers_Array[i].Call_Back,0,0); // Если флаг установлен ставим задачу в очередь таймеров
+        }
+        i++;
+        if(i>=TIMERS_ARRAY_SIZE) break;
+    }
+    return tempMinTickCount;
+}
+#else
 void CycleService(void) {
     register u08 i = 0;
     while(Timers_Array[i].value) // Перебираем массив таймеров пока не встретили пустышку
@@ -101,7 +121,9 @@ void CycleService(void) {
         i++;
         if(i>=TIMERS_ARRAY_SIZE) break;
     }
+    return 0;
 }
+#endif
 #endif  //CYCLE_FUNC
 
 #ifdef __cplusplus

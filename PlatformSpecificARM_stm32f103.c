@@ -69,6 +69,9 @@ void _init_Timer(){
 	HAL_PWR_DisableSleepOnExit(); // После пробуждения мы работаем в активном режиме
 }
 
+unsigned int _setTickTime(unsigned int timerTicks) {
+	//FIXME Not implemented yet
+}
 
 #ifdef USE_SOFT_UART
 /*
