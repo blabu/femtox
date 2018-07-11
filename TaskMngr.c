@@ -1,5 +1,6 @@
 #include "TaskMngr.h"
 #include "PlatformSpecific.h"
+#include "logging.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,13 +46,13 @@ extern void initEventList( void );
 #endif
 
 #ifdef CLOCK_SERVICE
-extern u32 __systemSeconds;
+extern volatile Time_t __systemSeconds;
 #endif
 
 static void ClockService( void );
 
 #ifdef CALL_BACK_TASK
-extern void initCallBackTask();
+extern void initCallBackTask(void);
 #endif
 
 #ifdef EMPTY
@@ -189,9 +190,9 @@ void ResetFemtOS(void){
 void TimerISR(void) {
     ClockService();
 #ifdef _PWR_SAVE
-	u32 minTimerService = TimerService();	// Пересчет всех системных таймеров из очереди
+	u32 minTimerService = TimerService();	// Пересчет всех системных таймеров из очереди, вернет минимальный таймер
 	#ifdef CYCLE_FUNC
-		u32 minCycleService = CycleService();
+        u32 minCycleService = CycleService(); // Вернет минимальное время из циклических задач
 		if(minTimerService && minCycleService) {
 			if(minTimerService < minCycleService) minTimeOut = minTimerService;
 			else if(minCycleService) minTimeOut = minCycleService;
@@ -373,6 +374,9 @@ void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
         MainTimer[lastTimerIndex].arg_p = data;
         MainTime[lastTimerIndex] = New_Time;
         lastTimerIndex++;
+        #ifdef _PWR_SAVE
+          if(New_Time < minTimeOut) minTimeOut = _setTickTime(New_Time);
+        #endif
         if(flag_inter) INTERRUPT_ENABLE;
         return;
     }
@@ -446,7 +450,7 @@ void memCpy(void* destination, const void* source, const BaseSize_t num) {
 		u08 last = num & 0x03; // остаток
 		for(BaseSize_t i = 0; i<blocks; i++) {
 			*((u32*)destination) = *((u32*)source);
-			destination+=4; source+=4;
+			(byte_ptr)destination+=4; (byte_ptr)source+=4;
 		}
 		for(u08 i = 0; i<last; i++) {
 			*((byte_ptr)destination) = *((byte_ptr)source);
@@ -457,7 +461,12 @@ void memCpy(void* destination, const void* source, const BaseSize_t num) {
 		BaseSize_t last = num & 0x01; // остаток
 		for(BaseSize_t i = 0; i<blocks; i++) {
 			*((u16*)destination) = *((u16*)source);
-			destination+=2; source+=2;
+                        #ifndef _IAR_
+			(byte_ptr)destination+=2; (byte_ptr)source+=2;
+                        #else 
+                        destination = (void*)((byte_ptr)destination + 2);
+                        source = (void*)((byte_ptr)source + 2);
+                        #endif
 		}
 		if(last) *((byte_ptr)destination) = *((byte_ptr)source);
 #else
@@ -489,7 +498,11 @@ void memSet(void* destination, const BaseSize_t size, const u08 value) {
     u16 val = (u16)value<<8 | value;
     for(BaseSize_t i = 0; i<blocks; i++) {
         *((u16*)destination) = val;
-		destination+=2;
+         #ifndef _IAR_
+	 (byte_ptr)destination+=2;
+         #else 
+         destination = (void*)((byte_ptr)destination + 2);
+         #endif
     }
     if(last) *((byte_ptr)destination) = value;
 #else

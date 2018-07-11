@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+#ifdef ALLOC_MEM
 
 void rotate90RightSqrtMatr(BaseSize_t size, BaseParam_t matr)
 {
@@ -59,6 +60,7 @@ void swapInt(unsigned int* int1, unsigned int* int2)
   *int1 = *int2;
   *int2 = temp;
 }
+#endif
 #ifdef __cplusplus
 }
 #endif

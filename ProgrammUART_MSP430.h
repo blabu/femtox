@@ -5,7 +5,9 @@
 
 #ifdef USE_SOFT_UART
 
-#define UART_NUMB 3    /*Колличество программных ЮАРТов*/
+#define SOFT_UART_WORK_FLAG 1<<2
+
+#define UART_NUMB 1    /*Колличество программных ЮАРТов*/
 
 #define BAUD_150   127
 #define BAUD_300   64
@@ -23,13 +25,15 @@
  *  Например 9600 бод/с = 1/(BAUD_9600*26мкс)
 */
 void initSoftUART();
+void enableSoftUART();
+void disableSoftUART();
 void CreateSoftUART(const BaseSize_t buffTXsize, const BaseSize_t buffRXsize, const s08 BAUD,
                     const u08 numbUART, const u08 TXpinNumber, const u08 RXpinNumber);
 void sendUART_byte(const u08 numbUART, const u08 U_data);
 u08 readUART_byte(u08 numbUART);
 BaseSize_t readUART_array(const u08 numbUART, const BaseSize_t size, const unsigned char* U_data); // Вернет количество прочитанного
 void delSoftUART(const u08 numbUART);
-void clearRxBuffer(const u08 numbUART);
+void clearSoftUartRxBuffer(const u08 numbUART);
 void sendUART_str(const u08 numbUART, const string_t U_data);
 void sendUART_array(const u08 numbUART, const BaseSize_t size, const unsigned char* U_data);
 void UARTTimerISR(); // Само прерывание

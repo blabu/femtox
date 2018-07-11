@@ -27,7 +27,10 @@ static void sendUART2_buf(u08 c) {
 }
 
 #else
-#include "UART2.h"
+void enableUART2(u32 i) {i++;}
+void disableUART2(){}
+void sendCOM2_buf(u08 u, byte_ptr buf){}
+void sendUART2_buf(u08 byte);
 #endif
 
 static string_t disableLavel = NULL;
@@ -86,6 +89,7 @@ void writeSymb(char symb) {
 	sendUART2_buf((u08)symb);
 }
 
+#ifdef ALLOC_MEM
 void writeLogByteArray(u08 sizeBytes, byte_ptr array){
 	static string_t str = NULL;
 	if(str != NULL) freeMem((byte_ptr)str);
@@ -106,3 +110,4 @@ void writeLogByteArray(u08 sizeBytes, byte_ptr array){
 	str[poz] = '\0';
 	writeLogStr(str);
 }
+#endif

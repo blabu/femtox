@@ -1,13 +1,8 @@
 #ifndef PLATFORMSPECIFIC
 #define PLATFORMSPECIFIC
-//
-#include "stm32f1xx_hal.h"
+#include "stm32l1xx_hal.h"
 #include "cmsis_gcc.h"
-#include "stm32f1xx.h"
-
-//#include "stm32l1xx_hal.h"
-//#include "cmsis_gcc.h"
-//#include "stm32l152xe.h"
+#include "stm32l152xe.h"
 
 #define ARCH 32 /*Архитектура процессора 8, 16, 32 байта (разрядность шины данных)*/
 
@@ -20,21 +15,12 @@ void resetWatchDog();
 *********************************************************************************************************************/
 #define INTERRUPT_ENABLE  __enable_irq()   //{asm("nop"); __asm__ __volatile__("eint");}
 #define INTERRUPT_DISABLE __disable_irq()  //{__asm__ __volatile__("dint nop"); asm("nop");}
-#define INTERRUPT_STATUS  TRUE
+#define INTERRUPT_STATUS  (__get_CONTROL() & (uint32_t)(1<<7))
 #define WATCH_DOG_ON  initWatchDog()/*Генерируем Reset*/
-
-#include "config.h"
-#ifdef SERVER
-#define TICK_PER_SECOND 1000 /*Колличество тиков в секунду*/
-#else
-#define TICK_PER_SECOND 100 /*Колличество тиков в секунду*/
-#endif
-//#define TICK_PER_SECOND 128 /*Колличество тиков в секунду*/
+#define TICK_PER_SECOND 128 /*Колличество тиков в секунду*/
 
 void _init_Timer(void);	// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
-unsigned int _setTickTime(unsigned int timerTicks); // В качестве аргумента передается кол-во стандартных тиков таймера
-//(Таймер начинает тикать значительно реже что значительно увеличивает энергоэффективность)
-// Вернет занчение на которое реально смог изменить частоту прерываний
+
 
 /*
  * Для программного UART

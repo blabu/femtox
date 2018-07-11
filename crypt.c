@@ -436,14 +436,14 @@ static void InvCipher(state_t* state, byte_ptr RoundKey)
 
 static u08 RoundKey[keyExpSize];
 
-void AesEcbEncrypt(byte_ptr buf, const byte_ptr const key){
+void AesEcbEncrypt(byte_ptr buf, const byte_ptr key){
 	// The KeyExpansion routine must be called before encryption.
 	KeyExpansion(RoundKey, key);
 	// The next function call encrypts the PlainText with the Key using AES algorithm.
 	Cipher((state_t*)buf,RoundKey);
 }
 
-void AesEcbDecrypt(byte_ptr buf, const byte_ptr const key)
+void AesEcbDecrypt(byte_ptr buf, const byte_ptr key)
 {
   // The KeyExpansion routine must be called before encryption.
   KeyExpansion(RoundKey, key);

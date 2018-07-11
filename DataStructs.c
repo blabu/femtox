@@ -102,7 +102,7 @@ u08 PutToCycleDataStruct(const void* Elem, const void* Array) {
         flag_int = TRUE;
         INTERRUPT_DISABLE;
     }
-    if(Data_Array[i].firstCount >= Data_Array[i].sizeAllElements) Data_Array[i].firstCount = 0; // Обнуляем потому что сейчас мы будем туду добавлять
+    if(Data_Array[i].firstCount >= Data_Array[i].sizeAllElements) Data_Array[i].firstCount = 0; // Обнуляем потому что сейчас мы будем туда добавлять
     BaseSize_t frontCount = Data_Array[i].firstCount+1; // Будущий указатель на СВОБОДНЫЙ элемент
     unsigned int offset = Data_Array[i].firstCount * Data_Array[i].sizeElement; //вычисляем смещение в байтах
     void* dst = (void*)((byte_ptr)Data_Array[i].Data + offset);     // Определяем адресс куда копировать
@@ -301,7 +301,7 @@ void clearDataStruct(const void * const Data){
 bool_t isEmptyDataStruct(const void* const Data){
     register u08 i = findNumberDataStruct(Data);
     if(i == ArraySize) return TRUE; // Если такой структуры нет она точно пустая
-    bool_t res = (Data_Array[i].firstCount == Data_Array[i].lastCount); // Если они равны друг другу значит пустая
+    bool_t res = (bool_t)(Data_Array[i].firstCount == Data_Array[i].lastCount); // Если они равны друг другу значит пустая
     return res;
 }
 

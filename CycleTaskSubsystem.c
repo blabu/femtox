@@ -121,7 +121,6 @@ void CycleService(void) {
         i++;
         if(i>=TIMERS_ARRAY_SIZE) break;
     }
-    return 0;
 }
 #endif
 #endif  //CYCLE_FUNC

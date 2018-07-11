@@ -17,30 +17,30 @@ extern const char* osVersion;
 //#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
 //#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 #define ALLOC_MEM   /*Включение динамического выделения памяти*/
-//#define EVENT_LOOP_TASKS
-//#define USE_SOFT_UART
-//#define CLOCK_SERVICE
-//#define GLOBAL_FLAGS
-//#define CALL_BACK_TASK
+#define EVENT_LOOP_TASKS
+#define USE_SOFT_UART
+#define CLOCK_SERVICE
+#define GLOBAL_FLAGS
+#define CALL_BACK_TASK
 //#define SIGNALS_TASK
 //#define _LIST_STRUCT
 //#define _DYNAMIC_ARRAY
 #define _PWR_SAVE
 
-#define TASK_LIST_LEN 20U /*Длина очереди задач*/
-#define TIME_LINE_LEN 30U /*Максимальне количество системных таймеров*/
+#define TASK_LIST_LEN 7U /*Длина очереди задач*/
+#define TIME_LINE_LEN 12U /*Максимальне количество системных таймеров*/
 #define TIME_DELAY_IF_BUSY 2U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
 typedef char* string_t;
 typedef unsigned long long u64;
 typedef long long s64;
-typedef unsigned int   u32;
+typedef unsigned long   u32;
 typedef unsigned short u16;
 typedef unsigned char  u08;
 typedef signed int     s32;
 typedef signed short   s16;
 typedef signed char    s08;
-typedef unsigned int   Time_t;
+typedef u32   Time_t;
 typedef enum {FALSE=0, TRUE = !FALSE} bool_t;
 
 
@@ -118,13 +118,13 @@ void memSet(void* destination, const BaseSize_t size, const u08 value);
 void shiftLeftArray(BaseParam_t source, BaseSize_t sourceSize, BaseSize_t shiftSize);
 
 #ifdef EVENT_LOOP_TASKS
-#define EVENT_LIST_SIZE 10
+#define EVENT_LIST_SIZE 4
    bool_t CreateEvent(Predicat_t condition, CycleFuncPtr_t effect); // Регистрирует новое событие в списке событий
    void delEvent(Predicat_t condition); //Удаляем обработку события  condition
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
-#define ArraySize   12 /*Общее количество всех структур данных*/
+#define ArraySize   4 /*Общее количество всех структур данных*/
 #define NOT_FAUND_DATA_STRUCT_ERROR 1
 #define OVERFLOW_OR_EMPTY_ERROR     2
 #define OTHER_ERROR                 3
@@ -204,7 +204,7 @@ typedef u32 mutexType;
 #endif
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 600UL /*6500*/
+#define HEAP_SIZE 220UL /*6500*/
     byte_ptr allocMem(u08 size);  //size - до 127 размер блока выделяемой памяти
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
     void freeMem(byte_ptr data);  // Освобождение памяти
@@ -244,7 +244,7 @@ typedef struct {
 #endif
 
 #ifdef CALL_BACK_TASK
-#define CALL_BACK_TASK_LIST_LEN 35
+#define CALL_BACK_TASK_LIST_LEN 12
 #ifndef OVERFLOW_OR_EMPTY_ERROR
 #define OVERFLOW_OR_EMPTY_ERROR 2
 #endif

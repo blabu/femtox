@@ -14,7 +14,7 @@ extern "C" {
 
 #ifdef CLOCK_SERVICE
 
-volatile u32 __systemSeconds = 0;
+volatile Time_t __systemSeconds = 0;
 
 #define SECONDS_2000 946684800UL  /*Колличество секунд с 1970 по 2000*/
 #define SECONDS_IN_YEAR 31536000UL

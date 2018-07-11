@@ -6,7 +6,6 @@
 static SoftUART_t UART_TX_DATA[UART_NUMB];
 static SoftUART_t UART_RX_DATA[UART_NUMB];
 
-#define UART_TRANS_ENABLE(numberUART) (UART_TX_DATA[numberUART].curentCount = UART_TX_DATA[numberUART].Baud) /*Включить передачу*/
 #define UART_TRANS_FINISH(numberUART)(UART_TX_DATA[numberUART].curentCount  = -2)                        /*Закончена передача*/
 #define UART_TRANS_DISABLE(numberUART)(UART_TX_DATA[numberUART].curentCount  = -1)                       /*Выключить передачу*/
 #define UART_TRANS_IS_READY(numberUART)(UART_TX_DATA[numberUART].curentCount == -2)                       /*Байт передан?*/
@@ -77,31 +76,26 @@ static bool_t isStartBit1() // Для инициализации события 
   }
   return FALSE;
 }
-
 static void StartReceive1() // Запуск приема
 {
   CLEAR_TIMER;
   UART_RX_DATA[1].curentCount = UART_RX_DATA[1].Baud + (UART_RX_DATA[1].Baud>>2);
 }
-
 static bool_t UART_RX1_predicate()  // Если байт принят вернем истину
 {
     if(UART_RECEIV_IS_READY(1)) return TRUE;
     return FALSE;
 }
-
 static void UART_RX1_to_buff()  // Запись принятого байта в буфер
 {
     UART_RECEIV_DISABLE(1); // Выключаем UART 
     PutToBackQ(&UART_RX_DATA[1].Data, UART_RX_DATA[1].buffer); // Записывае байт в буфер
 }
-
 static bool_t UART_TX1_predicate()  // Если байт принят вернем истину
 {
     if(UART_TRANS_IS_READY(1)) return TRUE;
     return FALSE;
 }
-
 static void UART_TX1_to_buff(){  // Запись принятого байта в буфер
     unsigned char temp = 0;
     if(GetFromQ(&temp, UART_TX_DATA[1].buffer) == EVERYTHING_IS_OK) {
@@ -127,7 +121,6 @@ static bool_t isStartBit2(){ // Для инициализации события
   }
   return FALSE;
 }
-
 static void StartReceive2(){ // Запуск приема
   CLEAR_TIMER;
   UART_RX_DATA[2].curentCount = UART_RX_DATA[2].Baud + (UART_RX_DATA[2].Baud>>2);
@@ -170,7 +163,70 @@ void initSoftUART(){
       UART_RX_DATA[i].buffer = NULL;
       UART_TX_DATA[i].buffer = NULL;
     }
-    _initTimerSoftUart();
+}
+
+void enableSoftUART() {
+  setFlags(SOFT_UART_WORK_FLAG);
+  for(unsigned char i = 0; i < UART_NUMB; i++){
+    initProgramUartGPIO(UART_RX_DATA[i].Mask,UART_TX_DATA[i].Mask);
+#if(UART_NUMB > 0)
+    if(i == 0)
+    {
+        CreateEvent(isStartBit0,StartReceive0);  // Регистрируем событие поиска стартового бита
+        CreateEvent(UART_RX0_predicate, UART_RX0_to_buff); // Регистрируем событие сохранения принятого байта в буфер
+        CreateEvent(UART_TX0_predicate, UART_TX0_to_buff);
+    }
+#endif
+#if(UART_NUMB > 1)
+    if(i == 1)
+    {
+        CreateEvent(isStartBit1,StartReceive1);  // Регистрируем событие поиска стартового бита
+        CreateEvent(UART_RX1_predicate, UART_RX1_to_buff); // Регистрируем событие сохранения принятого байта в буфер
+        CreateEvent(UART_TX1_predicate, UART_TX1_to_buff);
+    }
+#endif
+#if(UART_NUMB > 2)
+    if(i == 2)
+    {
+        CreateEvent(isStartBit2,StartReceive2);  // Регистрируем событие поиска стартового бита
+        CreateEvent(UART_RX2_predicate, UART_RX2_to_buff); // Регистрируем событие сохранения принятого байта в буфер
+        CreateEvent(UART_TX2_predicate, UART_TX2_to_buff);
+    }
+#endif
+  }
+  _initTimerSoftUart();
+}
+
+
+void disableSoftUART() {
+  _deInitTimerSoftUart();
+   for(unsigned char i = 0; i < UART_NUMB; i++){
+      UART_RECEIV_DISABLE(i);
+      UART_TRANS_DISABLE(i);
+#if(UART_NUMB > 0)
+    if(i == 0){
+        delEvent(isStartBit0);  // Регистрируем событие поиска стартового бита
+        delEvent(UART_RX0_predicate); // Регистрируем событие сохранения принятого байта в буфер
+        delEvent(UART_TX0_predicate);
+    }
+#endif
+#if(UART_NUMB > 1)
+    if(i == 1) {
+        delEvent(isStartBit1);  // Регистрируем событие поиска стартового бита
+        delEvent(UART_RX1_predicate); // Регистрируем событие сохранения принятого байта в буфер
+        delEvent(UART_TX1_predicate);
+    }
+#endif
+#if(UART_NUMB > 2)
+    if(i == 2) {
+        delEvent(isStartBit2);  // Регистрируем событие поиска стартового бита
+        delEvent(UART_RX2_predicate); // Регистрируем событие сохранения принятого байта в буфер
+        delEvent(UART_TX2_predicate);
+    }
+#endif
+    deInitProgramUartGPIO(UART_RX_DATA[i].Mask,UART_TX_DATA[i].Mask);
+   }
+   clearFlags(SOFT_UART_WORK_FLAG);
 }
 
 void CreateSoftUART(const BaseSize_t buffTXsize, const BaseSize_t buffRXsize, const s08 BAUD,
@@ -208,75 +264,48 @@ void CreateSoftUART(const BaseSize_t buffTXsize, const BaseSize_t buffRXsize, co
 		while(1);
 #endif
     }
-    
-    initProgramUartGPIO((1<<RXpinNumber),(1<<TXpinNumber));
-    ENABLE_UART_TIMER_ISR;
-#if(UART_NUMB > 0)
-    if(numbUART == 0)
-    {
-        CreateEvent(isStartBit0,StartReceive0);  // Регистрируем событие поиска стартового бита
-        CreateEvent(UART_RX0_predicate, UART_RX0_to_buff); // Регистрируем событие сохранения принятого байта в буфер
-        CreateEvent(UART_TX0_predicate, UART_TX0_to_buff);
-    }
-#endif
-#if(UART_NUMB > 1)
-    if(numbUART == 1)
-    {
-        CreateEvent(isStartBit1,StartReceive1);  // Регистрируем событие поиска стартового бита
-        CreateEvent(UART_RX1_predicate, UART_RX1_to_buff); // Регистрируем событие сохранения принятого байта в буфер
-        CreateEvent(UART_TX1_predicate, UART_TX1_to_buff);
-    }
-#endif
-#if(UART_NUMB > 2)
-    if(numbUART == 2)
-    {
-        CreateEvent(isStartBit2,StartReceive2);  // Регистрируем событие поиска стартового бита
-        CreateEvent(UART_RX2_predicate, UART_RX2_to_buff); // Регистрируем событие сохранения принятого байта в буфер
-        CreateEvent(UART_TX2_predicate, UART_TX2_to_buff);
-    }
-#endif
 }
 
 static void dataReceive(const u08 numbUART){
   static unsigned char bitCount[UART_NUMB] = {0};
   static unsigned char result[UART_NUMB] = {0};
   
-  if(UART_RX_DATA[numbUART].curentCount < 0) return; //UART выключен
+  if(UART_RX_DATA[numbUART].curentCount < 0) {bitCount[numbUART] = result[numbUART] = 0; return;} //UART выключен
   if(UART_RX_DATA[numbUART].curentCount > 1) {UART_RX_DATA[numbUART].curentCount--; return;}
-  if(bitCount[numbUART] == DATA_BITS){
-      UART_RX_DATA[numbUART].Data = result[numbUART];
-      result[numbUART] = 0;
-      bitCount[numbUART] = 0;
-      UART_RECEIV_FINISH(numbUART);
-      return;
+  if(bitCount[numbUART] != DATA_BITS) {
+    if(READ_RX_PIN(PROGRAMM_RX_PIN, UART_RX_DATA[numbUART].Mask)) result[numbUART] |= 1<<bitCount[numbUART];
+    bitCount[numbUART]++;
+    UART_RX_DATA[numbUART].curentCount = UART_RX_DATA[numbUART].Baud;
+    return;
   }
-  if(READ_RX_PIN(PROGRAMM_RX_PIN, UART_RX_DATA[numbUART].Mask)) result[numbUART] |= 1<<bitCount[numbUART];
-  bitCount[numbUART]++;
-  UART_RX_DATA[numbUART].curentCount = UART_RX_DATA[numbUART].Baud;
+  UART_RX_DATA[numbUART].Data = result[numbUART];
+  result[numbUART] = 0;
+  bitCount[numbUART] = 0;
+  UART_RECEIV_FINISH(numbUART);
 }
 
 static void dataTransmit(const u08 numbUART){ // Передача одного байта
-    if(UART_TX_DATA[numbUART].curentCount < 0) return; // Передача отключена
+	static unsigned char bitCount[UART_NUMB] = {0};
+    if(UART_TX_DATA[numbUART].curentCount < 0) {bitCount[numbUART]=0; return;}// Передача отключена
     if(UART_TX_DATA[numbUART].curentCount > 1) {UART_TX_DATA[numbUART].curentCount--; return;}
-    static unsigned char bitCount[UART_NUMB] = {0};
-    if(bitCount[numbUART] > DATA_BITS)	//Если мы все уже передали
-    {
-        bitCount[numbUART] = 0;
-        WRITE_TX_PIN(PROGRAMM_TX_PORT,UART_TX_DATA[numbUART].Mask);//  Ножку контроллера в высокий уровень (Стоп бит) байт отправлен
-        UART_TRANS_FINISH(numbUART);// Выключаем передачу
+    if(bitCount[numbUART] <= DATA_BITS) {
+      UART_TX_DATA[numberUART].curentCount = UART_TX_DATA[numberUART].Baud;
+      if(bitCount[numbUART]) {
+        bitCount[numbUART]++;   // Увеличиваем счетчик переданых бит
+        if(UART_TX_DATA[numbUART].Data & 0x01) WRITE_TX_PIN(PROGRAMM_TX_PORT,UART_TX_DATA[numbUART].Mask); // Передаем младший бит
+        else CLEAR_TX_PIN(PROGRAMM_TX_PORT,UART_TX_DATA[numbUART].Mask);   // Передаем младший бит
+        UART_TX_DATA[numbUART].Data >>= 1;              // Смещаем регистр данных
         return;
+      } else {
+          bitCount[numbUART] = 1; // Счетчик переданых бит
+          CLEAR_TX_PIN(PROGRAMM_TX_PORT,UART_TX_DATA[numbUART].Mask); //  Ножку контроллера в низкий уровень (Старт бит)
+          return;
+      }
     }
-    UART_TRANS_ENABLE(numbUART); // Запуск передачи
-    if(!bitCount[numbUART])// START (команда старта)
-    {
-        bitCount[numbUART] = 1; // Счетчик переданых бит
-        CLEAR_TX_PIN(PROGRAMM_TX_PORT,UART_TX_DATA[numbUART].Mask); //  Ножку контроллера в низкий уровень (Старт бит)
-        return;
-    }
-    bitCount[numbUART]++;   // Увеличиваем счетчик переданых бит
-    if(UART_TX_DATA[numbUART].Data & 0x01) WRITE_TX_PIN(PROGRAMM_TX_PORT,UART_TX_DATA[numbUART].Mask); // Передаем младший бит
-    else CLEAR_TX_PIN(PROGRAMM_TX_PORT,UART_TX_DATA[numbUART].Mask);   // Передаем младший бит
-    UART_TX_DATA[numbUART].Data >>= 1;              // Смещаем регистр данных
+    //Здесь мы если мы все уже передали
+    bitCount[numbUART] = 0;
+    WRITE_TX_PIN(PROGRAMM_TX_PORT,UART_TX_DATA[numbUART].Mask);//  Ножку контроллера в высокий уровень (Стоп бит) байт отправлен
+    UART_TRANS_FINISH(numbUART);// Выключаем передачу  
 }
 
 void sendUART_byte(const u08 numbUART,const u08 U_data){ // Функция передачи данных
