@@ -246,6 +246,7 @@ void disableSoftUART() {
    clearFlags(SOFT_UART_WORK_FLAG);
 }
 
+
 void CreateSoftUART(const BaseSize_t buffTXsize, const BaseSize_t buffRXsize, const s08 BAUD,
                     const u08 numbUART, const u08 TXpinNumber, const u08 RXpinNumber){
     if(numbUART >= UART_NUMB) return;
