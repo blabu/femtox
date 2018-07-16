@@ -35,6 +35,9 @@ NOTE:   String length must be evenly divisible by 16byte (str_len % 16 == 0)
 /*****************************************************************************/
 /* Includes:                                                                 */
 /*****************************************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "MyString.h" // CBC mode, for memset
 #include "crypt.h"
 
@@ -75,18 +78,6 @@ NOTE:   String length must be evenly divisible by 16byte (str_len % 16 == 0)
 /*****************************************************************************/
 // state - array holding the intermediate results during decryption.
 typedef u08 state_t[4][4];
-static state_t* state;
-
-// The array that stores the round keys.
-static u08 RoundKey[keyExpSize];
-
-// The Key input to the AES Program
-static byte_ptr Key;
-
-#if defined(CBC) && CBC
-  // Initial Vector used only for CBC mode
-  static byte_ptr Iv;
-#endif
 
 // The lookup-tables are marked const so they can be placed in read-only storage instead of RAM
 // The numbers below can be computed dynamically trading ROM for RAM -
@@ -134,52 +125,28 @@ static const u08 Rcon[11] = {
   0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36 };
 
 /*
- * Jordan Goulder points out in PR #12 (https://github.com/kokke/tiny-AES128-C/pull/12),
+ * Jordan Goulder points out in PR #12 (https://github.com/kokke/tiny-AES-C/pull/12),
  * that you can remove most of the elements in the Rcon array, because they are unused.
  *
  * From Wikipedia's article on the Rijndael key schedule @ https://en.wikipedia.org/wiki/Rijndael_key_schedule#Rcon
  *
  * "Only the first some of these constants are actually used – up to rcon[10] for AES-128 (as 11 round keys are needed),
  *  up to rcon[8] for AES-192, up to rcon[7] for AES-256. rcon[0] is not used in AES algorithm."
- *
- * ... which is why the full array below has been 'disabled' below.
  */
-#if 0
-static const u08 Rcon[256] = {
-  0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a,
-  0x2f, 0x5e, 0xbc, 0x63, 0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef, 0xc5, 0x91, 0x39,
-  0x72, 0xe4, 0xd3, 0xbd, 0x61, 0xc2, 0x9f, 0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a,
-  0x74, 0xe8, 0xcb, 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8,
-  0xab, 0x4d, 0x9a, 0x2f, 0x5e, 0xbc, 0x63, 0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef,
-  0xc5, 0x91, 0x39, 0x72, 0xe4, 0xd3, 0xbd, 0x61, 0xc2, 0x9f, 0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc,
-  0x83, 0x1d, 0x3a, 0x74, 0xe8, 0xcb, 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b,
-  0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a, 0x2f, 0x5e, 0xbc, 0x63, 0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3,
-  0x7d, 0xfa, 0xef, 0xc5, 0x91, 0x39, 0x72, 0xe4, 0xd3, 0xbd, 0x61, 0xc2, 0x9f, 0x25, 0x4a, 0x94,
-  0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a, 0x74, 0xe8, 0xcb, 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20,
-  0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a, 0x2f, 0x5e, 0xbc, 0x63, 0xc6, 0x97, 0x35,
-  0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef, 0xc5, 0x91, 0x39, 0x72, 0xe4, 0xd3, 0xbd, 0x61, 0xc2, 0x9f,
-  0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a, 0x74, 0xe8, 0xcb, 0x8d, 0x01, 0x02, 0x04,
-  0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a, 0x2f, 0x5e, 0xbc, 0x63,
-  0xc6, 0x97, 0x35, 0x6a, 0xd4, 0xb3, 0x7d, 0xfa, 0xef, 0xc5, 0x91, 0x39, 0x72, 0xe4, 0xd3, 0xbd,
-  0x61, 0xc2, 0x9f, 0x25, 0x4a, 0x94, 0x33, 0x66, 0xcc, 0x83, 0x1d, 0x3a, 0x74, 0xe8, 0xcb, 0x8d };
-#endif
+
 
 /*****************************************************************************/
 /* Private functions:                                                        */
 /*****************************************************************************/
-static u08 getSBoxValue(u08 num){
-  return sbox[num];
-}
+#define getSBoxValue(num) (sbox[(num)])
 
-static u08 getSBoxInvert(u08 num){
-  return rsbox[num];
-}
+#define getSBoxInvert(num) (rsbox[(num)])
+
 
 // This function produces Nb(Nr+1) round keys. The round keys are used in each round to decrypt the states.
-static void KeyExpansion(void){
-  u32 i, k;
+static void KeyExpansion(byte_ptr RoundKey, const byte_ptr Key){
+  u32 i, k, j;
   u08 tempa[4]; // Used for the column/row operations
-
   // The first round key is the key itself.
   for (i = 0; i < Nk; ++i)
   {
@@ -190,14 +157,15 @@ static void KeyExpansion(void){
   }
 
   // All other round keys are found from the previous round keys.
-  //i == Nk
-  for (; i < Nb * (Nr + 1); ++i)
+  for (i = Nk; i < Nb * (Nr + 1); ++i)
   {
     {
-      tempa[0]=RoundKey[(i-1) * 4 + 0];
-      tempa[1]=RoundKey[(i-1) * 4 + 1];
-      tempa[2]=RoundKey[(i-1) * 4 + 2];
-      tempa[3]=RoundKey[(i-1) * 4 + 3];
+      k = (i - 1) * 4;
+      tempa[0]=RoundKey[k + 0];
+      tempa[1]=RoundKey[k + 1];
+      tempa[2]=RoundKey[k + 2];
+      tempa[3]=RoundKey[k + 3];
+
     }
 
     if (i % Nk == 0)
@@ -225,7 +193,7 @@ static void KeyExpansion(void){
         tempa[3] = getSBoxValue(tempa[3]);
       }
 
-      tempa[0] =  tempa[0] ^ Rcon[i/Nk];
+      tempa[0] = tempa[0] ^ Rcon[i/Nk];
     }
 #if defined(AES256) && (AES256 == 1)
     if (i % Nk == 4)
@@ -239,30 +207,31 @@ static void KeyExpansion(void){
       }
     }
 #endif
-    RoundKey[i * 4 + 0] = RoundKey[(i - Nk) * 4 + 0] ^ tempa[0];
-    RoundKey[i * 4 + 1] = RoundKey[(i - Nk) * 4 + 1] ^ tempa[1];
-    RoundKey[i * 4 + 2] = RoundKey[(i - Nk) * 4 + 2] ^ tempa[2];
-    RoundKey[i * 4 + 3] = RoundKey[(i - Nk) * 4 + 3] ^ tempa[3];
+    j = i * 4; k=(i - Nk) * 4;
+    RoundKey[j + 0] = RoundKey[k + 0] ^ tempa[0];
+    RoundKey[j + 1] = RoundKey[k + 1] ^ tempa[1];
+    RoundKey[j + 2] = RoundKey[k + 2] ^ tempa[2];
+    RoundKey[j + 3] = RoundKey[k + 3] ^ tempa[3];
   }
 }
 
 // This function adds the round key to state.
 // The round key is added to the state by an XOR function.
-static void AddRoundKey(u08 round)
+static void AddRoundKey(u08 round,state_t* state, byte_ptr RoundKey)
 {
   u08 i,j;
-  for (i=0;i<4;++i)
+  for (i = 0; i < 4; ++i)
   {
     for (j = 0; j < 4; ++j)
     {
-      (*state)[i][j] ^= RoundKey[round * Nb * 4 + i * Nb + j];
+      (*state)[i][j] ^= RoundKey[(round * Nb * 4) + (i * Nb) + j];
     }
   }
 }
 
 // The SubBytes Function Substitutes the values in the
 // state matrix with values in an S-box.
-static void SubBytes(void)
+static void SubBytes(state_t* state)
 {
   u08 i, j;
   for (i = 0; i < 4; ++i)
@@ -277,7 +246,7 @@ static void SubBytes(void)
 // The ShiftRows() function shifts the rows in the state to the left.
 // Each row is shifted with different offset.
 // Offset = Row number. So the first row is not shifted.
-static void ShiftRows(void)
+static void ShiftRows(state_t* state)
 {
   u08 temp;
 
@@ -311,7 +280,7 @@ static u08 xtime(u08 x)
 }
 
 // MixColumns function mixes the columns of the state matrix
-static void MixColumns(void)
+static void MixColumns(state_t* state)
 {
   u08 i;
   u08 Tmp,Tm,t;
@@ -349,12 +318,11 @@ static u08 Multiply(u08 x, u08 y)
 // MixColumns function mixes the columns of the state matrix.
 // The method used to multiply may be difficult to understand for the inexperienced.
 // Please use the references to gain more information.
-static void InvMixColumns(void)
+static void InvMixColumns(state_t* state)
 {
   int i;
   u08 a, b, c, d;
-  for (i = 0; i < 4; ++i)
-  {
+  for (i = 0; i < 4; ++i)  {
     a = (*state)[i][0];
     b = (*state)[i][1];
     c = (*state)[i][2];
@@ -370,7 +338,7 @@ static void InvMixColumns(void)
 
 // The SubBytes Function Substitutes the values in the
 // state matrix with values in an S-box.
-static void InvSubBytes(void)
+static void InvSubBytes(state_t* state)
 {
   u08 i,j;
   for (i = 0; i < 4; ++i)
@@ -382,7 +350,7 @@ static void InvSubBytes(void)
   }
 }
 
-static void InvShiftRows(void)
+static void InvShiftRows(state_t* state)
 {
   u08 temp;
 
@@ -412,54 +380,52 @@ static void InvShiftRows(void)
 
 
 // Cipher is the main function that encrypts the PlainText.
-static void Cipher(void)
+static void Cipher(state_t* state, byte_ptr RoundKey)
 {
   u08 round = 0;
 
   // Add the First round key to the state before starting the rounds.
-  AddRoundKey(0);
+  AddRoundKey(0, state, RoundKey);
 
   // There will be Nr rounds.
   // The first Nr-1 rounds are identical.
   // These Nr-1 rounds are executed in the loop below.
   for (round = 1; round < Nr; ++round)
   {
-    SubBytes();
-    ShiftRows();
-    MixColumns();
-    AddRoundKey(round);
+    SubBytes(state);
+    ShiftRows(state);
+    MixColumns(state);
+    AddRoundKey(round, state, RoundKey);
   }
 
   // The last round is given below.
   // The MixColumns function is not here in the last round.
-  SubBytes();
-  ShiftRows();
-  AddRoundKey(Nr);
+  SubBytes(state);
+  ShiftRows(state);
+  AddRoundKey(Nr, state, RoundKey);
 }
 
-static void InvCipher(void)
+static void InvCipher(state_t* state, byte_ptr RoundKey)
 {
   u08 round=0;
-
-  // Add the First round key to the state before starting the rounds.
-  AddRoundKey(Nr);
+  AddRoundKey(Nr, state, RoundKey);
 
   // There will be Nr rounds.
   // The first Nr-1 rounds are identical.
   // These Nr-1 rounds are executed in the loop below.
   for (round = (Nr - 1); round > 0; --round)
   {
-    InvShiftRows();
-    InvSubBytes();
-    AddRoundKey(round);
-    InvMixColumns();
+    InvShiftRows(state);
+    InvSubBytes(state);
+    AddRoundKey(round, state, RoundKey);
+    InvMixColumns(state);
   }
 
   // The last round is given below.
   // The MixColumns function is not here in the last round.
-  InvShiftRows();
-  InvSubBytes();
-  AddRoundKey(0);
+  InvShiftRows(state);
+  InvSubBytes(state);
+  AddRoundKey(0, state, RoundKey);
 }
 
 
@@ -468,43 +434,30 @@ static void InvCipher(void)
 /*****************************************************************************/
 #if defined(ECB) && (ECB == 1)
 
+static u08 RoundKey[keyExpSize];
 
-void AES_ECB_encrypt(const byte_ptr input, const byte_ptr key, byte_ptr output, const u32 length){
-  // Copy input to output, and work in-memory on output
-  memCpy(output, input, length);
-  state = (state_t*)output;
-
-  Key = key;
-  KeyExpansion();
-
-  // The next function call encrypts the PlainText with the Key using AES algorithm.
-  Cipher();
+void AesEcbEncrypt(byte_ptr buf, const byte_ptr key){
+	// The KeyExpansion routine must be called before encryption.
+	KeyExpansion(RoundKey, key);
+	// The next function call encrypts the PlainText with the Key using AES algorithm.
+	Cipher((state_t*)buf,RoundKey);
 }
 
-void AES_ECB_decrypt(const byte_ptr input, const byte_ptr key, byte_ptr output, const u32 length)
+void AesEcbDecrypt(byte_ptr buf, const byte_ptr key)
 {
-  // Copy input to output, and work in-memory on output
-  memCpy(output, input, length);
-  state = (state_t*)output;
-
   // The KeyExpansion routine must be called before encryption.
-  Key = key;
-  KeyExpansion();
-
-  InvCipher();
+  KeyExpansion(RoundKey, key);
+  // The next function call decrypts the PlainText with the Key using AES algorithm.
+  InvCipher((state_t*)buf,RoundKey);
 }
-
 
 #endif // #if defined(ECB) && (ECB == 1)
-
-
-
 
 
 #if defined(CBC) && (CBC == 1)
 
 
-static void XorWithIv(byte_ptr buf)
+static void XorWithIv(byte_ptr buf, byte_ptr Iv)
 {
   u08 i;
   for (i = 0; i < BLOCKLEN; ++i) //WAS for(i = 0; i < KEYLEN; ++i) but the block in AES is always 128bit so 16 bytes!
@@ -513,76 +466,145 @@ static void XorWithIv(byte_ptr buf)
   }
 }
 
-void AES_CBC_encrypt_buffer(byte_ptr output, byte_ptr input, u32 length, const byte_ptr key, const byte_ptr iv)
+void AesCbcEncrypt_buffer(byte_ptr buf, u32 length, const byte_ptr key, const byte_ptr iv)
 {
-  u32* i;
-  u08 extra = length % BLOCKLEN; /* Remaining bytes in the last non-full block */
-
+  u32 i;
+  byte_ptr Iv;
+  if(iv) Iv = iv;
   // Skip the key expansion if key is passed as 0
-  if (0 != key)
-  {
-    Key = key;
-    KeyExpansion();
+  if (key) {
+    KeyExpansion(RoundKey,key); // Генерируем кулючи на все раунды
   }
-
-  if (iv != 0)
-  {
-    Iv = (uint8_t*)iv;
+  for (i = 0; i < length; i += BLOCKLEN) {
+    XorWithIv(buf,Iv);
+    Cipher((state_t*)buf,RoundKey);
+    Iv = buf;
+    buf += BLOCKLEN;
   }
-
-  for (i = 0; i < length; i += BLOCKLEN)
-  {
-    XorWithIv(input);
-    memCpy(output, input, BLOCKLEN);
-    state = (state_t*)output;
-    Cipher();
-    Iv = output;
-    input += BLOCKLEN;
-    output += BLOCKLEN;
-  }
-
-  if (extra)  {
-    memCpy(output, input, extra);
-    state = (state_t*)output;
-    Cipher();
-  }
+  /* store Iv for next call */
+  memCpy(iv,Iv,BLOCKLEN);
 }
 
-void AES_CBC_decrypt_buffer(byte_ptr output, byte_ptr input, u32 length, const byte_ptr key, const byte_ptr iv)
+void AesCbcDecrypt_buffer(byte_ptr buf, u32 length, const byte_ptr key, const byte_ptr iv)
 {
-  u32* i;
-  u08 extra = length % BLOCKLEN; /* Remaining bytes in the last non-full block */
+  u32 i;
+  u08 storeNextIv[BLOCKLEN];
 
   // Skip the key expansion if key is passed as 0
-  if (0 != key)
-  {
-    Key = key;
-    KeyExpansion();
+  if (key) {
+    KeyExpansion(RoundKey, key);
   }
 
-  // If iv is passed as 0, we continue to encrypt without re-setting the Iv
-  if (iv != 0)
-  {
-    Iv = (uint8_t*)iv;
-  }
-
-  for (i = 0; i < length; i += BLOCKLEN)
-  {
-    memCpy(output, input, BLOCKLEN);
-    state = (state_t*)output;
-    InvCipher();
-    XorWithIv(output);
-    Iv = input;
-    input += BLOCKLEN;
-    output += BLOCKLEN;
-  }
-
-  if (extra)
-  {
-    memCpy(output, input, extra);
-    state = (state_t*)output;
-    InvCipher();
+  for (i = 0; i < length; i += BLOCKLEN) {
+	memCpy(storeNextIv, buf, BLOCKLEN);
+    InvCipher((state_t*)buf,RoundKey);
+    XorWithIv(buf, iv);
+    memCpy(iv,storeNextIv,BLOCKLEN);
+    buf += BLOCKLEN;
   }
 }
 
 #endif // #if defined(CBC) && (CBC == 1)
+
+static u32 s1, s2, s3, s4;
+static u32 taus88 () {
+    u32 b = (((s1 << 13) ^ s1) >> 19);
+    s1 = (((s1 & 4294967294) << 12) ^ b);
+    b = (((s2 << 2) ^ s2) >> 25);
+    s2 = (((s2 & 4294967288) << 4) ^ b);
+    b = (((s3 << 3) ^ s3) >> 11);
+    s3 = (((s3 & 4294967280) << 17) ^ b);
+    return (s1 ^ s2 ^ s3);
+}
+
+static u32 lfsr113 (void){
+   u32 b = ((s1 << 6) ^ s1) >> 13;
+   s1 = ((s1 & 4294967294UL) << 18) ^ b;
+   b  = ((s2 << 2) ^ s2) >> 27; 
+   s2 = ((s2 & 4294967288UL) << 2) ^ b;
+   b  = ((s3 << 13) ^ s3) >> 21;
+   s3 = ((s3 & 4294967280UL) << 7) ^ b;
+   b  = ((s4 << 3) ^ s4) >> 12;
+   s4 = ((s4 & 4294967168UL) << 13) ^ b;
+   return (s1 ^ s2 ^ s3 ^ s4);
+}
+
+void setSeed(u32 seed) {
+    s1 = s2 = s3 = s4 = seed;
+}
+
+u32 RandomSimple() {
+	if(s1 == 0 || s2 == 0 || s3 == 0) {
+		s1 = s2 = s3 = getTick();
+	}
+    if(s1 & (0x55)<<(s2 & 0x1F)) {
+    	if(s2 & (0x55)<<(s3 & 0x1F))
+    		return lfsr113();
+    }
+    return taus88();
+}
+
+static const u32 A = 16807; // Math.pow(7, 5); (Prime root of M, passes statistical tests and produces a full cycle)
+static const u32 M = 2147483647; // Math.pow(2, 31) - 1 (A large prime number)
+static u32 seed = 0;
+u32 RandomMultiply() {
+	if(!seed) seed = getTick();
+	seed = (A*seed)%M;
+	return seed;
+}
+
+
+/* Table of CRC values for high–order byte */
+const unsigned char tabl_crc_hi[] = {
+0x00,0xC1,0x81,0x40,0x01,0xC0,0x80,0x41,0x01,0xC0,0x80,0x41,0x00,0xC1,0x81,0x40,
+0x01,0xC0,0x80,0x41,0x00,0xC1,0x81,0x40,0x00,0xC1,0x81,0x40,0x01,0xC0,0x80,0x41,
+0x01,0xC0,0x80,0x41,0x00,0xC1,0x81,0x40,0x00,0xC1,0x81,0x40,0x01,0xC0,0x80,0x41,
+0x00,0xC1,0x81,0x40,0x01,0xC0,0x80,0x41,0x01,0xC0,0x80,0x41,0x00,0xC1,0x81,0x40,
+0x01,0xC0,0x80,0x41,0x00,0xC1,0x81,0x40,0x00,0xC1,0x81,0x40,0x01,0xC0,0x80,0x41,
+0x00,0xC1,0x81,0x40,0x01,0xC0,0x80,0x41,0x01,0xC0,0x80,0x41,0x00,0xC1,0x81,0x40,
+0x00,0xC1,0x81,0x40,0x01,0xC0,0x80,0x41,0x01,0xC0,0x80,0x41,0x00,0xC1,0x81,0x40,
+0x01,0xC0,0x80,0x41,0x00,0xC1,0x81,0x40,0x00,0xC1,0x81,0x40,0x01,0xC0,0x80,0x41,
+0x01,0xC0,0x80,0x41,0x00,0xC1,0x81,0x40,0x00,0xC1,0x81,0x40,0x01,0xC0,0x80,0x41,
+0x00,0xC1,0x81,0x40,0x01,0xC0,0x80,0x41,0x01,0xC0,0x80,0x41,0x00,0xC1,0x81,0x40,
+0x00,0xC1,0x81,0x40,0x01,0xC0,0x80,0x41,0x01,0xC0,0x80,0x41,0x00,0xC1,0x81,0x40,
+0x01,0xC0,0x80,0x41,0x00,0xC1,0x81,0x40,0x00,0xC1,0x81,0x40,0x01,0xC0,0x80,0x41,
+0x00,0xC1,0x81,0x40,0x01,0xC0,0x80,0x41,0x01,0xC0,0x80,0x41,0x00,0xC1,0x81,0x40,
+0x01,0xC0,0x80,0x41,0x00,0xC1,0x81,0x40,0x00,0xC1,0x81,0x40,0x01,0xC0,0x80,0x41,
+0x01,0xC0,0x80,0x41,0x00,0xC1,0x81,0x40,0x00,0xC1,0x81,0x40,0x01,0xC0,0x80,0x41,
+0x00,0xC1,0x81,0x40,0x01,0xC0,0x80,0x41,0x01,0xC0,0x80,0x41,0x00,0xC1,0x81,0x40
+};
+/* Table of CRC values for low–order byte */
+const unsigned char tabl_crc_lo[] = {
+0x00,0xC0,0xC1,0x01,0xC3,0x03,0x02,0xC2,0xC6,0x06,0x07,0xC7,0x05,0xC5,0xC4,0x04,
+0xCC,0x0C,0x0D,0xCD,0x0F,0xCF,0xCE,0x0E,0x0A,0xCA,0xCB,0x0B,0xC9,0x09,0x08,0xC8,
+0xD8,0x18,0x19,0xD9,0x1B,0xDB,0xDA,0x1A,0x1E,0xDE,0xDF,0x1F,0xDD,0x1D,0x1C,0xDC,
+0x14,0xD4,0xD5,0x15,0xD7,0x17,0x16,0xD6,0xD2,0x12,0x13,0xD3,0x11,0xD1,0xD0,0x10,
+0xF0,0x30,0x31,0xF1,0x33,0xF3,0xF2,0x32,0x36,0xF6,0xF7,0x37,0xF5,0x35,0x34,0xF4,
+0x3C,0xFC,0xFD,0x3D,0xFF,0x3F,0x3E,0xFE,0xFA,0x3A,0x3B,0xFB,0x39,0xF9,0xF8,0x38,
+0x28,0xE8,0xE9,0x29,0xEB,0x2B,0x2A,0xEA,0xEE,0x2E,0x2F,0xEF,0x2D,0xED,0xEC,0x2C,
+0xE4,0x24,0x25,0xE5,0x27,0xE7,0xE6,0x26,0x22,0xE2,0xE3,0x23,0xE1,0x21,0x20,0xE0,
+0xA0,0x60,0x61,0xA1,0x63,0xA3,0xA2,0x62,0x66,0xA6,0xA7,0x67,0xA5,0x65,0x64,0xA4,
+0x6C,0xAC,0xAD,0x6D,0xAF,0x6F,0x6E,0xAE,0xAA,0x6A,0x6B,0xAB,0x69,0xA9,0xA8,0x68,
+0x78,0xB8,0xB9,0x79,0xBB,0x7B,0x7A,0xBA,0xBE,0x7E,0x7F,0xBF,0x7D,0xBD,0xBC,0x7C,
+0xB4,0x74,0x75,0xB5,0x77,0xB7,0xB6,0x76,0x72,0xB2,0xB3,0x73,0xB1,0x71,0x70,0xB0,
+0x50,0x90,0x91,0x51,0x93,0x53,0x52,0x92,0x96,0x56,0x57,0x97,0x55,0x95,0x94,0x54,
+0x9C,0x5C,0x5D,0x9D,0x5F,0x9F,0x9E,0x5E,0x5A,0x9A,0x9B,0x5B,0x99,0x59,0x58,0x98,
+0x88,0x48,0x49,0x89,0x4B,0x8B,0x8A,0x4A,0x4E,0x8E,0x8F,0x4F,0x8D,0x4D,0x4C,0x8C,
+0x44,0x84,0x85,0x45,0x87,0x47,0x46,0x86,0x82,0x42,0x43,0x83,0x41,0x81,0x80,0x40
+};
+
+u16 CRC16(BaseSize_t size, byte_ptr msg){
+	u08 CRC_H = 0xFF;
+	u08 CRC_L = 0xFF;
+	u16 index = 0;
+	for(u08 i = 0; i<size; i++) {
+		u08 dat = msg[i];
+		index = CRC_H ^ dat;
+		CRC_H = CRC_L ^ tabl_crc_hi[index];
+		CRC_L = tabl_crc_lo[index];
+	}
+	return ((CRC_H << 8) | CRC_L);
+}
+#ifdef __cplusplus
+}
+#endif

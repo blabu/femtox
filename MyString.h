@@ -54,6 +54,8 @@ s08 toInt08(const string_t c_str);
 
 s16 toInt16(const string_t c_str);
 
+double toDouble(const string_t c_str);
+
 // Переводит число в строку шестнадцатиричного формата
 void toString(u08 capacity, s64 data, string_t c_str);
 void toStringUnsign(u08 capacity, u64 data, string_t c_str);
@@ -71,6 +73,8 @@ void shiftStringRight(BaseSize_t poz, string_t c_str);
 
 // Заменяет все символы в строке длиной size (если size==0 определит длину сама)
 void replaceAllSymbols(string_t c_str, const char symbolOrigin, const char symbolReplacement, BaseSize_t size);
+
+void fillRightStr(u16 size, string_t str, char symb);
 
 //Вернет размер строки
 BaseSize_t strSize(const string_t c_str);

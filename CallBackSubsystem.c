@@ -108,10 +108,8 @@ u08 changeCallBackLabel(void* oldLabel, void* newLabel){
 		flag_isr = TRUE;
 		INTERRUPT_DISABLE;
 	}
-	while(1) {
-		u08 i = findCallBack(oldLabel);
-		if(i == CALL_BACK_TASK_LIST_LEN) break;
-		labelPointer[i] = newLabel;
+	for(u08 i = 0; i<CALL_BACK_TASK_LIST_LEN; i++) {
+		if(labelPointer[i] == oldLabel) labelPointer[i] = newLabel;
 	}
 	if(flag_isr) INTERRUPT_ENABLE;
 	return EVERYTHING_IS_OK;

@@ -1,5 +1,6 @@
 #include "TaskMngr.h"
 #include "PlatformSpecific.h"
+#include "logging.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,8 +11,18 @@ extern "C" {
 инициализируется таймер счетчик, и включает прерывание по переполнению Т/С0
 */
 
+const char* osVersion = "V1.1.0";
+
+#ifdef _PWR_SAVE
+u32 minTimeOut = 1; // Минимальное время таймоута для задач из списка таймеров
+#endif
+
 static void TaskManager(void);
+#ifdef _PWR_SAVE
+static u32 TimerService(void);
+#else
 static void TimerService(void);
+#endif
 #ifdef ALLOC_MEM
 extern void initHeap(void);
 #endif
@@ -22,7 +33,11 @@ extern void initDataStruct( void );
 
 #ifdef CYCLE_FUNC
 extern void initCycleTask( void );
+#ifdef _PWR_SAVE
+extern u32 CycleService( void );
+#else
 extern void CycleService( void );
+#endif
 #endif
 
 #ifdef EVENT_LOOP_TASKS
@@ -31,13 +46,13 @@ extern void initEventList( void );
 #endif
 
 #ifdef CLOCK_SERVICE
-extern u32 __systemSeconds;
+extern volatile Time_t __systemSeconds;
 #endif
 
 static void ClockService( void );
 
 #ifdef CALL_BACK_TASK
-extern void initCallBackTask();
+extern void initCallBackTask(void);
 #endif
 
 #ifdef EMPTY
@@ -83,11 +98,15 @@ u32 getTick(void) {
 
 
 static void ClockService(void){
-    GlobalTick++;
+#ifdef _PWR_SAVE
+	GlobalTick+=minTimeOut;
+#else
+	GlobalTick++;
+#endif
 #ifdef CLOCK_SERVICE
     if(GlobalTick >= TICK_PER_SECOND) {
     	__systemSeconds++;
-    	GlobalTick = 0;
+    	GlobalTick -= TICK_PER_SECOND;
     }
 #endif
 }
@@ -168,14 +187,32 @@ void ResetFemtOS(void){
     while(1);
 }
 
-void TimerISR(void)
-{
-#ifdef CYCLE_FUNC
-	CycleService();
+void TimerISR(void) {
+    ClockService();
+#ifdef _PWR_SAVE
+	u32 minTimerService = TimerService();	// Пересчет всех системных таймеров из очереди, вернет минимальный таймер
+	#ifdef CYCLE_FUNC
+        u32 minCycleService = CycleService(); // Вернет минимальное время из циклических задач
+		if(minTimerService && minCycleService) {
+			if(minTimerService < minCycleService) minTimeOut = minTimerService;
+			else if(minCycleService) minTimeOut = minCycleService;
+		}
+		else if(minTimerService) minTimeOut = minTimerService;
+		else if(minCycleService) minTimeOut = minCycleService;
+		else minTimeOut = 1;
+		minTimeOut = _setTickTime(minTimeOut);
+	#else
+		if(minTimerService) minTimeOut = minTimerService;
+		else minTimeOut = 1;
+		minTimeOut = _setTickTime(minTimerService);
+	#endif
+#else
+    TimerService();	// Пересчет всех системных таймеров из очереди
+	#ifdef CYCLE_FUNC
+    	CycleService();
+	#endif
 #endif
-      TimerService();	// Пересчет всех системных таймеров из очереди
-      ClockService();
-} 	//Отработка прерывания по переполнению TCNT0
+} 	//Отработка прерывания по таймеру
 
 static u08 countBegin = 0;    // Указатель на НАЧАЛО очереди (нужен для быстрого диспетчера)
 static u08 countEnd = 0;      // Указатель на КОНЕЦ очереди (нужен для быстрого диспетчера)
@@ -223,6 +260,7 @@ void SetTask(TaskMng New_Task, BaseSize_t n, BaseParam_t data)
         if(flag_inter) INTERRUPT_ENABLE;
         return;
     }// Здесь мы окажемся в редких случаях когда oчередь переполнена
+    writeLogStr("ERROR: task queue overflow");
     SetTimerTask(New_Task, n, data, TIME_DELAY_IF_BUSY);  //Ставим задачу в очередь(попытаемся записать ее позже)
     if (flag_inter) INTERRUPT_ENABLE;  //предварительно восстановив прерывания, если надо.
 }
@@ -277,14 +315,34 @@ void delAllTask(void) {
 *********************************************************************************************************************
 ---------------------------------------------------------------------------------------------------------------------*/
 static u08 lastTimerIndex = 0; // Указывает на индекс следующего СВОБОДНОГО таймера
-
-static void TimerService (void)
-{
+#ifdef _PWR_SAVE
+static u32 TimerService (void) {
     u08 index = 0;
-    while(index < lastTimerIndex)  // Перебираем всю очередь таймеров
-    {
-        if(MainTime[index] != 1)    // Если таймер еще не дотикал (наиболее вероятно)
-        {
+    u32 tempMinTime = 0;
+    while(index < lastTimerIndex) {  // Перебираем всю очередь таймеров
+        if(MainTime[index] > minTimeOut) {    // Если таймер еще не дотикал (наиболее вероятно)
+            MainTime[index] -= minTimeOut;      // Тикаем им
+            if( MainTime[index] < tempMinTime || !tempMinTime) tempMinTime = MainTime[index]; // Сохраняем новое значения минимального
+            index++;                			// И переходим на следующую итерацию цикла
+            continue;
+        }
+        SetTask (MainTimer[index].Task,  // Ставим нашу задачу в конец очередь
+                 MainTimer[index].arg_n,
+                 MainTimer[index].arg_p);
+        tempMinTime = 0;
+        lastTimerIndex--;
+        MainTimer[index].Task  = MainTimer[lastTimerIndex].Task;    // На место этого таймера перемещаем последний
+        MainTimer[index].arg_n = MainTimer[lastTimerIndex].arg_n;
+        MainTimer[index].arg_p = MainTimer[lastTimerIndex].arg_p;
+        MainTime[index] = MainTime[lastTimerIndex];
+    }
+    return tempMinTime;
+}
+#else // Класический таймер. Без регулирования скорости работы таймер ОС
+static void TimerService (void) {
+    u08 index = 0;
+    while(index < lastTimerIndex) {  // Перебираем всю очередь таймеров
+        if(MainTime[index] > 1) {  // Если таймер еще не дотикал (наиболее вероятно)
             MainTime[index]--;      // Тикаем им
             index++;                // И переходим на следующую итерацию цикла
             continue;
@@ -300,9 +358,9 @@ static void TimerService (void)
         MainTime[index] = MainTime[lastTimerIndex];
     }
 }
+#endif
 
-void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
-{
+void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time){
     bool_t flag_inter = FALSE;  // флаг состояния прерывания
     if (INTERRUPT_STATUS) //Если прерывания разрешены, то запрещаем их
     {
@@ -316,6 +374,9 @@ void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
         MainTimer[lastTimerIndex].arg_p = data;
         MainTime[lastTimerIndex] = New_Time;
         lastTimerIndex++;
+        #ifdef _PWR_SAVE
+          if(New_Time < minTimeOut) minTimeOut = _setTickTime(New_Time);
+        #endif
         if(flag_inter) INTERRUPT_ENABLE;
         return;
     }
@@ -324,6 +385,7 @@ void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
      	 MaximizeErrorHandler();
     #else
         if(flag_inter) INTERRUPT_ENABLE;
+        writeLogStr("PANIC: HAVE NOT MORE TIMERS");
         return; //  тут можно сделать return c кодом ошибки - нет свободных таймеров
     #endif
 }
@@ -342,14 +404,11 @@ static u08 findTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data)
     return index;
 }
 
-bool_t updateTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
-{
+bool_t updateTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time) {
     u08 index = findTimer(TPTR,n,data);
-    if(index < lastTimerIndex)
-    {
+    if(index < lastTimerIndex) {
         bool_t flag_inter = FALSE;
-        if(INTERRUPT_STATUS)
-        {
+        if(INTERRUPT_STATUS){
             INTERRUPT_DISABLE;
             flag_inter = TRUE;
         }
@@ -391,7 +450,7 @@ void memCpy(void* destination, const void* source, const BaseSize_t num) {
 		u08 last = num & 0x03; // остаток
 		for(BaseSize_t i = 0; i<blocks; i++) {
 			*((u32*)destination) = *((u32*)source);
-			destination+=4; source+=4;
+			(byte_ptr)destination+=4; (byte_ptr)source+=4;
 		}
 		for(u08 i = 0; i<last; i++) {
 			*((byte_ptr)destination) = *((byte_ptr)source);
@@ -402,7 +461,12 @@ void memCpy(void* destination, const void* source, const BaseSize_t num) {
 		BaseSize_t last = num & 0x01; // остаток
 		for(BaseSize_t i = 0; i<blocks; i++) {
 			*((u16*)destination) = *((u16*)source);
-			destination+=2; source+=2;
+                        #ifndef _IAR_
+			(byte_ptr)destination+=2; (byte_ptr)source+=2;
+                        #else 
+                        destination = (void*)((byte_ptr)destination + 2);
+                        source = (void*)((byte_ptr)source + 2);
+                        #endif
 		}
 		if(last) *((byte_ptr)destination) = *((byte_ptr)source);
 #else
@@ -410,6 +474,7 @@ void memCpy(void* destination, const void* source, const BaseSize_t num) {
 				*((byte_ptr)destination + i) = *((byte_ptr)source + i); // Выполняем копирование данных
 			}
 #endif
+
 }
 
 void memSet(void* destination, const BaseSize_t size, const u08 value) {
@@ -433,7 +498,11 @@ void memSet(void* destination, const BaseSize_t size, const u08 value) {
     u16 val = (u16)value<<8 | value;
     for(BaseSize_t i = 0; i<blocks; i++) {
         *((u16*)destination) = val;
-		destination+=2;
+         #ifndef _IAR_
+	 (byte_ptr)destination+=2;
+         #else 
+         destination = (void*)((byte_ptr)destination + 2);
+         #endif
     }
     if(last) *((byte_ptr)destination) = value;
 #else
@@ -443,6 +512,13 @@ void memSet(void* destination, const BaseSize_t size, const u08 value) {
 #endif // ARCH
 }
 
+void shiftLeftArray(BaseParam_t source, BaseSize_t sourceSize, BaseSize_t shiftSize) {
+	BaseSize_t i = 0, j = shiftSize;
+	byte_ptr src = (byte_ptr)source;
+	while(j < sourceSize) {
+		src[i++] = src[j++];
+	}
+}
 
 #ifdef __cplusplus
 }
