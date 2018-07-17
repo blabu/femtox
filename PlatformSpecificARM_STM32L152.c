@@ -82,7 +82,7 @@ static void lowLevelInitRTC(void) {
 	HAL_NVIC_SetPriority(RTC_WKUP_IRQn, 0x0F, 0);
 	HAL_NVIC_EnableIRQ(RTC_WKUP_IRQn);
 }
-
+static unsigned int globalTimerTicks = 1;
 static RTC_HandleTypeDef RTC_Clock;
 void initRTC(void){
 	RTC_Clock.Instance = RTC;
@@ -95,16 +95,28 @@ void RTC_WKUP_IRQHandler(void) {
 }
 
 void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc) {
-	TimerISR();
+	static unsigned int tickCount = 0;
+	tickCount++;
+	if(tickCount == globalTimerTicks) {
+		TimerISR();
+		tickCount = 0;
+	}
 }
 
+unsigned int _setTickTime(unsigned int timerTicks) {
+	if(timerTicks != globalTimerTicks) globalTimerTicks = timerTicks;
+	return timerTicks;
+}
+
+#ifdef TIMER6_USING
+static const u32 standartTickTime =  625-1;
 static TIM_HandleTypeDef TIM6InitStruct;
 void initTimer6(void){ // APB1 = 8MHz
 	__TIM6_CLK_ENABLE();
 	TIM6InitStruct.Instance = TIM6;
 	TIM6InitStruct.Init.CounterMode = TIM_COUNTERMODE_UP;
-	TIM6InitStruct.Init.Period = 5000-1;
-	TIM6InitStruct.Init.Prescaler = 16-1;
+	TIM6InitStruct.Init.Period = standartTickTime; // OLD_VALUE = 5000-1
+	TIM6InitStruct.Init.Prescaler = 128-1;// OLD VALUE = 16-1;
 	TIM6InitStruct.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	HAL_TIM_Base_Init(&TIM6InitStruct);     // Init timer
 	HAL_TIM_Base_Start_IT(&TIM6InitStruct);
@@ -119,14 +131,24 @@ void TIM6_IRQHandler(void){
 	}
 }
 
+unsigned int _setTickTime(unsigned int timerTicks) {
+	unsigned int oldValue = TIM6InitStruct.Init.Period;
+	unsigned int newValue = standartTickTime;
+	unsigned int i = 1;
+	for(;i<timerTicks; i++) {
+		if(newValue > 0xFFFF-1) break;
+		newValue += standartTickTime;
+	}
+	if(newValue != oldValue) {
+		__HAL_TIM_SET_AUTORELOAD(&TIM6InitStruct,newValue);
+	}
+	return i;
+}
+#endif //FOR_TIMER_6
 
 void _init_Timer(){
 	initRTC();
 	HAL_PWR_DisableSleepOnExit(); // После пробуждения мы работаем в активном режиме
-}
-
-unsigned int _setTickTime(unsigned int timerTicks) {
-	//FIXME Not implemented yet
 }
 
 #ifdef USE_SOFT_UART

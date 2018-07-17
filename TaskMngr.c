@@ -330,7 +330,6 @@ static u32 TimerService (void) {
 		SetTask (MainTimer[index].Task,  // Ставим нашу задачу в конец очередь
 				MainTimer[index].arg_n,
 				MainTimer[index].arg_p);
-		tempMinTime = 0;
 		lastTimerIndex--;
 		MainTimer[index].Task  = MainTimer[lastTimerIndex].Task;    // На место этого таймера перемещаем последний
 		MainTimer[index].arg_n = MainTimer[lastTimerIndex].arg_n;

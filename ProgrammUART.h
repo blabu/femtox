@@ -8,8 +8,8 @@
 #ifndef PROGRAMMUART_H_
 #define PROGRAMMUART_H_
 
-//#include "ProgrammUART_ARM.h"
-#include "ProgrammUART_MSP430.h"
+#include "ProgrammUART_ARM.h"
+//#include "ProgrammUART_MSP430.h"
 
 
 #endif /* PROGRAMMUART_H_ */
