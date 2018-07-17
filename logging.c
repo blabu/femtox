@@ -25,13 +25,15 @@ static void sendCOM2_buf(u08 size, byte_ptr data) {
 static void sendUART2_buf(u08 c) {
 	printf("%c",c);
 }
-
 #else
+#include "UART2.h"
+/*
 #include "ProgrammUART_MSP430.h"
 void enableUART2(u32 i) {enableSoftUART(TRUE,FALSE);}
 void disableUART2(){disableSoftUART();}
 void sendCOM2_buf(u08 u, byte_ptr buf){ sendUART_str(0,(string_t)buf); }
 void sendUART2_buf(u08 byte) {sendUART_byte(0, byte);}
+*/
 #endif
 
 static string_t disableLavel = NULL;
