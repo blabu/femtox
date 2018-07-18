@@ -98,6 +98,10 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc) {
 	TimerISR();
 }
 
+#ifdef NATIVE_TIMER_PWR_SAVE
+#error "Can not compile whith it. Not implemented yet"
+#endif
+
 #ifdef TIMER6_USING
 static const u32 standartTickTime =  625-1;
 static TIM_HandleTypeDef TIM6InitStruct;
@@ -120,7 +124,7 @@ void TIM6_IRQHandler(void){
 		TimerISR();
 	}
 }
-
+#ifdef NATIVE_TIMER_PWR_SAVE
 unsigned int _setTickTime(unsigned int timerTicks) {
 	unsigned int oldValue = TIM6InitStruct.Init.Period;
 	unsigned int newValue = standartTickTime;
@@ -134,6 +138,7 @@ unsigned int _setTickTime(unsigned int timerTicks) {
 	}
 	return i;
 }
+#endif //NATIVE_TIMER_PWR_SAVE
 #endif //FOR_TIMER_6
 
 void _init_Timer(){

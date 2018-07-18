@@ -4,8 +4,7 @@
 
 #ifdef USE_SOFT_UART
 
-typedef struct
-{
+typedef struct {
     u08 Mask;
     u08 Data;/*Регистр данных. Сюда записываются данные для передачи*/
     s08 Baud;         /*Сюда записывается одна из переменных BAUD_600 - BAUD_19200*/
@@ -177,11 +176,10 @@ void initSoftUART(){
 void enableSoftUART(bool_t txEnable, bool_t rxEnable) {
   setFlags(SOFT_UART_WORK_FLAG);
   for(unsigned char i = 0; i < UART_NUMB; i++){
-   TX_DIR |= UART_TX_DATA[i].Mask;
-   RX_DIR &= ~UART_RX_DATA[i].Mask;
-   TX_PORT |= UART_TX_DATA[i].Mask;
-   RX_PORT |= UART_RX_DATA[i].Mask;
-#if(UART_NUMB > 0)
+    TX_DIR  |= UART_TX_DATA[i].Mask;
+    TX_PORT |= UART_TX_DATA[i].Mask;
+    RX_DIR  &= ~UART_RX_DATA[i].Mask;
+    RX_PORT |= UART_RX_DATA[i].Mask;
     if(i == 0){
       if(rxEnable) {
         CreateEvent(isStartBit0,StartReceive0);  // Регистрируем событие поиска стартового бита
@@ -189,7 +187,6 @@ void enableSoftUART(bool_t txEnable, bool_t rxEnable) {
       }
       if(txEnable) CreateEvent(UART_TX0_predicate, UART_TX0_to_buff);
     }
-#endif
 #if(UART_NUMB > 1)
     if(i == 1) {
       if(rxEnable) {
@@ -221,13 +218,11 @@ void disableSoftUART() {
       RX_DIR |= UART_RX_DATA[i].Mask;
       TX_PORT &= ~UART_TX_DATA[i].Mask;
       RX_PORT &= ~UART_RX_DATA[i].Mask;
-#if(UART_NUMB > 0)
-    if(i == 0){
+      if(i == 0){
         delEvent(isStartBit0);  // Регистрируем событие поиска стартового бита
         delEvent(UART_RX0_predicate); // Регистрируем событие сохранения принятого байта в буфер
         delEvent(UART_TX0_predicate);
-    }
-#endif
+      }
 #if(UART_NUMB > 1)
     if(i == 1) {
         delEvent(isStartBit1);  // Регистрируем событие поиска стартового бита
@@ -245,7 +240,6 @@ void disableSoftUART() {
    }
    clearFlags(SOFT_UART_WORK_FLAG);
 }
-
 
 void CreateSoftUART(const BaseSize_t buffTXsize, const BaseSize_t buffRXsize, const s08 BAUD,
                     const u08 numbUART, const u08 TXpinNumber, const u08 RXpinNumber){
@@ -319,7 +313,7 @@ static void addByte(const u08 numbUART,const u08 byte) {
     }
     else{
         PutToBackQ(&byte, UART_TX_DATA[numbUART].buffer);
-    }  
+    }
 }
 
 void sendUART_byte(const u08 numbUART,const u08 U_data){ // Функция передачи данных

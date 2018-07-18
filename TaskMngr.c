@@ -15,7 +15,9 @@ const char* const osVersion = "V1.2.0";
 
 #ifdef _PWR_SAVE
 u32 minTimeOut = 1; // Минимальное время таймоута для задач из списка таймеров
-extern unsigned int _setTickTime(unsigned int timerTicks);
+extern unsigned int _setTickTime(unsigned int timerTicks); // В качестве аргумента передается кол-во стандартных тиков таймера
+//(Таймер начинает тикать значительно реже что значительно увеличивает энергоэффективность)
+// Вернет занчение на которое реально смог изменить частоту прерываний
 #endif
 
 static void TaskManager(void);
@@ -189,16 +191,20 @@ void ResetFemtOS(void){
 }
 
 #ifdef _PWR_SAVE
+#ifndef NATIVE_TIMER_PWR_SAVE
 unsigned int _setTickTime(unsigned int timerTicks) {
 	return timerTicks;
 }
 #endif
+#endif
 
 void TimerISR(void) {
 #ifdef _PWR_SAVE
+#ifndef NATIVE_TIMER_PWR_SAVE
 	static BaseSize_t isrCounter = 0;
 	if(++isrCounter < minTimeOut) return;
 	isrCounter = 0;
+#endif
 	ClockService();
 	u32 minTimerService = TimerService();	// Пересчет всех системных таймеров из очереди, вернет минимальный таймер
 #ifdef CYCLE_FUNC

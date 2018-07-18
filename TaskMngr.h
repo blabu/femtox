@@ -1,8 +1,8 @@
 #ifndef Task_Manager
 #define Task_Manager
 
-#include <FemtoxTypes.h>
-#include <FemtoxConf.h>
+#include "FemtoxTypes.h"
+#include "FemtoxConf.h"
 
 extern const char* const osVersion;
 

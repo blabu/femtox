@@ -10,10 +10,10 @@
 #ifndef FEMTOXCONF_H_
 #define FEMTOXCONF_H_
 
-#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
+//#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
 #define DATA_STRUCT_MANAGER   /*Включаем работу с очередями средствами деспетчера*/
 #define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/
-#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
+//#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
 //#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 #define ALLOC_MEM   /*Включение динамического выделения памяти*/
 #define EVENT_LOOP_TASKS
@@ -21,9 +21,9 @@
 #define CLOCK_SERVICE
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
-#define SIGNALS_TASK
-#define _LIST_STRUCT
-#define _DYNAMIC_ARRAY
+//#define SIGNALS_TASK
+//#define _LIST_STRUCT
+//#define _DYNAMIC_ARRAY
 #define _PWR_SAVE
 
 #define TASK_LIST_LEN 10U /*Длина очереди задач*/
@@ -56,6 +56,10 @@
 
 #ifdef SIGNALS_TASK
 #define SIGNAL_LIST_LEN 10
+#endif
+
+#ifdef _PWR_SAVE
+//   #define NATIVE_TIMER_PWR_SAVE /*Реализация динамического изменения частоты таймера нативным способом*/
 #endif
 
 #endif /* FEMTOXCONF_H_ */
