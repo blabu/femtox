@@ -1,73 +1,12 @@
 #ifndef Task_Manager
 #define Task_Manager
 
-#ifndef NULL
-#define NULL ((void*)0)
-#endif
+#include <FemtoxTypes.h>
+#include <FemtoxConf.h>
 
 extern const char* const osVersion;
 
 #define ABS(XX) (((XX) > 0)?(XX):(-(XX)))
-#define BASE_DALAY(x)  for(register volatile unsigned int ccii=0; ccii<(x); ccii++) /*Задержка*/
-#define PAIR(T,V) struct{T first; V second;}
-
-//#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
-#define DATA_STRUCT_MANAGER   /*Включаем работу с очередями средствами деспетчера*/
-#define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/
-//#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
-//#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
-#define ALLOC_MEM   /*Включение динамического выделения памяти*/
-//#define EVENT_LOOP_TASKS
-//#define USE_SOFT_UART
-#define CLOCK_SERVICE
-#define GLOBAL_FLAGS
-#define CALL_BACK_TASK
-//#define SIGNALS_TASK
-#define _LIST_STRUCT
-//#define _DYNAMIC_ARRAY
-#define _PWR_SAVE
-
-#define TASK_LIST_LEN 10U /*Длина очереди задач*/
-#define TIME_LINE_LEN 30U /*Максимальне количество системных таймеров*/
-#define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
-
-typedef char* string_t;
-typedef unsigned long long u64;
-typedef long long s64;
-typedef unsigned int   u32;
-typedef unsigned short u16;
-typedef unsigned char  u08;
-typedef signed int     s32;
-typedef signed short   s16;
-typedef signed char    s08;
-typedef unsigned int   Time_t;
-typedef enum {FALSE=0, TRUE = !FALSE} bool_t;
-
-
-typedef unsigned char* byte_ptr;
-
-typedef unsigned short  BaseSize_t; // Первый аргумент для задачи в диспетчере
-typedef void* BaseParam_t;  // Второй аргумент для задачи в диспетчере
-
-typedef void (*IdleTask_t)(void);      // Указатель на функцию обработки холостого хода void funcIDLE(void)
-typedef void (*CycleFuncPtr_t)(void);  // Указатель на функцию void func(void). Для циклического выполнения в прерывании таймера
-typedef bool_t (*Predicat_t)(void);    // Указатель на функцию предикат (bool_t func1(void))
-typedef void (*TaskMng)(BaseSize_t arg_n, BaseParam_t arg_p);  // Объявляем пользовательский тип данных - указатель на функцию.
-// Каждая задача имеет два параметра, которые определяют количество параметров для функции, и адрес в памяти начиная с которого их считать
-// Если arg_n == 1, то arg_p стоит считать не указателем, а значением параметра (передача по значению одного элемента)
-// Отметим, что имя функции является ее указателем.
-// Вызвать любую функцию можно двояко:
-//  1. Стандартным способом через ее имя и список параметров Например, shov1();
-//  2. Через указатель на функцию. К примеру, (*show1)() - операция разыменовывания указателя на функцию;
-
-typedef struct {
-	TaskMng Task;         //Указателей на функции, которая является задачей и принимает два параметра (количество аргументов и адрес первого из них)
-	BaseSize_t   arg_n; // первый аргумент (Количество принимаемых аргументов)
-	BaseParam_t arg_p; // второй аргумент (Указатель на начало массива аргументов)
-} TaskList_t;
-
-
-//Эта операционка сделана для 8-ми битных микроконтроллеров, поэтому чаще всего будут передаватся функциям восьмибиные параметры. Поэтому взят указатель на char
 
 void initFemtOS(void);    /* Инициализация менеджера задач. Здесь весь список задач (масив TaskLine) иницмализируется функцией Idle*/
 void ResetFemtOS(void);  // Програмный сброс микроконтроллера
@@ -117,13 +56,11 @@ void memCpy(void * destination, const void * source, const BaseSize_t num);
 void memSet(void* destination, const BaseSize_t size, const u08 value);
 
 #ifdef EVENT_LOOP_TASKS
-#define EVENT_LIST_SIZE 10
 bool_t CreateEvent(Predicat_t condition, CycleFuncPtr_t effect); // Регистрирует новое событие в списке событий
 void delEvent(Predicat_t condition); //Удаляем обработку события  condition
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
-#define ArraySize   12 /*Общее количество всех структур данных*/
 #define NOT_FAUND_DATA_STRUCT_ERROR 1
 #define OVERFLOW_OR_EMPTY_ERROR     2
 #define OTHER_ERROR                 3
@@ -155,28 +92,26 @@ void showAllDataStruct(void); // передает в ЮАРТ данные о в
 // Достать єлемент из очереди и записать его по указателю returnValue
 #define GetFromQ(returnValue, Queue)   GetFromFrontDataStruct((void*)(returnValue), (void*)(Queue))
 // Удаляем из массива очередей очередь с заданным идентивикатором
-#define deleteQ(Queue)  delDataStruct((void*)(Queue))
+#define DeleteQ(Queue)  delDataStruct((void*)(Queue))
 
 /*----------------СТЕК--------------------*/
-// Создание стека в масиве структур данных
-#define CreateStack(Stack,sizeElement,sizeAll)  CreateDataStruct((void*)(Stack), (BaseSize_t)(sizeElement), (BaseSize_t)(sizeAll))
-// Вставляем элемент в стек
-#define PushToStack(Elem, Stack)    PutToEndDataStruct((void*)(Elem), (void*)(Stack))
-// Достаем элемент из стека
-#define PopFromStack(returnValue, Stack)    GetFromEndDataStruct((void*)(returnValue), (void*)(Stack))
-// Удаляем стек
-#define delStack(Stack)   delDataStruct((void*)(Stack))
+#define CreateStack(Stack,sizeElement,sizeAll)  CreateDataStruct((void*)(Stack), (BaseSize_t)(sizeElement), (BaseSize_t)(sizeAll)) /*Создание стека в масиве структур данных*/
+#define PushToStack(Elem, Stack)    PutToEndDataStruct((void*)(Elem), (void*)(Stack)) /*Вставляем элемент в стек*/
+#define PopFromStack(returnValue, Stack)    GetFromEndDataStruct((void*)(returnValue), (void*)(Stack)) /*Достаем элемент из стека*/
+#define DelStack(Stack)   delDataStruct((void*)(Stack)) /*Удаляем стек*/
 #endif //DATA_STRUCT_MANAGER
 
 #ifdef MUTEX_ENABLE
-bool_t getMutex(const u08 mutexNumb, TaskMng TPTR, BaseSize_t n, BaseParam_t data); // Пытается захватить мьютекс Вернет TRUE если захватить не удалось
-bool_t freeMutex(const u08 mutexNumb);     // Освобождает мьютекс
-#define GET_MUTEX(mutexNumb, TaskPTR, arg_n, arg_p) if(getMutex((u08)mutexNumb, (TaskMng)TaskPTR,(BaseSize_t)arg_n, (BaseParam_t)arg_p)) return
-#define FREE_MUTEX(mutexNumb) freeMutex((u08)mutexNumb)
+// TRUE - Если мьютекс захватить НЕ УДАЛОСЬ
+bool_t tryGetMutex(const mutexType mutexNumb);
+// TRUE - Если мьютекс захватить НЕ УДАЛОСЬ
+bool_t getMutex(const mutexType mutexNumb, TaskMng TPTR, BaseSize_t n, BaseParam_t data); // Пытается захватить мьютекс Вернет TRUE если захватить не удалось
+void freeMutex(const mutexType mutexNumb);     // Освобождает мьютекс
+#define GET_MUTEX(mutexNumb, TaskPTR, arg_n, arg_p) if(getMutex((mutexType)mutexNumb, (TaskMng)TaskPTR,(BaseSize_t)arg_n, (BaseParam_t)arg_p)) return
+#define FREE_MUTEX(mutexNumb) freeMutex((mutexType)mutexNumb)
 #endif //MUTEX_ENABLE
 
 #ifdef CYCLE_FUNC
-#define TIMERS_ARRAY_SIZE 15
 void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t flagToQueue); // toManager == 0(false) выполняется прям в прерывании
 void delCycleTask(BaseSize_t arg_n, CycleFuncPtr_t CallBack);
 #endif //CYCLE_FUNC
@@ -190,7 +125,6 @@ globalFlags_t getGlobalFlags(void);
 #endif
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 10000UL /*6500*/
 byte_ptr allocMem(u08 size);  //size - до 127 размер блока выделяемой памяти
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
 void freeMem(byte_ptr data);  // Освобождение памяти
@@ -201,14 +135,6 @@ void clearAllMemmory(void); // Аварийное освобождение па�
 #endif //ALLOC_MEM
 
 #ifdef CLOCK_SERVICE
-typedef struct {
-	u08 sec;  //Начинаются с 0
-	u08 min;  //Начинаются с 0
-	u08 hour;  //Начинаются с 0
-	u08 day;  //Начинаются с 1
-	u08 mon;  //Начинаются с 1
-	u16 year;
-} Date_t;
 Time_t getAllSeconds(void);
 u08 getMinutes(void);
 u08 getHour(void);
@@ -230,7 +156,6 @@ void addOneDayToDate(Date_t* date);
 #endif
 
 #ifdef CALL_BACK_TASK
-#define CALL_BACK_TASK_LIST_LEN 30
 #ifndef OVERFLOW_OR_EMPTY_ERROR
 #define OVERFLOW_OR_EMPTY_ERROR 2
 #endif
@@ -243,6 +168,7 @@ void execErrorCallBack(BaseSize_t errorCode, void* labelPtr);
 void deleteCallBack(BaseSize_t arg_n, void* labelPtr);
 u08 changeCallBackLabel(void* oldLabel, void* newLabel);
 #endif
+
 #ifdef SIGNALS_TASK
 #define SIGNAL_LIST_LEN 10
 void connectTaskToSignal(TaskMng task, void* signal);

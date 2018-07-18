@@ -82,7 +82,7 @@ static void lowLevelInitRTC(void) {
 	HAL_NVIC_SetPriority(RTC_WKUP_IRQn, 0x0F, 0);
 	HAL_NVIC_EnableIRQ(RTC_WKUP_IRQn);
 }
-static unsigned int globalTimerTicks = 1;
+
 static RTC_HandleTypeDef RTC_Clock;
 void initRTC(void){
 	RTC_Clock.Instance = RTC;
@@ -95,17 +95,7 @@ void RTC_WKUP_IRQHandler(void) {
 }
 
 void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc) {
-	static unsigned int tickCount = 0;
-	tickCount++;
-	if(tickCount == globalTimerTicks) {
-		TimerISR();
-		tickCount = 0;
-	}
-}
-
-unsigned int _setTickTime(unsigned int timerTicks) {
-	if(timerTicks != globalTimerTicks) globalTimerTicks = timerTicks;
-	return timerTicks;
+	TimerISR();
 }
 
 #ifdef TIMER6_USING

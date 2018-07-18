@@ -13,7 +13,7 @@ extern "C" {
 #endif
 
 #ifdef MUTEX_ENABLE
-volatile static mutexType MyMutex = 0; // 8 - возможных мьютексов
+volatile static mutexType MyMutex = 0;
 
 // TRUE - Если мьютекс захватить НЕ УДАЛОСЬ
 bool_t tryGetMutex(const mutexType mutexNumb) {

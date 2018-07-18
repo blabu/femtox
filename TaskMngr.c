@@ -188,9 +188,18 @@ void ResetFemtOS(void){
 	while(1);
 }
 
-void TimerISR(void) {
-	ClockService();
 #ifdef _PWR_SAVE
+unsigned int _setTickTime(unsigned int timerTicks) {
+	return timerTicks;
+}
+#endif
+
+void TimerISR(void) {
+#ifdef _PWR_SAVE
+	static BaseSize_t isrCounter = 0;
+	if(++isrCounter < minTimeOut) return;
+	isrCounter = 0;
+	ClockService();
 	u32 minTimerService = TimerService();	// Пересчет всех системных таймеров из очереди, вернет минимальный таймер
 #ifdef CYCLE_FUNC
 	u32 minCycleService = CycleService(); // Вернет минимальное время из циклических задач
@@ -202,12 +211,13 @@ void TimerISR(void) {
 	else if(minCycleService) minTimeOut = minCycleService;
 	else minTimeOut = 1;
 	minTimeOut = _setTickTime(minTimeOut);
-#else
+#else  //NOT CYCLE_FUNC
 	if(minTimerService) minTimeOut = minTimerService;
 	else minTimeOut = 1;
 	minTimeOut = _setTickTime(minTimerService);
 #endif
-#else
+#else //NOT _PWR_SAVE
+	ClockService();
 	TimerService();	// Пересчет всех системных таймеров из очереди
 #ifdef CYCLE_FUNC
 	CycleService();
