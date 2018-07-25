@@ -17,7 +17,7 @@
 //#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 #define ALLOC_MEM   /*Включение динамического выделения памяти*/
 #define EVENT_LOOP_TASKS
-//#define USE_SOFT_UART
+#define USE_SOFT_UART
 #define CLOCK_SERVICE
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
@@ -65,15 +65,14 @@
 #ifdef USE_SOFT_UART
   #define SOFT_UART_WORK_FLAG 1<<2
   #define UART_NUMB 1    /*Колличество программных ЮАРТов*/
-  #define BAUD_150   127
-  #define BAUD_300   64
-  #define BAUD_600   32
-  #define BAUD_1200  16
-  #define BAUD_2400  8
-  #define BAUD_4800  4
-  #define BAUD_9600  2
+  #define BAUD_300   127
+  #define BAUD_600   64
+  #define BAUD_1200  32
+  #define BAUD_2400  16
+  #define BAUD_4800  8
+  #define BAUD_9600  4
   #define DATA_BITS  8   /*Количество бит данных в посылке*/
-  #define STOP_BITS  2   /*Колличество СТОП битов*/
+  #define STOP_BITS  1   /*Колличество СТОП битов*/
 #endif
 
 #endif /* FEMTOXCONF_H_ */

@@ -28,11 +28,12 @@ void _init_Timer(void);	// Инициализация таймера 0, наст
  * Если программных UART будет больше двух необходимо добавлять новые функции в ProgramUART.c
 */
 void _initTimerSoftUart();
-void initProgramUartGPIO(unsigned short RX_MASK, unsigned short TX_MASK);
-
+void initProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK);
+void _deInitTimerSoftUart();
+void deInitProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK);
 extern TIM_HandleTypeDef TIM7InitStruct;
-#define PROGRAMM_TX_PORT   GPIOA
-#define PROGRAMM_RX_PIN    GPIOA
+#define TX_PORT   GPIOA
+#define RX_PIN    GPIOA
 #define ENABLE_UART_TIMER_ISR  __HAL_TIM_ENABLE_IT(&TIM7InitStruct,TIM_IT_UPDATE)
 #define DISABLE_UART_TIMER_ISR __HAL_TIM_DISABLE_IT(&TIM7InitStruct,TIM_IT_UPDATE)
 #define START_TIMER			   __HAL_TIM_ENABLE(&TIM7InitStruct)

@@ -154,38 +154,53 @@ void _init_Timer(){
 ****************************************
 */
 TIM_HandleTypeDef TIM7InitStruct;
-#include "ProgrammUART.h"
 #include "stm32l1xx_hal_gpio.h"
 
-//52 мкс
-void _initTimerSoftUart()
-{
+//26 мкс
+void _initTimerSoftUart(){
 	__TIM7_CLK_ENABLE();
 	TIM7InitStruct.Instance = TIM7;
 	TIM7InitStruct.Init.CounterMode = TIM_COUNTERMODE_UP;
-	TIM7InitStruct.Init.Period = 52-1;
+	TIM7InitStruct.Init.Period = 26-1;
 	TIM7InitStruct.Init.Prescaler = 4-1;
 	TIM7InitStruct.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	HAL_TIM_Base_Init(&TIM7InitStruct);     // Init timer
 	HAL_TIM_Base_Start_IT(&TIM7InitStruct);
 	HAL_NVIC_EnableIRQ(TIM7_IRQn);
-
 }
 
-void initProgramUartGPIO(unsigned short RX_MASK, unsigned short TX_MASK){
+void _deInitTimerSoftUart() {
+	HAL_TIM_Base_Stop_IT(&TIM7InitStruct);
+	HAL_TIM_Base_DeInit(&TIM7InitStruct);
+	__TIM7_CLK_DISABLE();
+}
+
+void initProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK){
     GPIO_InitTypeDef gpioStruct;
     gpioStruct.Mode = GPIO_MODE_OUTPUT_PP;
     gpioStruct.Pin = TX_MASK;
     gpioStruct.Pull = GPIO_NOPULL;
     gpioStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    HAL_GPIO_Init(PROGRAMM_TX_PORT,&gpioStruct);
-    HAL_GPIO_WritePin(PROGRAMM_TX_PORT,TX_MASK,GPIO_PIN_SET);
+    HAL_GPIO_Init(TX_PORT,&gpioStruct);
+    HAL_GPIO_WritePin(TX_PORT,TX_MASK,GPIO_PIN_SET);
 
     gpioStruct.Mode = GPIO_MODE_INPUT;
     gpioStruct.Pin = RX_MASK;
     gpioStruct.Pull = GPIO_PULLUP;
     gpioStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    HAL_GPIO_Init(PROGRAMM_RX_PIN,&gpioStruct);
+    HAL_GPIO_Init(RX_PIN,&gpioStruct);
+}
+
+void deInitProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK) {
+    HAL_GPIO_WritePin(TX_PORT,TX_MASK,GPIO_PIN_RESET);
+    GPIO_InitTypeDef gpioStruct;
+    gpioStruct.Mode = GPIO_MODE_OUTPUT_OD;
+    gpioStruct.Pin = RX_MASK;
+    gpioStruct.Pull = GPIO_NOPULL;
+    gpioStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(RX_PIN,&gpioStruct);
+    HAL_GPIO_WritePin(RX_PIN,RX_MASK,GPIO_PIN_RESET);
+
 }
 
 void TIM7_IRQHandler(void){

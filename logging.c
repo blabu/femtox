@@ -5,9 +5,10 @@
  *      Author: oleksiy.khanin
  */
 
-#include "PlatformSpecific.h" // for _X86
+//#include "PlatformSpecific.h" // for _X86
 #include "MyString.h"
 #include "logging.h"
+#include "TaskMngr.h"
 
 #ifdef _X86
 #include <stdio.h>
@@ -26,12 +27,14 @@ static void sendUART2_buf(u08 c) {
 	printf("%c",c);
 }
 #else
-void enableUART2(u32 i) {enableSoftUART(TRUE,FALSE);}
-void disableUART2(){disableSoftUART();}
-void sendCOM2_buf(u08 u, byte_ptr buf){ sendUART_str(0,(string_t)buf); }
-void sendUART2_buf(u08 byte) {sendUART_byte(0, byte);}
+static void enableUART2(u32 i) {enableSoftUART(TRUE,FALSE);}
+static void disableUART2(){disableSoftUART();}
+static void sendCOM2_buf(u08 u, byte_ptr buf){ sendUART_str(0,(string_t)buf); }
+static void sendUART2_buf(u08 byte) {sendUART_byte(0, byte);}
 #endif
-
+#ifndef NULL
+#define NULL ((void*)0)
+#endif
 static string_t disableLavel = NULL;
 
 void enableLogging(void) {
