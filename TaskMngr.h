@@ -4,7 +4,7 @@
 #include "FemtoxTypes.h"
 #include "FemtoxConf.h"
 
-extern const char* const osVersion;
+extern const char* const _osVersion;
 
 #define ABS(XX) (((XX) > 0)?(XX):(-(XX)))
 

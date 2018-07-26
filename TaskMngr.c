@@ -11,7 +11,7 @@ extern "C" {
 инициализируется таймер счетчик, и включает прерывание по переполнению Т/С0
  */
 
-const char* const osVersion = "V1.2.0";
+const char* const _osVersion = "V1.3.0";
 
 #ifdef _PWR_SAVE
 u32 minTimeOut = 1; // Минимальное время таймоута для задач из списка таймеров

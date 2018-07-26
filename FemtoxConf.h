@@ -17,7 +17,7 @@
 //#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 #define ALLOC_MEM   /*Включение динамического выделения памяти*/
 #define EVENT_LOOP_TASKS
-#define USE_SOFT_UART
+//#define USE_SOFT_UART
 #define CLOCK_SERVICE
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
