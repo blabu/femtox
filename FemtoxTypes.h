@@ -19,10 +19,10 @@
 typedef char* string_t;
 typedef unsigned long long u64;
 typedef long long s64;
-typedef unsigned long   u32;
+typedef unsigned int   u32;
 typedef unsigned short u16;
 typedef unsigned char  u08;
-typedef signed long     s32;
+typedef signed int     s32;
 typedef signed short   s16;
 typedef signed char    s08;
 typedef unsigned int   Time_t;

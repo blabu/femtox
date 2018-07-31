@@ -11,7 +11,6 @@ extern "C" {
 #include "TaskMngr.h"
 #include "logging.h"
 
-
 extern void TimerISR();
 
 #ifdef MAXIMIZE_OVERFLOW_ERROR
@@ -64,9 +63,15 @@ static void timer() {
         unBlockIt();
     }
 }
+using sec32 = std::chrono::duration<Time_t,std::ratio<1,1>>;
 
 void _init_Timer(void){// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
-    writeLogStr("start init timer");
+	auto now = std::chrono::system_clock::now(); // time_point with start time 1970
+	auto time = now.time_since_epoch();  // duration
+	auto oldFormatTime = std::chrono::system_clock::to_time_t(now);  // get C time int64_t
+	writeLogU32((u32)(oldFormatTime));
+	auto timeSeconds32 = std::chrono::duration_cast<sec32>(time);  // get time in sec32 aka Time_t aka uint32_t
+	setSeconds(timeSeconds32.count());
     timerThread = new std::thread(timer);
 }
 

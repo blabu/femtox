@@ -5,7 +5,7 @@
  *      Author: oleksiy.khanin
  */
 
-//#include "PlatformSpecific.h" // for _X86
+#include "PlatformSpecific.h" // for _X86
 #include "MyString.h"
 #include "logging.h"
 #include "TaskMngr.h"
@@ -33,7 +33,7 @@ static void disableUART2(){disableSoftUART();}
 static void sendCOM2_buf(u08 u, byte_ptr buf){ sendUART_str(0,(string_t)buf); }
 static void sendUART2_buf(u08 byte) {sendUART_byte(0, byte);}
 #else
-#include "UART2.h"
+//#include "UART2.h"
 #endif
 #endif
 #ifndef NULL

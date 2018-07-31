@@ -102,12 +102,12 @@ u32 getTick(void) {
 
 static void ClockService(void){
 #ifdef _PWR_SAVE
-	GlobalTick+=minTimeOut;
+	GlobalTick += minTimeOut;
 #else
 	GlobalTick++;
 #endif
 #ifdef CLOCK_SERVICE
-	if(GlobalTick >= TICK_PER_SECOND) {
+	while(GlobalTick >= TICK_PER_SECOND) {
 		__systemSeconds++;
 		GlobalTick -= TICK_PER_SECOND;
 	}
