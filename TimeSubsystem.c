@@ -185,6 +185,8 @@ Date_t getDateFromSeconds(Time_t sec){
 	}
 	res.sec = (u08)sec;   res.min = (u08)minutes; res.hour = (u08)hours;
 	res.day = (u08)days+1;  res.mon = (u08)month+1;   res.year = (u16)year;
+	if(month > 3 && month < 11) timeCorrectSummer = TIME_INDEX+1;
+	else timeCorrectSummer = TIME_INDEX;
 	for(u08 i = 0; i<timeCorrectSummer; i++) addOneHourToDate(&res);
 	return res;
 }

@@ -102,12 +102,12 @@ u32 getTick(void) {
 
 static void ClockService(void){
 #ifdef _PWR_SAVE
-	GlobalTick+=minTimeOut;
+	GlobalTick += minTimeOut;
 #else
 	GlobalTick++;
 #endif
 #ifdef CLOCK_SERVICE
-	if(GlobalTick >= TICK_PER_SECOND) {
+	while(GlobalTick >= TICK_PER_SECOND) {
 		__systemSeconds++;
 		GlobalTick -= TICK_PER_SECOND;
 	}
@@ -174,10 +174,8 @@ void initFemtOS (void)   // Инициализация менеджера зад
 	//INTERRUPT_ENABLE;
 }
 
-void runFemtOS( void )
-{
-	while(1)
-	{
+void runFemtOS( void ){
+	while(1){
 #ifdef EVENT_LOOP_TASKS
 		EventManager();
 #endif
@@ -239,14 +237,13 @@ static u08 countEnd = 0;      // Указатель на КОНЕЦ очеред
 на один элемент вверх, а в последний элемент очереди ставим Idle (пустую функцию, включающую режим ожидания МК).
 Берем количество параметров из глобального стека и передаем взятой функции, которая берет свои параметры из глобального стека.
  */
-static void TaskManager(void)
-{
+static void TaskManager(void) {
 	BaseSize_t   n;       // Первый аргумент следующей функции (количество параметров)
 	BaseParam_t  a;       // Второй аргумент для следующей фунции (адрес первой переменной)
 	TaskMng Func_point;       // Определяем временную переменную типа указатель на функцию
 	INTERRUPT_DISABLE;
-	if(countBegin != countEnd) // Если очередь не пустая
-	{// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
+	if(countBegin != countEnd) { // Если очередь не пустая
+	// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
 		Func_point = TaskList[countBegin].Task; // countBegin - указывает на начало очереди на рабочую задачу
 		a = TaskList[countBegin].arg_p;
 		n = TaskList[countBegin].arg_n;
@@ -259,17 +256,15 @@ static void TaskManager(void)
 	Idle();         // И выполняем функция простоя
 }
 
-void SetTask(TaskMng New_Task, BaseSize_t n, BaseParam_t data)
-{
+void SetTask(TaskMng New_Task, BaseSize_t n, BaseParam_t data) {
 	bool_t flag_inter = FALSE;
-	if(INTERRUPT_STATUS) //Если прерывания разрешены, то запрещаем их
-	{
+	if(INTERRUPT_STATUS) { //Если прерывания разрешены, то запрещаем их
 		INTERRUPT_DISABLE;
 		flag_inter = TRUE;                     // И устанавливаем флаг, что мы не в прерывании
 	}
 	register u08 count = (countEnd < TASK_LIST_LEN-1)? countEnd+1:0; //Кольцевой буфер
-	if(count != countBegin) // Если после добавления задачи countEnd не догонит countBegin значит очередь не переполнена
-	{// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
+	if(count != countBegin){ // Если после добавления задачи countEnd не догонит countBegin значит очередь не переполнена
+	// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
 		TaskList[countEnd].Task = New_Task; // Если очередь не переполнится добавляем элемент в очередь
 		TaskList[countEnd].arg_n = n;       // countEnd
 		TaskList[countEnd].arg_p = data;
@@ -300,14 +295,13 @@ u08 getFreePositionForTask(void){
 void SetFrontTask (TaskMng New_Task, BaseSize_t n, BaseParam_t data) // Функция помещает в НАЧАЛО очереди задачу New_Task
 {
 	bool_t flag_inter = FALSE;
-	if(INTERRUPT_STATUS)
-	{
+	if(INTERRUPT_STATUS){
 		flag_inter = TRUE;
 		INTERRUPT_DISABLE;
 	}
 	register u08 count = (countBegin)? countBegin-1:TASK_LIST_LEN-1; // Определяем указатель начала очереди куда должны вставить новую задачку
-	if(count != countEnd)   // Если очередь еще не переполнена
-	{// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
+	if(count != countEnd) {   // Если очередь еще не переполнена
+	// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
 		countBegin = count;
 		TaskList[countBegin].Task = New_Task;
 		TaskList[countBegin].arg_n = n;

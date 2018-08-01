@@ -1,5 +1,6 @@
 #include "PlatformSpecific.h"
-//#include "stm32f103xb.h"
+#ifdef ARM_STM32
+#include "stm32f103xb.h"
 #include "TaskMngr.h"
 
 #ifdef MAXIMIZE_OVERFLOW_ERROR
@@ -121,5 +122,7 @@ void TIM7_IRQHandler(void){
     	UARTTimerISR();
 	}
 }
+
+#endif
 
 #endif
