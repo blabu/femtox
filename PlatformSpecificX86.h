@@ -19,7 +19,7 @@ void unBlockIt();
 #define INTERRUPT_DISABLE   blockIt()
 #define INTERRUPT_STATUS    statusIt()
 #define WATCH_DOG_ON  initWatchDog()/*Генерируем Reset*/
-#define TICK_PER_SECOND 500 /*Колличество тиков в секунду*/
+#define TICK_PER_SECOND 20 /*Колличество тиков в секунду*/
 
 void _init_Timer(void);	// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
 

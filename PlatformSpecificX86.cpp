@@ -57,10 +57,17 @@ void unBlockIt(){
 
 static void timer() {
     while(1) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000/TICK_PER_SECOND));
+    	auto now = std::chrono::steady_clock::now();
+        std::this_thread::sleep_for(std::chrono::milliseconds((1000/TICK_PER_SECOND) - 1));
         blockIt();
         TimerISR();
         unBlockIt();
+        auto later = std::chrono::steady_clock::now();
+        auto diff = later - now;
+        auto d = std::chrono::duration_cast<std::chrono::milliseconds>(diff).count();
+        if(d > 75) {
+        	writeLogWhithStr("ERROR too long time is interrupt ", d);
+        }
     }
 }
 using sec32 = std::chrono::duration<Time_t,std::ratio<1,1>>;
@@ -70,8 +77,8 @@ void _init_Timer(void){// Инициализация таймера 0, наст�
 	auto time = now.time_since_epoch();  // duration
 	auto oldFormatTime = std::chrono::system_clock::to_time_t(now);  // get C time int64_t
 	writeLogU32((u32)(oldFormatTime));
-	auto timeSeconds32 = std::chrono::duration_cast<sec32>(time);  // get time in sec32 aka Time_t aka uint32_t
-	setSeconds(timeSeconds32.count());
+	auto timeSeconds32 = std::chrono::duration_cast<sec32>(time).count();  // get time in sec32 aka Time_t aka uint32_t
+	setSeconds(timeSeconds32);
     timerThread = new std::thread(timer);
 }
 

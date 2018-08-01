@@ -26,8 +26,8 @@
 //#define _DYNAMIC_ARRAY
 #define _PWR_SAVE
 
-#define TASK_LIST_LEN 10U /*Длина очереди задач*/
-#define TIME_LINE_LEN 30U /*Максимальне количество системных таймеров*/
+#define TASK_LIST_LEN 2U /*Длина очереди задач*/
+#define TIME_LINE_LEN 0U /*Максимальне количество системных таймеров*/
 #define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
 #ifdef EVENT_LOOP_TASKS
@@ -43,7 +43,7 @@
 #endif
 
 #ifdef CYCLE_FUNC
-#define TIMERS_ARRAY_SIZE 15
+#define TIMERS_ARRAY_SIZE 2
 #endif
 
 #ifdef ALLOC_MEM

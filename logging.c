@@ -21,10 +21,12 @@ static void sendCOM2_buf(u08 size, byte_ptr data) {
 			printf("%x ",data[i]);
 		}
 	}
+	fflush(stdout);
 }
 
 static void sendUART2_buf(u08 c) {
 	printf("%c",c);
+	fflush(stdout);
 }
 #else
 #ifdef USE_SOFT_UART
