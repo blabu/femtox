@@ -1,8 +1,11 @@
 #ifndef PLATFORMSPECIFIC
 #define PLATFORMSPECIFIC
-#include "stm32l1xx_hal.h"
+//#include "stm32l1xx_hal.h"
+//#include "stm32l152xe.h"
+
+#include "stm32f1xx_hal.h"
+#include "stm32f1xx.h"
 #include "cmsis_gcc.h"
-#include "stm32l152xe.h"
 
 #define ARCH 32 /*Архитектура процессора 8, 16, 32 байта (разрядность шины данных)*/
 void initWatchDog();

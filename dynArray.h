@@ -12,12 +12,6 @@
 
 #ifdef _DYNAMIC_ARRAY
 
-typedef struct {
-	u08 size;		// Текущее кол-во элементов
-	u08 capasity; 	// Текуший размер выделенной области
-	u08* data;		// Указатель на начало области
-}DynamicArray_t;
-
 DynamicArray_t* createNewDynamicArray(u08 capasity);
 void deleteDynamicArray(DynamicArray_t* array); // delete all data and array pointer
 void freeDynamicArray(DynamicArray_t* array);   // free memory only for data. Array pointer still valid
