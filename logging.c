@@ -34,8 +34,8 @@ static void enableUART2(u32 i) {enableSoftUART(TRUE,FALSE);}
 static void disableUART2(){disableSoftUART();}
 static void sendCOM2_buf(u08 u, byte_ptr buf){ sendUART_str(0,(string_t)buf); }
 static void sendUART2_buf(u08 byte) {sendUART_byte(0, byte);}
-#else
-//#include "UART2.h"
+#elif ARM_STM32
+#include "UART2.h"
 #endif
 #endif
 #ifndef NULL
