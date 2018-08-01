@@ -1,4 +1,5 @@
 #include "PlatformSpecific.h"
+#ifdef ARM_STM32
 #include "TaskMngr.h"
 
 #ifdef MAXIMIZE_OVERFLOW_ERROR
@@ -210,4 +211,5 @@ void TIM7_IRQHandler(void){
 	}
 }
 
+#endif
 #endif

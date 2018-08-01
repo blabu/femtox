@@ -1,6 +1,6 @@
 #include "PlatformSpecific.h"
 #include "TaskMngr.h"
-
+#ifdef MSP430
 /********************************************************************************************************************
 *********************************************************************************************************************
                                             ПЛАТФОРМО-ЗАВИСИМЫЕ ФУНКЦИИ														|
@@ -108,4 +108,5 @@ void deInitProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK) {
 __interrupt void TimerA_ISR(){
     UARTTimerISR();
 }
+#endif
 #endif

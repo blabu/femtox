@@ -1,3 +1,8 @@
+extern "C" {
+#include "PlatformSpecific.h"
+}
+#ifdef _X86
+
 #include <thread>
 #include <chrono>
 #include <mutex>
@@ -7,7 +12,6 @@ static std::mutex mt;
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "PlatformSpecific.h"
 #include "TaskMngr.h"
 #include "logging.h"
 
@@ -97,4 +101,5 @@ void initProgramUartGPIO(unsigned short RX_MASK, unsigned short TX_MASK) {
 }
 #ifdef __cplusplus
 }
+#endif
 #endif
