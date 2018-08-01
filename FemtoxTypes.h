@@ -67,4 +67,20 @@ typedef u32 mutexType;
 #error "Too long size for mutex"
 #endif
 
+#ifdef _LIST_STRUCT
+typedef struct node {
+	struct node* prev;
+	struct node* next;
+	void* data;
+}ListNode_t;
+#endif
+
+#ifdef _DYNAMIC_ARRAY
+typedef struct {
+	u08 size;		// Текущее кол-во элементов
+	u08 capasity; 	// Текуший размер выделенной области
+	u08* data;		// Указатель на начало области
+}DynamicArray_t;
+#endif
+
 #endif /* FEMTOXTYPES_H_ */

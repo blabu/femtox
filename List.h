@@ -12,12 +12,6 @@
 
 #ifdef _LIST_STRUCT
 
-typedef struct node {
-	struct node* prev;
-	struct node* next;
-	void* data;
-}ListNode_t;
-
 ListNode_t* createNewList(void* data);
 void deleteList(ListNode_t* listPtr);
 ListNode_t* findHead(ListNode_t* listPtr);

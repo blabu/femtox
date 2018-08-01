@@ -39,6 +39,8 @@ void resetWatchDog(void){
 	HAL_IWDG_Refresh(&watchDog);
 }
 
+
+#include "config.h"
 static TIM_HandleTypeDef TIM2InitStruct;
 void initTimer2(void){ // APB1 = 72MHz
 	__TIM2_CLK_ENABLE();
@@ -68,10 +70,6 @@ void TIM2_IRQHandler(void){
 void _init_Timer(){
 	initTimer2();
 	HAL_PWR_DisableSleepOnExit(); // После пробуждения мы работаем в активном режиме
-}
-
-unsigned int _setTickTime(unsigned int timerTicks) {
-	//FIXME Not implemented yet
 }
 
 #ifdef USE_SOFT_UART
