@@ -2,6 +2,9 @@
 #ifdef ARM_STM32
 #include "TaskMngr.h"
 
+#include "stm32l1xx_hal.h"
+#include "stm32l152xe.h"
+
 #ifdef MAXIMIZE_OVERFLOW_ERROR
 	void MaximizeErrorHandler(){
 		initWatchDog();

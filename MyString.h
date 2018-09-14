@@ -79,4 +79,6 @@ void fillRightStr(u16 size, string_t str, char symb);
 //Вернет размер строки
 BaseSize_t strSize(const string_t c_str);
 
+void Sprintf(string_t result, const string_t paternStr, void* param1, ...);
+
 #endif // MY_STRING_H

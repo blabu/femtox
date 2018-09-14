@@ -20,7 +20,7 @@ volatile Time_t __systemSeconds = 0;
 #define SECONDS_IN_YEAR 31536000UL
 #define SECONDS_IN_DAY 86400UL
 
-#if TIME_INDEX>1
+#ifdef TIME_INDEX
 static u08 timeCorrectSummer = TIME_INDEX;
 #endif
 
@@ -28,7 +28,7 @@ static u08 timeCorrectSummer = TIME_INDEX;
 #define FEBRUARY  28
 #define MARCH	  31
 #define APRIL     30
-#define MAY	  31
+#define MAY	  	  31
 #define JUNE      30
 #define JULY	  31
 #define AUGUST	  31
@@ -96,7 +96,7 @@ static u16 getDayAndMonthFromDayInYear(u16 dayInYear) { //LSB - day, MSB - mount
 	}
 	u08 day = dayInYear & 0x1F; // 32 (Обнуляем все старшие биты) на всякий случай
 	month+=1;	// Чтобы год начинался с 1-го месяца
-#if TIME_INDEX>1
+#ifdef TIME_INDEX
 #ifdef SUMMER_TIME
 	//Если месяц больше марта (т.е. апрель или дальше) и меньше ноября (т.е. окябрь или меньше)
 	if(month > 3 && month < 11) timeCorrectSummer = TIME_INDEX+1;

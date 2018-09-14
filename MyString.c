@@ -207,11 +207,14 @@ static s64 toInt(s08 razryad, const string_t c_str){
             res <<= 4;
             res |= c_str[i] - '0';
             razryad--;
-        }
-        else if(c_str[i] >= 'A' && c_str[i] <= 'F') {
+        }else if(c_str[i] >= 'A' && c_str[i] <= 'F') {
             res <<= 4;
             res |= c_str[i]-'A'+10;
             razryad--;
+        }else if(c_str[i] >= 'a' && c_str[i] <= 'f') {
+        	res <<= 4;
+        	res |= c_str[i]-'a'+10;
+        	razryad--;
         }
         else if(res != 0) break;
         if(razryad <= 0) break;
@@ -356,3 +359,61 @@ void fillRightStr(u16 size, string_t str, char symb) {
 		str[i] = symb;
 	}
 }
+
+/*
+ * Пока поддерживаются %d, %x, %s
+ * */
+void Sprintf(string_t result, const string_t paternStr, void* param1, ...) {
+	if(result == NULL || paternStr == NULL) return;
+	u08 size = strSize(paternStr);
+	if(param1 == NULL) {
+		strCopy(result, paternStr, size, 0);
+		return;
+	}
+	#undef TEMP_BUF_SIZE
+	#define TEMP_BUF_SIZE 10
+	char tempBuf[TEMP_BUF_SIZE];
+	u08 currentPozTempBuf = 0;
+	for(u08 i=0; i<size; i++) {
+		if(paternStr[i] == '%') {
+			if(currentPozTempBuf > 0) {
+				tempBuf[currentPozTempBuf] = END_STRING;
+				strCat(result,tempBuf);
+				currentPozTempBuf = 0;
+			}
+			i++;
+			switch(paternStr[i]) {
+			case 'd':
+				toStringDec(*((s64*)param1), tempBuf);
+				strCat(result, tempBuf);
+				param1++;
+				break;
+			case 'x':
+				toString(8, *((s64*)param1), tempBuf);
+				strCat(result, tempBuf);
+				param1++;
+				break;
+			case 's':
+				strCat(result, (string_t)param1);
+				param1++;
+				break;
+			default:
+				strCat(result,"unsupported");
+			}
+		} else {
+			if(currentPozTempBuf < TEMP_BUF_SIZE-1) {
+				tempBuf[currentPozTempBuf] = paternStr[i];
+				currentPozTempBuf++;
+			} else {
+				tempBuf[currentPozTempBuf] = END_STRING;
+				strCat(result,tempBuf);
+				currentPozTempBuf = 0;
+			}
+		}
+	}
+	if(currentPozTempBuf>0) {
+		tempBuf[currentPozTempBuf] = END_STRING;
+		strCat(result,tempBuf);
+	}
+}
+
