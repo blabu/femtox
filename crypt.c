@@ -534,9 +534,9 @@ void setSeed(u32 seed) {
 }
 
 u32 RandomSimple() {
-	if(s1 == 0 || s2 == 0 || s3 == 0) {
-		s1 = s2 = s3 = getTick();
-	}
+	if(s1 == 0) s1 = getTick();
+	if(s2 == 0) s2 = getAllSeconds();
+	if(s3 == 0)	s3 = s1+s2;
     if(s1 & (0x55)<<(s2 & 0x1F)) {
     	if(s2 & (0x55)<<(s3 & 0x1F))
     		return lfsr113();

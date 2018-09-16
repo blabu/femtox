@@ -50,7 +50,7 @@ void SetIdleTask(IdleTask_t Task);
 
 u32 getTick(void);
 
-void MaximizeErrorHandler(void);
+void MaximizeErrorHandler(string_t str);
 
 void memCpy(void * destination, const void * source, const BaseSize_t num);
 void memSet(void* destination, const BaseSize_t size, const u08 value);
@@ -61,7 +61,7 @@ void delEvent(Predicat_t condition); //Удаляем обработку соб�
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
-#define NOT_FAUND_DATA_STRUCT_ERROR 1
+#define NOT_FOUND_DATA_STRUCT_ERROR 1
 #define OVERFLOW_OR_EMPTY_ERROR     2
 #define OTHER_ERROR                 3
 #define NULL_PTR_ERROR              4
@@ -151,14 +151,14 @@ void addOneSecondToDate(Date_t* date);
 void addOneMinutesToDate(Date_t* date);
 void addOneHourToDate(Date_t* date);
 void addOneDayToDate(Date_t* date);
-#include "correctorsTypes.h"
-#ifndef OE22_LA
+//#include "correctorsTypes.h"
+//#ifndef OE22_LA
 #define TIME_INDEX 2
 #define SUMMER_TIME
-#else
-#define TIME_INDEX 0
-#define SUMMER_TIME
-#endif
+//#else
+//#define TIME_INDEX 0
+//#define SUMMER_TIME
+//#endif
 #endif
 
 #ifdef CALL_BACK_TASK

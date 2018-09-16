@@ -26,7 +26,14 @@ typedef signed int     s32;
 typedef signed short   s16;
 typedef signed char    s08;
 typedef unsigned int   Time_t;
+#ifndef _WIN32
 typedef enum {FALSE=0, TRUE = !FALSE} bool_t;
+#else
+typedef u08 bool_t;
+#define TRUE 1
+#define FALSE 0
+#endif
+
 typedef unsigned char* byte_ptr;
 typedef unsigned short  BaseSize_t; // Первый аргумент для задачи в диспетчере
 typedef void* BaseParam_t;  // Второй аргумент для задачи в диспетчере

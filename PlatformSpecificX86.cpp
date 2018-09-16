@@ -1,19 +1,18 @@
-extern "C" {
-#include "PlatformSpecific.h"
-}
-#ifdef _X86
-
-#include <thread>
+#include <mingw.thread.h>
 #include <chrono>
-#include <mutex>
+#include <mingw.mutex.h>
 static std::thread* timerThread;
 static std::mutex mt;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "PlatformSpecific.h"
 #include "TaskMngr.h"
 #include "logging.h"
+#ifdef __cplusplus
+}
+#endif
 
 extern void TimerISR();
 
@@ -59,31 +58,18 @@ void unBlockIt(){
     mt.unlock();
 }
 
-static void timer() {
+static void __timer() {
     while(1) {
-    	auto now = std::chrono::steady_clock::now();
-        std::this_thread::sleep_for(std::chrono::milliseconds((1000/TICK_PER_SECOND) - 1));
-        blockIt();
+    	std::this_thread::sleep_for(std::chrono::milliseconds(1000UL/TICK_PER_SECOND));
+        //blockIt();
         TimerISR();
-        unBlockIt();
-        auto later = std::chrono::steady_clock::now();
-        auto diff = later - now;
-        auto d = std::chrono::duration_cast<std::chrono::milliseconds>(diff).count();
-        if(d > 75) {
-        	writeLogWhithStr("ERROR too long time is interrupt ", d);
-        }
+        //unBlockIt();
     }
 }
-using sec32 = std::chrono::duration<Time_t,std::ratio<1,1>>;
 
 void _init_Timer(void){// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
-	auto now = std::chrono::system_clock::now(); // time_point with start time 1970
-	auto time = now.time_since_epoch();  // duration
-	auto oldFormatTime = std::chrono::system_clock::to_time_t(now);  // get C time int64_t
-	writeLogU32((u32)(oldFormatTime));
-	auto timeSeconds32 = std::chrono::duration_cast<sec32>(time).count();  // get time in sec32 aka Time_t aka uint32_t
-	setSeconds(timeSeconds32);
-    timerThread = new std::thread(timer);
+    writeLogStr("start init timer");
+    timerThread = new std::thread(__timer);
 }
 
 /*
@@ -99,7 +85,4 @@ void _initTimerSoftUart() {
 void initProgramUartGPIO(unsigned short RX_MASK, unsigned short TX_MASK) {
 
 }
-#ifdef __cplusplus
-}
-#endif
-#endif
+
