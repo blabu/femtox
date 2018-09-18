@@ -5,6 +5,10 @@
 #define NULL 0
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define END_STRING '\0'
 /*
 command - строка, которую ищут
@@ -122,10 +126,11 @@ BaseSize_t strSplit(char delim, string_t c_str) {
     return numb;
 }
 
+#include <stdio.h>
+
 void toStringUnsignDec(u64 data, string_t c_str){
 	u08 size = 0;
 	u64 offset = 0;
-	u08 i = 0;
 	if(data<10) size = 1;
 	else if(data<100) { size = 2; offset = 10; }
 	else if(data<1000UL){ size = 3; offset = 100; }
@@ -142,6 +147,8 @@ void toStringUnsignDec(u64 data, string_t c_str){
 	else if(data<100000000000000ULL){ size = 14; offset = 10000000000000ULL; }
 	else if(data<1000000000000000ULL){ size = 15; offset = 100000000000000ULL; }
 	else if(data<10000000000000000ULL){ size = 16; offset = 1000000000000000ULL; }
+	else {MaximizeErrorHandler("toStringUnsignDec size is too long"); return;}
+	u08 i = 0;
 	while(size) {
 		if(size != 1){
 				 c_str[i] = (data/offset) + 0x30;
@@ -360,21 +367,35 @@ void fillRightStr(u16 size, string_t str, char symb) {
 	}
 }
 
-/*
- * Пока поддерживаются %d, %x, %s
+/* Печать в строку
+ * Пока поддерживаются
+ * %B, unsigned u08
+ * %I, unsigned u16
+ * %D, unsigned u32
+ * %L, unsigned u64
+ * %b, signed s08
+ * %i, signed s16
+ * %d, signed s32
+ * %l, signed s64
+ * %x, hex unsigned (u08)
+ * %X, hex unsigned (u32)
+ * %c, symb
+ * %s, string
  * */
-void Sprintf(string_t result, const string_t paternStr, void* param1, ...) {
+void Sprintf(string_t result, const string_t paternStr, void** params) {
 	if(result == NULL || paternStr == NULL) return;
-	u08 size = strSize(paternStr);
-	if(param1 == NULL) {
+	if(params == NULL) {
+		u08 size = strSize(paternStr);
 		strCopy(result, paternStr, size, 0);
 		return;
 	}
 	#undef TEMP_BUF_SIZE
-	#define TEMP_BUF_SIZE 10
+	#define TEMP_BUF_SIZE 12
+	result[0] = END_STRING;
 	char tempBuf[TEMP_BUF_SIZE];
 	u08 currentPozTempBuf = 0;
-	for(u08 i=0; i<size; i++) {
+	u08 i = 0;
+	while(paternStr[i] != END_STRING) {
 		if(paternStr[i] == '%') {
 			if(currentPozTempBuf > 0) {
 				tempBuf[currentPozTempBuf] = END_STRING;
@@ -383,33 +404,70 @@ void Sprintf(string_t result, const string_t paternStr, void* param1, ...) {
 			}
 			i++;
 			switch(paternStr[i]) {
-			case 'd':
-				toStringDec(*((s64*)param1), tempBuf);
+			case 'B':
+				toStringDec(**((u08**)params), tempBuf);
 				strCat(result, tempBuf);
-				param1++;
+				break;
+			case 'I':
+				toStringDec(**((u16**)params), tempBuf);
+				strCat(result, tempBuf);
+				break;
+			case 'D':
+				toStringDec(**((u32**)params), tempBuf);
+				strCat(result, tempBuf);
+				break;
+			case 'L':
+				toStringDec(**((u64**)params), tempBuf);
+				strCat(result, tempBuf);
+				break;
+			case 'b':
+				toStringDec(**((s08**)params), tempBuf);
+				strCat(result, tempBuf);
+				break;
+			case 'i':
+				toStringDec(**((s16**)params), tempBuf);
+				strCat(result, tempBuf);
+				break;
+			case 'd':
+				toStringDec(**((s32**)params), tempBuf);
+				strCat(result, tempBuf);
+				break;
+			case 'l':
+				toStringDec(**((s64**)params), tempBuf);
+				strCat(result, tempBuf);
 				break;
 			case 'x':
-				toString(8, *((s64*)param1), tempBuf);
+				toString(4, **((u08**)params), tempBuf);
 				strCat(result, tempBuf);
-				param1++;
+				break;
+			case 'X':
+				toString(4, **((u32**)params), tempBuf);
+				strCat(result, tempBuf);
 				break;
 			case 's':
-				strCat(result, (string_t)param1);
-				param1++;
+				strCat(result, (string_t)(*params));
+				break;
+			case 'c':
+				tempBuf[currentPozTempBuf] = **(char**)params;
+				currentPozTempBuf++;
 				break;
 			default:
-				strCat(result,"unsupported");
+				strCat(result," !unsupported! ");
 			}
-		} else {
-			if(currentPozTempBuf < TEMP_BUF_SIZE-1) {
+			params++;
+		} else
+		{
+			if(currentPozTempBuf < TEMP_BUF_SIZE-2) {
 				tempBuf[currentPozTempBuf] = paternStr[i];
 				currentPozTempBuf++;
 			} else {
-				tempBuf[currentPozTempBuf] = END_STRING;
+				tempBuf[currentPozTempBuf] = paternStr[i];
+				tempBuf[currentPozTempBuf+1] = END_STRING;
 				strCat(result,tempBuf);
 				currentPozTempBuf = 0;
 			}
 		}
+		i++;
 	}
 	if(currentPozTempBuf>0) {
 		tempBuf[currentPozTempBuf] = END_STRING;
@@ -417,3 +475,6 @@ void Sprintf(string_t result, const string_t paternStr, void* param1, ...) {
 	}
 }
 
+#ifdef __cplusplus
+}
+#endif

@@ -12,7 +12,7 @@
 
 #ifdef _X86
 #include <stdio.h>
-void enableUART3() {}
+void enableUART3(u32 baud) {}
 void disableUART3() {}
 static void sendCOM3_buf(u08 size, byte_ptr data) {
 	if(size == 0) printf("%s\n", data);
@@ -51,7 +51,9 @@ void enableLogging(void) {
 		return;
 	}
 	countEnableLogging = 1;
+#ifndef _X86
 	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,GPIO_PIN_SET);
+#endif// _X86
 	enableUART3(57600);
 }
 
@@ -59,7 +61,9 @@ void disableLogging(void){
 	if(countEnableLogging > 0) countEnableLogging--;
 	if(!countEnableLogging) {
 		disableUART3();
+#ifndef _X86
 		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,GPIO_PIN_RESET);
+#endif// _X86
 	}
 }
 
@@ -100,7 +104,7 @@ void writeLogFloat(float data) {
 }
 
 void writeLogU32(u32 data) {
-	char tempStr[10];
+	char tempStr[12];
 	toStringDec(data,tempStr);
 	writeLogTempString(tempStr);
 }

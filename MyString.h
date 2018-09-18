@@ -79,6 +79,21 @@ void fillRightStr(u16 size, string_t str, char symb);
 //Вернет размер строки
 BaseSize_t strSize(const string_t c_str);
 
-void Sprintf(string_t result, const string_t paternStr, void* param1, ...);
+/*
+ * Пока поддерживаются
+ * %B, unsigned u08
+ * %I, unsigned u16
+ * %D, unsigned u32
+ * %L, unsigned u64
+ * %b, signed s08
+ * %i, signed s16
+ * %d, signed s32
+ * %l, signed s64
+ * %x, hex unsigned (u08)
+ * %X, hex unsigned (u32)
+ * %c, symb
+ * %s, string
+ * */
+void Sprintf(string_t result, const string_t paternStr, void** params);
 
 #endif // MY_STRING_H
