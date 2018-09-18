@@ -43,14 +43,24 @@ static void sendUART2_buf(u08 byte) {sendUART_byte(0, byte);}
 #endif
 static string_t disableLavel = NULL;
 
+static u08 countEnableLogging = 0;
+
 void enableLogging(void) {
+	if(countEnableLogging > 0) {
+		countEnableLogging++;
+		return;
+	}
+	countEnableLogging = 1;
 	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,GPIO_PIN_SET);
 	enableUART3(57600);
 }
 
 void disableLogging(void){
-	disableUART3();
-	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,GPIO_PIN_RESET);
+	if(countEnableLogging > 0) countEnableLogging--;
+	if(!countEnableLogging) {
+		disableUART3();
+		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,GPIO_PIN_RESET);
+	}
 }
 
 void disableLogLevel(string_t level) {
