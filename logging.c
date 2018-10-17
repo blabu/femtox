@@ -35,7 +35,7 @@ static void disableUART2(){disableSoftUART();}
 static void sendCOM2_buf(u08 u, byte_ptr buf){ sendUART_str(0,(string_t)buf); }
 static void sendUART2_buf(u08 byte) {sendUART_byte(0, byte);}
 #elif ARM_STM32
-#include "UART3.h"
+#include "UART2.h"
 #endif
 #endif
 #ifndef NULL
@@ -54,17 +54,34 @@ void enableLogging(void) {
 #ifndef _X86
 	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,GPIO_PIN_SET);
 #endif// _X86
-	enableUART3(57600);
+	enableUART2(57600);
 }
 
 void disableLogging(void){
 	if(countEnableLogging > 0) countEnableLogging--;
 	if(!countEnableLogging) {
-		disableUART3();
+		disableUART2();
 #ifndef _X86
 		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,GPIO_PIN_RESET);
 #endif// _X86
 	}
+}
+
+void writeLogStr(const string_t c_str){
+	if(str1_str2(disableLavel,c_str)) return;
+	sendCOM2_buf(0, (byte_ptr)c_str);
+	sendCOM2_buf(0,(byte_ptr)"\r\n");
+}
+
+void writeLogTempString(string_t tempStr){
+	if(str1_str2(disableLavel,tempStr)) return;
+	u08 size =  strSize(tempStr);
+	for(u08 i = 0; i<size; i++) sendUART2_buf(tempStr[i]);
+	sendCOM2_buf(0,(byte_ptr)"\r\n");
+}
+
+void writeSymb(char symb) {
+	sendUART2_buf((u08)symb);
 }
 
 void disableLogLevel(string_t level) {
@@ -84,18 +101,6 @@ void writeLogWhithStr(const string_t c_str, u32 n) {
 	writeLogTempString(str);
 }
 
-void writeLogStr(const string_t c_str){
-	if(str1_str2(disableLavel,c_str)) return;
-	sendCOM3_buf(0, (byte_ptr)c_str);
-	sendCOM3_buf(0,(byte_ptr)"\r\n");
-}
-
-void writeLogTempString(string_t tempStr){
-	if(str1_str2(disableLavel,tempStr)) return;
-	u08 size =  strSize(tempStr);
-	for(u08 i = 0; i<size; i++) sendUART3_buf(tempStr[i]);
-	sendCOM3_buf(0,(byte_ptr)"\r\n");
-}
 
 void writeLogFloat(float data) {
 	char tempStr[10];
@@ -107,10 +112,6 @@ void writeLogU32(u32 data) {
 	char tempStr[12];
 	toStringDec(data,tempStr);
 	writeLogTempString(tempStr);
-}
-
-void writeSymb(char symb) {
-	sendUART3_buf((u08)symb);
 }
 
 #ifdef ALLOC_MEM
