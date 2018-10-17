@@ -64,8 +64,8 @@ s16 findSymb(const char symb, const string_t c_str){
 Вернет размер строки
 */
 BaseSize_t strSize(const string_t c_str){
-	BaseSize_t i = 0;
 	if(c_str == NULL) return 0;
+	BaseSize_t i = 0;
 	while(c_str[i] != END_STRING){
 		i++;
 		if(!i) break; // Если переполнился выходим из функции с результатом 0 (не нашли конца строки)

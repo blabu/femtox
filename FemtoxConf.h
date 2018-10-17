@@ -47,7 +47,7 @@
 #endif
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 1000UL /*6500*/
+#define HEAP_SIZE 10000UL /*6500*/
 #endif
 
 #ifdef CALL_BACK_TASK

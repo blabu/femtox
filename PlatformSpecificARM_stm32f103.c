@@ -4,7 +4,7 @@
 #include "TaskMngr.h"
 
 #ifdef MAXIMIZE_OVERFLOW_ERROR
-	void MaximizeErrorHandler(){
+	void MaximizeErrorHandler(string_t str){
 		initWatchDog();
 		while(1);
 	}

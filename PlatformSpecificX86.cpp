@@ -17,12 +17,12 @@ extern "C" {
 extern void TimerISR();
 
 #ifdef MAXIMIZE_OVERFLOW_ERROR
-	void MaximizeErrorHandler(){
+	void MaximizeErrorHandler(string_t str){
 		initWatchDog();
 		while(1);
 	}
 #else
-	void MaximizeErrorHandler(){
+	void MaximizeErrorHandler(string_t str){
 	}
 #endif
 /********************************************************************************************************************

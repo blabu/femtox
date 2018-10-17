@@ -85,7 +85,7 @@ volatile static TaskList_t TaskList[TASK_LIST_LEN];   // Очередь зада
 
 // Очередь системных таймеров
 //В очередь записывается задача (указатель на функцию) и выдержка времени необходимая перед постановкой задачи в очередь
-volatile static unsigned int MainTime[TIME_LINE_LEN];// Выдержка времени для конкретной задачи в мс.
+volatile static Time_t MainTime[TIME_LINE_LEN];// Выдержка времени для конкретной задачи в мс.
 volatile static TaskList_t MainTimer[TIME_LINE_LEN]; // Указатель задачи, которая состоит из указателя на функцию задачи, и двух аргументов
 
 
@@ -253,7 +253,7 @@ static void TaskManager(void) {
 		return;
 	}
 	INTERRUPT_ENABLE; // Если очередь пустая включаем прерывания
-	Idle();         // И выполняем функция простоя
+	Idle();           // И выполняем функция простоя
 }
 
 void SetTask(TaskMng New_Task, BaseSize_t n, BaseParam_t data) {
@@ -399,16 +399,14 @@ void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
 	return; //  тут можно сделать return c кодом ошибки - нет свободных таймеров
 #endif
 }
-static u08 findTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data)
-{
+static u08 findTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data) {
 	register u08 index = 0;
-	for(;index < lastTimerIndex; index++)
-	{
+	for(;index<lastTimerIndex; index++)	{
 		if((MainTimer[index].Task  == TPTR)&& /* Если уже есть запись с таким же адресом*/
-				(MainTimer[index].arg_p == data)&&
-				(MainTimer[index].arg_n == n))     /* и с таким же списком параметров*/
+		   (MainTimer[index].arg_p == data)&&
+		   (MainTimer[index].arg_n == n))     /* и с таким же списком параметров*/
 		{
-			break;      // Досрочно прекращаем работу цикла
+			break;
 		}
 	}
 	return index;
@@ -429,14 +427,11 @@ bool_t updateTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time
 	return FALSE;
 }
 
-void delTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data)
-{
+void delTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data) {
 	u08 index = findTimer(TPTR,n,data);
-	if(index < lastTimerIndex)
-	{
+	if(index < lastTimerIndex){
 		bool_t flag_inter = FALSE;
-		if(INTERRUPT_STATUS)
-		{
+		if(INTERRUPT_STATUS){
 			INTERRUPT_DISABLE;
 			flag_inter = TRUE;
 		}
@@ -477,7 +472,7 @@ void memCpy(void* destination, const void* source, const BaseSize_t num) {
 	}
 	if(last) *((byte_ptr)destination) = *((byte_ptr)source);
 #else
-	for (BaseSize_t i = 0; i < num; i++){ //Копирование будет побайтное
+	for (BaseSize_t i=0; i<num; i++){ //Копирование будет побайтное
 		*((byte_ptr)destination + i) = *((byte_ptr)source + i); // Выполняем копирование данных
 	}
 #endif

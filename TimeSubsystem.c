@@ -131,7 +131,8 @@ u08 getMinutes(void){
 }
 
 u08 getHour(void){
-	u08 nowHour = getHourFromSec(getAllSeconds());
+    Time_t sec = getAllSeconds();
+	u08 nowHour = getHourFromSec(sec);
 	nowHour += timeCorrectSummer;
 	if(nowHour > 23) nowHour -= 24; // Если часы равны 24 и более
 	return nowHour;

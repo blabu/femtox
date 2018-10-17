@@ -1,6 +1,6 @@
 #ifndef PLATFORMSPECIFIC
 #define PLATFORMSPECIFIC
-#include <io430.h>
+#include <msp430.h>
 #include "FemtoxConf.h"
 
 /********************************************************************************************************************
@@ -19,7 +19,7 @@ void resetWatchDog(void);
 #define INTERRUPT_DISABLE __disable_interrupt()
 #define INTERRUPT_STATUS  __get_interrupt_state()
 #define WATCH_DOG_ON  WDTCTL = WDTPW /*Генерируем Reset*/
-#define TICK_PER_SECOND 100 /*Колличество тиков в секунду*/
+#define TICK_PER_SECOND 100UL /*Колличество тиков в секунду*/
 
 void _init_Timer(void);	// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
 
