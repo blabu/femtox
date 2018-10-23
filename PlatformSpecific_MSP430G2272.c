@@ -10,6 +10,7 @@
 #ifdef MAXIMIZE_OVERFLOW_ERROR
     void MaximizeErrorHandler(string_t str){
         initWatchDog();
+        if(INTERRUPT_STATUS) INTERRUPT_ENABLE;
         while(1);
     }
 #else

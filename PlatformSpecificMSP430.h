@@ -17,7 +17,7 @@ void resetWatchDog(void);
 
 #define INTERRUPT_ENABLE  __enable_interrupt()
 #define INTERRUPT_DISABLE __disable_interrupt()
-#define INTERRUPT_STATUS  __get_interrupt_state()
+#define INTERRUPT_STATUS  (__get_interrupt_state() & GIE)
 #define WATCH_DOG_ON  WDTCTL = WDTPW /*Генерируем Reset*/
 #define TICK_PER_SECOND 100UL /*Колличество тиков в секунду*/
 

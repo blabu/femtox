@@ -1,6 +1,5 @@
 #include "TaskMngr.h"
 #include "PlatformSpecific.h"
-#include "logging.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -11,7 +10,7 @@ extern "C" {
 инициализируется таймер счетчик, и включает прерывание по переполнению Т/С0
  */
 
-const char* const _osVersion = "V1.3.3";
+const char* const _osVersion = "V1.3.2";
 
 #ifdef _PWR_SAVE
 u32 minTimeOut = 1; // Минимальное время таймоута для задач из списка таймеров
@@ -79,15 +78,13 @@ extern void initCallBackTask(void);
 #error "Invalid size"
 #endif
 
-volatile static IdleTask_t IdleTask=NULL;
-
-volatile static TaskList_t TaskList[TASK_LIST_LEN];   // Очередь задач - это глобальный масив переменных. Каждый элемент которой состоит из трех переменных.
+static volatile IdleTask_t IdleTask=NULL;
+static volatile TaskList_t TaskList[TASK_LIST_LEN];   // Очередь задач - это глобальный масив переменных. Каждый элемент которой состоит из трех переменных.
 
 // Очередь системных таймеров
 //В очередь записывается задача (указатель на функцию) и выдержка времени необходимая перед постановкой задачи в очередь
-volatile static Time_t MainTime[TIME_LINE_LEN];// Выдержка времени для конкретной задачи в мс.
-volatile static TaskList_t MainTimer[TIME_LINE_LEN]; // Указатель задачи, которая состоит из указателя на функцию задачи, и двух аргументов
-
+static volatile Time_t MainTime[TIME_LINE_LEN];// Выдержка времени для конкретной задачи в мс.
+static volatile TaskList_t MainTimer[TIME_LINE_LEN]; // Указатель задачи, которая состоит из указателя на функцию задачи, и двух аргументов
 
 volatile static Time_t GlobalTick;
 u32 getTick(void) {
@@ -144,12 +141,10 @@ void initFemtOS (void)   // Инициализация менеджера зад
 	//  1. Стандартным способом через ее имя и список параметров Например, shov1();
 	//  2. Через указатель на функцию. К примеру, (*show1)() - операция разыменовывания указателя на функцию;
 	//INTERRUPT_DISABLE;
-	for(i=0;i<TASK_LIST_LEN;i++)  //Набираем очередь задач // Это масив указателей на функции
-	{
-		TaskList[i].Task = NULL;
+	for(i=0;i<TASK_LIST_LEN;i++) { //Набираем очередь задач // Это масив указателей на функции
+			TaskList[i].Task = NULL;
 	}
-	for(i=0; i<TIME_LINE_LEN;i++)
-	{
+	for(i=0; i<TIME_LINE_LEN;i++) {
 		MainTimer[i].Task = NULL; // Вся очередь таймеров состоит из пустышек
 	}
 	_init_Timer();
@@ -185,6 +180,7 @@ void runFemtOS( void ){
 
 void ResetFemtOS(void){
 	WATCH_DOG_ON;
+	if(INTERRUPT_STATUS) INTERRUPT_ENABLE;
 	while(1);
 }
 
@@ -229,8 +225,8 @@ void TimerISR(void) {
 #endif
 } 	//Отработка прерывания по таймеру
 
-static u08 countBegin = 0;    // Указатель на НАЧАЛО очереди (нужен для быстрого диспетчера)
-static u08 countEnd = 0;      // Указатель на КОНЕЦ очереди (нужен для быстрого диспетчера)
+static volatile u08 countBegin = 0;    // Указатель на НАЧАЛО очереди (нужен для быстрого диспетчера)
+static volatile u08 countEnd = 0;      // Указатель на КОНЕЦ очереди (нужен для быстрого диспетчера)
 
 // Функция Планировщика (Менеджера) задач. Она запускает ту функцию, которая должна сейчас выполнятся.
 /*	Берется первая функция из очереди задач (TaskLine[0]) и проверяется не пустая ли она. Если не пустая, то смещаем всю чередь
@@ -272,7 +268,7 @@ void SetTask(TaskMng New_Task, BaseSize_t n, BaseParam_t data) {
 		if(flag_inter) INTERRUPT_ENABLE;
 		return;
 	}// Здесь мы окажемся в редких случаях когда oчередь переполнена
-	writeLogStr("ERROR: task queue overflow");
+    MaximizeErrorHandler("ERROR: task queue overflow");
 	SetTimerTask(New_Task, n, data, TIME_DELAY_IF_BUSY);  //Ставим задачу в очередь(попытаемся записать ее позже)
 	if (flag_inter) INTERRUPT_ENABLE;  //предварительно восстановив прерывания, если надо.
 }
@@ -372,6 +368,7 @@ static void TimerService (void) {
 
 void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time){
 	bool_t flag_inter = FALSE;  // флаг состояния прерывания
+	if(New_Time == 0) return SetTask(TPTR, n, data);
 	if (INTERRUPT_STATUS) //Если прерывания разрешены, то запрещаем их
 	{
 		INTERRUPT_DISABLE;
@@ -390,15 +387,11 @@ void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
 		if(flag_inter) INTERRUPT_ENABLE;
 		return;
 	}
-#ifdef MAXIMIZE_OVERFLOW_ERROR
-#warning "if queue task timers is overflow programm will be stoped"
-	MaximizeErrorHandler();
-#else
+	MaximizeErrorHandler("PANIC: HAVE NOT MORE TIMERS");
 	if(flag_inter) INTERRUPT_ENABLE;
-	writeLogStr("PANIC: HAVE NOT MORE TIMERS");
 	return; //  тут можно сделать return c кодом ошибки - нет свободных таймеров
-#endif
 }
+
 static u08 findTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data) {
 	register u08 index = 0;
 	for(;index<lastTimerIndex; index++)	{
