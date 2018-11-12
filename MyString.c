@@ -95,9 +95,10 @@ void strCopy(string_t result, const string_t c_str, BaseSize_t numb, BaseSize_t 
     if(!numb) return;
     do{
         result[i] = c_str[pos];  // Если исходная строка еще есть копируем
-        if(c_str[pos] == END_STRING) break;
+        if(c_str[pos] == END_STRING) return;
         pos++,numb--;i++;
     }while(numb);
+    result[i]=END_STRING;
 }
 
 char* strcpy (string_t destination, const string_t source) {
@@ -379,6 +380,7 @@ void fillRightStr(u16 size, string_t str, char symb) {
  * %l, signed s64
  * %x, hex unsigned (u08)
  * %X, hex unsigned (u32)
+ * %F, float,
  * %c, symb
  * %s, string
  * */
@@ -451,6 +453,10 @@ void Sprintf(string_t result, const string_t paternStr, void** params) {
 				tempBuf[currentPozTempBuf] = **(char**)params;
 				currentPozTempBuf++;
 				break;
+			case 'F':
+			    doubleToString(**((float**)params), tempBuf, 2);
+			    strCat(result, tempBuf);
+			    break;
 			default:
 				strCat(result," !unsupported! ");
 			}

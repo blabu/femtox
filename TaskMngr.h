@@ -173,6 +173,7 @@ void execCallBack(void* labelPtr);
 void execErrorCallBack(BaseSize_t errorCode, void* labelPtr);
 void deleteCallBack(BaseSize_t arg_n, void* labelPtr);
 u08 changeCallBackLabel(void* oldLabel, void* newLabel);
+void clearAllCallBackList();
 #endif
 
 #ifdef SIGNALS_TASK

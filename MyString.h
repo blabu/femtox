@@ -93,6 +93,7 @@ BaseSize_t strSize(const string_t c_str);
  * %X, hex unsigned (u32)
  * %c, symb
  * %s, string
+ * %F, float,
  * */
 void Sprintf(string_t result, const string_t paternStr, void** params);
 

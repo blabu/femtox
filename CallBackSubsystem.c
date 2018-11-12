@@ -44,6 +44,9 @@ u08 registerCallBack(TaskMng task, BaseSize_t arg_n, BaseParam_t arg_p, void* la
 	u08 i = findCallBack(NULL);
 	if(i == CALL_BACK_TASK_LIST_LEN) {
 		if(flag_isr) INTERRUPT_ENABLE;
+        #ifndef CHECK_ERRORS_CALLBACK
+		MaximizeErrorHandler("Overflow callback tasks");
+        #endif
 		return OVERFLOW_OR_EMPTY_ERROR;
 	}
 	callBackList[i].Task = task;
@@ -52,6 +55,16 @@ u08 registerCallBack(TaskMng task, BaseSize_t arg_n, BaseParam_t arg_p, void* la
 	labelPointer[i] = labelPtr;
 	if(flag_isr) INTERRUPT_ENABLE;
 	return EVERYTHING_IS_OK;
+}
+
+void clearAllCallBackList() {
+    bool_t flag_isr = FALSE;
+    if(INTERRUPT_STATUS){
+        flag_isr = TRUE;
+        INTERRUPT_DISABLE;
+    }
+    initCallBackTask();
+    if(flag_isr) INTERRUPT_ENABLE;
 }
 
 void deleteCallBack(BaseSize_t arg_n, void* labelPtr){

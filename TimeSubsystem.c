@@ -158,9 +158,7 @@ void setSeconds(u32 sec) {
 	while(__systemSeconds != sec) __systemSeconds = sec;
 #if TIME_INDEX!=0
 #ifdef SUMMER_TIME
-	u08 month = (u08)(getDayAndMonth()>>8);
-    if(month > 3 && month < 11) timeCorrectSummer = TIME_INDEX+1;
-    else timeCorrectSummer = TIME_INDEX;
+	getDayAndMonth();
 #endif
 #endif
 }

@@ -23,10 +23,16 @@ void resetWatchDog(void);
 
 void _init_Timer(void);	// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
 
+#include "../PROPERTIES.h"
 #ifdef USE_SOFT_UART
+#ifdef YAMPOL
 #define TX_PORT   P3OUT
 #define RX_PIN    P3IN
-
+#endif
+#ifdef G25_TANDEM
+#define TX_PORT   P1OUT
+#define RX_PIN    P1IN
+#endif
 /*
  * Для программного UART
  * Все програмные UART задействует прерывания одного таймера

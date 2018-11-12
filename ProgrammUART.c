@@ -31,7 +31,7 @@ static SoftUART_t UART_RX_DATA[UART_NUMB];
 static bool_t isStartBit0(){ // Для инициализации события (поиск стартоаого бита)
   if(UART_RX_DATA[0].curentCount < 0) { // Если таймер выключен
     if(! READ_RX_PIN(RX_PIN, UART_RX_DATA[0].Mask)){   // Проверяем стартовый бит
-      return TRUE;             // Если стартового бита обнаружен 
+      return TRUE;             // Если стартового бита обнаружен
     }
   }
   return FALSE;
@@ -45,7 +45,7 @@ static bool_t UART_RX0_predicate() { // Если байт принят верн�
     return FALSE;
 }
 static void UART_RX0_to_buff() { // Запись принятого байта в буфер
-    UART_RECEIV_DISABLE(0); // Выключаем UART 
+    UART_RECEIV_DISABLE(0); // Выключаем UART
     PutToBackQ(&UART_RX_DATA[0].Data, UART_RX_DATA[0].buffer); // Записываем байт в буфер
 }
 static bool_t UART_TX0_predicate() { // Если байт передан вернем истину
@@ -69,7 +69,7 @@ static void UART_TX0_to_buff() { // Запись принятого байта �
 static bool_t isStartBit1() { // Для инициализации события (поиск стартоаого бита)
   if(UART_RX_DATA[1].curentCount < 0) { // Если таймер выключен
     if(! READ_RX_PIN(RX_PIN, UART_RX_DATA[1].Mask) ) {  // Проверяем стартовый бит
-      return TRUE;             // Если стартового бита обнаружен 
+      return TRUE;             // Если стартового бита обнаружен
     }
   }
   return FALSE;
@@ -83,7 +83,7 @@ static bool_t UART_RX1_predicate() { // Если байт принят верн�
     return FALSE;
 }
 static void UART_RX1_to_buff() { // Запись принятого байта в буфер
-    UART_RECEIV_DISABLE(1); // Выключаем UART 
+    UART_RECEIV_DISABLE(1); // Выключаем UART
     PutToBackQ(&UART_RX_DATA[1].Data, UART_RX_DATA[1].buffer); // Записывае байт в буфер
 }
 static bool_t UART_TX1_predicate() { // Если байт принят вернем истину
@@ -232,12 +232,11 @@ void CreateSoftUART(const BaseSize_t buffTXsize, const BaseSize_t buffRXsize, co
     UART_TX_DATA[numbUART].Data = 0;
     UART_RX_DATA[numbUART].Data = 0;
     UART_TX_DATA[numbUART].buffer = allocMem(buffTXsize);
-    if(UART_TX_DATA[numbUART].buffer == NULL) while(1);
+    if(UART_TX_DATA[numbUART].buffer == NULL) MaximizeErrorHandler("Can not create buffer for soft uart");
     UART_RX_DATA[numbUART].buffer = allocMem(buffRXsize);
-    if(UART_RX_DATA[numbUART].buffer == NULL) while(1);
-    
-    if(CreateQ(UART_TX_DATA[numbUART].buffer, 1, buffTXsize) != EVERYTHING_IS_OK) while(1);
-    if(CreateQ(UART_RX_DATA[numbUART].buffer, 1, buffRXsize) != EVERYTHING_IS_OK) while(1);
+    if(UART_RX_DATA[numbUART].buffer == NULL) MaximizeErrorHandler("Can not create buffer for soft uart");
+    if(CreateQ(UART_TX_DATA[numbUART].buffer, 1, buffTXsize) != EVERYTHING_IS_OK) MaximizeErrorHandler("Data struct can not create");
+    if(CreateQ(UART_RX_DATA[numbUART].buffer, 1, buffRXsize) != EVERYTHING_IS_OK) MaximizeErrorHandler("Data struct can not create");
 }
 
 void delSoftUART(const u08 numbUART){
