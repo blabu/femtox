@@ -195,7 +195,7 @@ Date_t getDateFromSeconds(Time_t sec){
 	res.day = (u08)days+1;  res.mon = (u08)month+1;   res.year = (u16)year;
 #if TIME_INDEX!=0
 #ifdef SUMMER_TIME
-	if(month > 3 && month < 11) timeCorrectSummer = TIME_INDEX+1;
+	if(res.mon > 3 && res.mon < 11) timeCorrectSummer = TIME_INDEX+1;
 	else timeCorrectSummer = TIME_INDEX;
 #else
 	timeCorrectSummer = TIME_INDEX;

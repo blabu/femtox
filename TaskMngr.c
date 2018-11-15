@@ -10,7 +10,7 @@ extern "C" {
 инициализируется таймер счетчик, и включает прерывание по переполнению Т/С0
  */
 
-const char* const _osVersion = "V1.3.3.4";
+const char* const _osVersion = "V1.3.4.5";
 
 #ifdef _PWR_SAVE
 u32 minTimeOut = 1; // Минимальное время таймоута для задач из списка таймеров
@@ -437,6 +437,16 @@ void delTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data) {
 		MainTime[index] = MainTime[lastTimerIndex];
 		if(flag_inter) INTERRUPT_ENABLE;
 	}
+}
+
+void delAllTimerTask(){
+    bool_t flag_inter = FALSE;
+    if(INTERRUPT_STATUS){
+        INTERRUPT_DISABLE;
+        flag_inter = TRUE;
+    }
+    lastTimerIndex = 0;
+    if(flag_inter) INTERRUPT_ENABLE;
 }
 
 u08 getFreePositionForTimerTask(void) {

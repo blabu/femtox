@@ -42,7 +42,7 @@ void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
  */
 bool_t updateTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time);
 void delTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data);
-
+void delAllTimerTask();
 void SetIdleTask(IdleTask_t Task);
 // Можно задать IDLE задачку, которая выполняется когда есть свободное время у процессора
 //Задача должна иметь сигнатуру void Task(void)
@@ -151,6 +151,7 @@ void addOneSecondToDate(Date_t* date);
 void addOneMinutesToDate(Date_t* date);
 void addOneHourToDate(Date_t* date);
 void addOneDayToDate(Date_t* date);
+void subOneDayFromDate(Date_t * date);
 //#include "correctorsTypes.h"
 #ifndef OE22_LA
 #define TIME_INDEX 2
