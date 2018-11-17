@@ -163,7 +163,7 @@ void setSeconds(u32 sec) {
 #endif
 }
 
-Date_t getDateFromSeconds(Time_t sec){
+Date_t getDateFromSeconds(Time_t sec, bool_t toLocalTimeZone){
 	Date_t res;
 	u32 minutes, hours, days, year, month;
 	minutes  = sec / 60;
@@ -193,6 +193,7 @@ Date_t getDateFromSeconds(Time_t sec){
 	}
 	res.sec = (u08)sec;   res.min = (u08)minutes; res.hour = (u08)hours;
 	res.day = (u08)days+1;  res.mon = (u08)month+1;   res.year = (u16)year;
+	if(toLocalTimeZone) {
 #if TIME_INDEX!=0
 #ifdef SUMMER_TIME
 	if(res.mon > 3 && res.mon < 11) timeCorrectSummer = TIME_INDEX+1;
@@ -202,6 +203,7 @@ Date_t getDateFromSeconds(Time_t sec){
 #endif
 	for(u08 i = timeCorrectSummer; i; i--) addOneHourToDate(&res);
 #endif
+	}
 	return res;
 }
 

@@ -66,17 +66,17 @@ void enableLogging(void) {
 	}
 	countEnableLogging = 1;
 #ifndef _X86
-	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,GPIO_PIN_SET);
+//	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,GPIO_PIN_SET);
 #endif// _X86
-	enableUART3(57600);
+	enableUART2(57600);
 }
 
 void disableLogging(void){
 	if(countEnableLogging > 0) countEnableLogging--;
 	if(!countEnableLogging) {
-		disableUART3();
+		disableUART2();
 #ifndef _X86
-		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,GPIO_PIN_RESET);
+//		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,GPIO_PIN_RESET);
 #endif// _X86
 	}
 }
@@ -115,15 +115,15 @@ void writeLogWhithStr(const string_t c_str, u32 n) {
 
 void writeLogStr(const string_t c_str){
 	if(str1_str2(disableLavel,c_str)) return;
-	sendCOM3_buf(0, (byte_ptr)c_str);
-	sendCOM3_buf(0,(byte_ptr)"\r\n");
+	sendCOM2_buf(0, (byte_ptr)c_str);
+	sendCOM2_buf(0,(byte_ptr)"\r\n");
 }
 
 void writeLogTempString(string_t tempStr){
 	if(str1_str2(disableLavel,tempStr)) return;
 	u08 size =  strSize(tempStr);
 	for(u08 i = 0; i<size; i++) sendUART3_buf(tempStr[i]);
-	sendCOM3_buf(0,(byte_ptr)"\r\n");
+	sendCOM2_buf(0,(byte_ptr)"\r\n");
 }
 
 void writeLogFloat(float data) {
@@ -139,7 +139,7 @@ void writeLogU32(u32 data) {
 }
 
 void writeSymb(char symb) {
-	sendUART3_buf((u08)symb);
+	sendUART2_buf((u08)symb);
 }
 
 #ifdef ALLOC_MEM

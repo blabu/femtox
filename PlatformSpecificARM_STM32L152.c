@@ -91,7 +91,7 @@ static void lowLevelInitRTC(void) {
 }
 
 static RTC_HandleTypeDef RTC_Clock;
-void initRTC(void){
+void initRTC(void) {
 	RTC_Clock.Instance = RTC;
 	lowLevelInitRTC();
 	HAL_RTCEx_SetWakeUpTimer_IT(&RTC_Clock,(2048/TICK_PER_SECOND)-1,RTC_WAKEUPCLOCK_RTCCLK_DIV16);

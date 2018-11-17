@@ -469,7 +469,7 @@ static void XorWithIv(byte_ptr buf, byte_ptr Iv)
 void AesCbcEncrypt_buffer(byte_ptr buf, u32 length, const byte_ptr key, const byte_ptr iv)
 {
   u32 i;
-  byte_ptr Iv;
+  byte_ptr Iv = NULL;
   if(iv) Iv = iv;
   // Skip the key expansion if key is passed as 0
   if (key) {

@@ -1,6 +1,6 @@
 #ifndef MY_STRING_H
 #define MY_STRING_H
-#include "TaskMngr.h"
+#include "FemtoxTypes.h"
 
 // command - строка, которую ищут
 // answer  - строка, в которой ищут

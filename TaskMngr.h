@@ -141,7 +141,7 @@ u08 getHour(void);
 u16 getDayInYear(void);
 u16 getDayAndMonth(void);
 u08 getDaysInMonth(u08 month);
-Date_t getDateFromSeconds(Time_t sec);
+Date_t getDateFromSeconds(Time_t sec, bool_t toLocalTimeZone);
 Time_t getSecondsFromDate(const Date_t*const date);
 void setSeconds(u32 sec);
 void setDate(string_t date); //YY.MM.DD hh:mm:ss
@@ -152,14 +152,8 @@ void addOneMinutesToDate(Date_t* date);
 void addOneHourToDate(Date_t* date);
 void addOneDayToDate(Date_t* date);
 void subOneDayFromDate(Date_t * date);
-//#include "correctorsTypes.h"
-#ifndef OE22_LA
 #define TIME_INDEX 2
 #define SUMMER_TIME
-#else
-#define TIME_INDEX 0
-#define SUMMER_TIME
-#endif
 #endif
 
 #ifdef CALL_BACK_TASK
