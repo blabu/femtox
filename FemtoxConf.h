@@ -24,7 +24,7 @@
 //#define SIGNALS_TASK
 //#define _LIST_STRUCT
 //#define _DYNAMIC_ARRAY
-#define _PWR_SAVE
+//#define _PWR_SAVE
 #define NEED_CRYPT
 #define ENABLE_LOGGING
 

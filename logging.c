@@ -9,6 +9,7 @@
 #include "MyString.h"
 #include "logging.h"
 #include "TaskMngr.h"
+#include "UART2.h"
 
 #ifndef ENABLE_LOGGING
 void enableLogging(void) {
