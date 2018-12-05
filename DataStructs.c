@@ -140,10 +140,10 @@ u08 PutToCycleDataStruct(const void* Elem, const void* Array) {
 }
 
 u08 GetFromCycleDataStruct(void* returnValue, const void* Array){
-    bool_t flag_int = FALSE;
     register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
     if(Data_Array[i].lastCount > 0) { // Если есть какие либо данные
+	    bool_t flag_int = FALSE;
     	if(INTERRUPT_STATUS) {
     		flag_int = TRUE;
     		INTERRUPT_DISABLE;

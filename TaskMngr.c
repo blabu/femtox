@@ -203,7 +203,7 @@ void TimerISR(void) {
 	u32 minCycleService = CycleService(); // Вернет минимальное время из циклических задач
 	if(minTimerService && minCycleService) {
 		if(minTimerService < minCycleService) minTimeOut = minTimerService;
-		else if(minCycleService) minTimeOut = minCycleService;
+		else if(minCycleService != 0) minTimeOut = minCycleService;
 	}
 	else if(minTimerService) minTimeOut = minTimerService;
 	else if(minCycleService) minTimeOut = minCycleService;
@@ -232,15 +232,12 @@ static volatile u08 countEnd = 0;      // Указатель на КОНЕЦ о�
 Берем количество параметров из глобального стека и передаем взятой функции, которая берет свои параметры из глобального стека.
  */
 static void TaskManager(void) {
-	BaseSize_t   n;       // Первый аргумент следующей функции (количество параметров)
-	BaseParam_t  a;       // Второй аргумент для следующей фунции (адрес первой переменной)
-	TaskMng Func_point;       // Определяем временную переменную типа указатель на функцию
 	INTERRUPT_DISABLE;
 	if(countBegin != countEnd) { // Если очередь не пустая
 	// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
-		Func_point = TaskList[countBegin].Task; // countBegin - указывает на начало очереди на рабочую задачу
-		a = TaskList[countBegin].arg_p;
-		n = TaskList[countBegin].arg_n;
+		TaskMng Func_point = TaskList[countBegin].Task; // countBegin - указывает на начало очереди на рабочую задачу
+		BaseParam_t a = TaskList[countBegin].arg_p;
+		BaseSize_t n = TaskList[countBegin].arg_n;
 		countBegin = (countBegin < TASK_LIST_LEN-1)? countBegin+1:0;
 		INTERRUPT_ENABLE;
 		Func_point(n,a);
