@@ -11,6 +11,7 @@ extern "C" {
  */
 
 const char* const _osVersion = "V1.3.4.5";
+const BaseSize_t _MAX_BASE_SIZE = 1 << (sizeof(BaseSize_t)>>3);
 
 #ifdef _PWR_SAVE
 u32 minTimeOut = 1; // Минимальное время таймоута для задач из списка таймеров
@@ -114,8 +115,7 @@ static void ClockService(void){
 void SetIdleTask(IdleTask_t Task)
 {
 	bool_t flag_ISR = FALSE;
-	if (INTERRUPT_STATUS) //Если прерывания разрешены, то запрещаем их
-	{
+	if (INTERRUPT_STATUS) { //Если прерывания разрешены, то запрещаем их
 		INTERRUPT_DISABLE;
 		flag_ISR = TRUE;                     // И устанавливаем флаг, что мы не в прерывании
 	}

@@ -1,6 +1,11 @@
+#ifdef _WIN
 #include <mingw.thread.h>
-#include <chrono>
 #include <mingw.mutex.h>
+#elif __unix
+#include <thread>
+#include <mutex>
+#endif
+#include <chrono>
 static std::thread* timerThread;
 static std::mutex mt;
 
@@ -17,59 +22,62 @@ extern "C" {
 extern void TimerISR();
 
 #ifdef MAXIMIZE_OVERFLOW_ERROR
-	void MaximizeErrorHandler(string_t str){
-		initWatchDog();
-		while(1);
-	}
+void MaximizeErrorHandler(string_t str){
+	initWatchDog();
+	writeLogStr("Error handler");
+	writeLogStr(str);
+	exit(1);
+}
 #else
-	void MaximizeErrorHandler(string_t str){
-	}
+void MaximizeErrorHandler(string_t str){
+}
 #endif
 /********************************************************************************************************************
-*********************************************************************************************************************
+ *********************************************************************************************************************
                                             ПЛАТФОРМО-ЗАВИСИМЫЕ ФУНКЦИИ														|
-*********************************************************************************************************************
-*********************************************************************************************************************/
+ *********************************************************************************************************************
+ *********************************************************************************************************************/
 
 void initWatchDog() {
-    writeLogStr("start init watch dog");
-    exit(1);
+	writeLogStr(string_t("start init watch dog"));
 }
 
 void resetWatchDog() {
 
 }
 
-
 unsigned char statusIt(){
-    bool res = mt.try_lock();
-    if(res) {
-        mt.unlock();
-        return 1;
-    }
-    return 0;
+	bool res = mt.try_lock();
+	if(res) {
+		mt.unlock();
+		return 1;
+	}
+	return 0;
 }
 
 void blockIt() {
-    mt.lock();
+	mt.lock();
 }
 
 void unBlockIt(){
-    mt.unlock();
+	mt.unlock();
 }
 
 static void __timer() {
-    while(1) {
-    	std::this_thread::sleep_for(std::chrono::milliseconds(1000UL/TICK_PER_SECOND));
-        //blockIt();
-        TimerISR();
-        //unBlockIt();
-    }
+	while(1) {
+		auto tStart = std::chrono::steady_clock::now();
+		blockIt();
+		TimerISR();
+		unBlockIt();
+		auto tStop = std::chrono::steady_clock::now();
+		auto dT = (tStop - tStart);
+		std::this_thread::sleep_for(std::chrono::nanoseconds(1000000000UL/TICK_PER_SECOND) - dT);
+	}
 }
 
 void _init_Timer(void){// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
-    writeLogStr("start init timer");
-    timerThread = new std::thread(__timer);
+	writeLogStr("start init timer");
+	timerThread = new std::thread(__timer);
 }
 
 /*
@@ -77,7 +85,7 @@ void _init_Timer(void){// Инициализация таймера 0, наст�
  * Все програмные UART задействует прерывания одного таймера
  * Все програмные UART должны находится на одном порту ввода вывода, который указывается здесь же
  * Если программных UART будет больше двух необходимо добавлять новые функции в ProgramUART.c
-*/
+ */
 void _initTimerSoftUart() {
 
 }

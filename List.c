@@ -147,7 +147,10 @@ BaseSize_t getSizeList(ListNode_t* list){
     BaseSize_t size = 0;
 	ListNode_t * head = findHead(list);
 	if(head != NULL) {
-        while(head->next != NULL) size++;
+        while(head->next != NULL) {
+        	head = head->next;
+        	size++;
+        }
 	}
     return size;
 }

@@ -9,13 +9,14 @@
 #define FEMTOXTYPES_H_
 
 #include "FemtoxConf.h"
+#include "PlatformSpecific.h"
 
 #ifndef NULL
 #define NULL ((void*)0)
 #endif
 
 #define PAIR(T,V) struct{T first; V second;}
-
+#ifdef _ARM32
 typedef char* string_t;
 typedef unsigned long long u64;
 typedef long long s64;
@@ -33,10 +34,48 @@ typedef u08 bool_t;
 #define TRUE 1
 #define FALSE 0
 #endif
-
+#elif _X86
+typedef char* string_t;
+typedef unsigned long long u64;
+typedef long long s64;
+typedef unsigned int   u32;
+typedef unsigned short u16;
+typedef unsigned char  u08;
+typedef signed int     s32;
+typedef signed short   s16;
+typedef signed char    s08;
+typedef unsigned int   Time_t;
+#ifndef _WIN32
+typedef enum {FALSE=0, TRUE = !FALSE} bool_t;
+#else
+typedef u08 bool_t;
+#define TRUE 1
+#define FALSE 0
+#endif
+#elif _MSP430
+typedef char* string_t;
+typedef unsigned long long u64;
+typedef long long s64;
+typedef unsigned int   u32;
+typedef unsigned short u16;
+typedef unsigned char  u08;
+typedef signed int     s32;
+typedef signed short   s16;
+typedef signed char    s08;
+typedef unsigned int   Time_t;
+#ifndef _WIN32
+typedef enum {FALSE=0, TRUE = !FALSE} bool_t;
+#else
+typedef u08 bool_t;
+#define TRUE 1
+#define FALSE 0
+#endif
+#endif
 typedef unsigned char* byte_ptr;
 typedef unsigned short  BaseSize_t; // Первый аргумент для задачи в диспетчере
 typedef void* BaseParam_t;  // Второй аргумент для задачи в диспетчере
+extern const BaseSize_t _MAX_BASE_SIZE;
+
 
 typedef void (*IdleTask_t)(void);      // Указатель на функцию обработки холостого хода void funcIDLE(void)
 typedef void (*CycleFuncPtr_t)(void);  // Указатель на функцию void func(void). Для циклического выполнения в прерывании таймера

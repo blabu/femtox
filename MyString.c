@@ -1,9 +1,6 @@
 // Файл работы со строками
 #include "MyString.h"
-
-#ifndef NULL
-#define NULL 0
-#endif
+#include "TaskMngr.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -126,8 +123,6 @@ BaseSize_t strSplit(char delim, string_t c_str) {
     }
     return numb;
 }
-
-#include <stdio.h>
 
 void toStringUnsignDec(u64 data, string_t c_str){
 	u08 size = 0;

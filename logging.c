@@ -9,7 +9,6 @@
 #include "MyString.h"
 #include "logging.h"
 #include "TaskMngr.h"
-#include "UART2.h"
 
 #ifndef ENABLE_LOGGING
 void enableLogging(void) {
@@ -35,9 +34,9 @@ void writeSymb(char symb) {}
 #ifdef ENABLE_LOGGING
 #ifdef _X86
 #include <stdio.h>
-void enableUART3(u32 baud) {}
-void disableUART3() {}
-static void sendCOM3_buf(u08 size, byte_ptr data) {
+void enableUART2(u32 baud) {}
+void disableUART2() {}
+static void sendCOM2_buf(u08 size, byte_ptr data) {
 	if(size == 0) printf("%s\n", data);
 	else {
 		for(u08 i = 0; i<size; i++) {
@@ -47,7 +46,7 @@ static void sendCOM3_buf(u08 size, byte_ptr data) {
 	fflush(stdout);
 }
 
-static void sendUART3_buf(u08 c) {
+static void sendUART2_buf(u08 c) {
 	printf("%c",c);
 	fflush(stdout);
 }
@@ -59,6 +58,7 @@ static void sendUART3_buf(u08 c) {
 #endif
 
 #ifdef ARM_STM32
+#include "UART2.h"
 static u08 countEnableLogging = 0;
 void enableLogging(void) {
 	if(countEnableLogging > 0) {
@@ -67,6 +67,7 @@ void enableLogging(void) {
 	}
 	countEnableLogging = 1;
 #ifndef _X86
+
 //	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,GPIO_PIN_SET);
 #endif// _X86
 	enableUART2(57600);
@@ -110,7 +111,8 @@ void writeLogWhithStr(const string_t c_str, u32 n) {
 		return;
 	}
 	strClear(str); strCat(str,c_str);
-	toStringDec(n,str+size);
+	strCat(str," ");
+	toStringDec(n,str+size+1);
 	writeLogTempString(str);
 }
 
@@ -123,7 +125,7 @@ void writeLogStr(const string_t c_str){
 void writeLogTempString(string_t tempStr){
 	if(str1_str2(disableLavel,tempStr)) return;
 	u08 size =  strSize(tempStr);
-	for(u08 i = 0; i<size; i++) sendUART3_buf(tempStr[i]);
+	for(u08 i = 0; i<size; i++) sendUART2_buf(tempStr[i]);
 	sendCOM2_buf(0,(byte_ptr)"\r\n");
 }
 

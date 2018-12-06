@@ -7,14 +7,6 @@
 
 #define UART_NUMB 3    /*Колличество программных ЮАРТов*/
 
-#define BAUD_150   127
-#define BAUD_300   64
-#define BAUD_600   32
-#define BAUD_1200  16
-#define BAUD_2400  8
-#define BAUD_4800  4
-#define BAUD_9600  2
-
 #define DATA_BITS  8   /*Количество бит данных в посылке*/
 
 typedef struct

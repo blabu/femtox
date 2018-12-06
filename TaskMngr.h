@@ -172,7 +172,6 @@ void clearAllCallBackList();
 #endif
 
 #ifdef SIGNALS_TASK
-#define SIGNAL_LIST_LEN 10
 void connectTaskToSignal(TaskMng task, void* signal);
 void disconnectTaskFromSignal(TaskMng task, void* signal);
 void emitSignal(void* signal, BaseSize_t arg_n, BaseParam_t arg_p);
