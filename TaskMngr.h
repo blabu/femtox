@@ -42,7 +42,7 @@ void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
  */
 bool_t updateTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time);
 void delTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data);
-
+void delAllTimerTask();
 void SetIdleTask(IdleTask_t Task);
 // Можно задать IDLE задачку, которая выполняется когда есть свободное время у процессора
 //Задача должна иметь сигнатуру void Task(void)
@@ -50,7 +50,7 @@ void SetIdleTask(IdleTask_t Task);
 
 u32 getTick(void);
 
-void MaximizeErrorHandler(void);
+void MaximizeErrorHandler(string_t str);
 
 void memCpy(void * destination, const void * source, const BaseSize_t num);
 void memSet(void* destination, const BaseSize_t size, const u08 value);
@@ -61,7 +61,7 @@ void delEvent(Predicat_t condition); //Удаляем обработку соб�
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
-#define NOT_FAUND_DATA_STRUCT_ERROR 1
+#define NOT_FOUND_DATA_STRUCT_ERROR 1
 #define OVERFLOW_OR_EMPTY_ERROR     2
 #define OTHER_ERROR                 3
 #define NULL_PTR_ERROR              4
@@ -141,7 +141,7 @@ u08 getHour(void);
 u16 getDayInYear(void);
 u16 getDayAndMonth(void);
 u08 getDaysInMonth(u08 month);
-Date_t getDateFromSeconds(Time_t sec);
+Date_t getDateFromSeconds(Time_t sec, bool_t toLocalTimeZone);
 Time_t getSecondsFromDate(const Date_t*const date);
 void setSeconds(u32 sec);
 void setDate(string_t date); //YY.MM.DD hh:mm:ss
@@ -151,6 +151,7 @@ void addOneSecondToDate(Date_t* date);
 void addOneMinutesToDate(Date_t* date);
 void addOneHourToDate(Date_t* date);
 void addOneDayToDate(Date_t* date);
+void subOneDayFromDate(Date_t * date);
 #define TIME_INDEX 2
 #define SUMMER_TIME
 #endif
@@ -167,10 +168,10 @@ void execCallBack(void* labelPtr);
 void execErrorCallBack(BaseSize_t errorCode, void* labelPtr);
 void deleteCallBack(BaseSize_t arg_n, void* labelPtr);
 u08 changeCallBackLabel(void* oldLabel, void* newLabel);
+void clearAllCallBackList();
 #endif
 
 #ifdef SIGNALS_TASK
-#define SIGNAL_LIST_LEN 10
 void connectTaskToSignal(TaskMng task, void* signal);
 void disconnectTaskFromSignal(TaskMng task, void* signal);
 void emitSignal(void* signal, BaseSize_t arg_n, BaseParam_t arg_p);

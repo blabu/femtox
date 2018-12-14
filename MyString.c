@@ -1,8 +1,9 @@
 // Файл работы со строками
 #include "MyString.h"
+#include "TaskMngr.h"
 
-#ifndef NULL
-#define NULL 0
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 #define END_STRING '\0'
@@ -60,8 +61,8 @@ s16 findSymb(const char symb, const string_t c_str){
 Вернет размер строки
 */
 BaseSize_t strSize(const string_t c_str){
-	BaseSize_t i = 0;
 	if(c_str == NULL) return 0;
+	BaseSize_t i = 0;
 	while(c_str[i] != END_STRING){
 		i++;
 		if(!i) break; // Если переполнился выходим из функции с результатом 0 (не нашли конца строки)
@@ -91,9 +92,10 @@ void strCopy(string_t result, const string_t c_str, BaseSize_t numb, BaseSize_t 
     if(!numb) return;
     do{
         result[i] = c_str[pos];  // Если исходная строка еще есть копируем
-        if(c_str[pos] == END_STRING) break;
+        if(c_str[pos] == END_STRING) return;
         pos++,numb--;i++;
     }while(numb);
+    result[i]=END_STRING;
 }
 
 char* strcpy (string_t destination, const string_t source) {
@@ -125,7 +127,6 @@ BaseSize_t strSplit(char delim, string_t c_str) {
 void toStringUnsignDec(u64 data, string_t c_str){
 	u08 size = 0;
 	u64 offset = 0;
-	u08 i = 0;
 	if(data<10) size = 1;
 	else if(data<100) { size = 2; offset = 10; }
 	else if(data<1000UL){ size = 3; offset = 100; }
@@ -142,6 +143,8 @@ void toStringUnsignDec(u64 data, string_t c_str){
 	else if(data<100000000000000ULL){ size = 14; offset = 10000000000000ULL; }
 	else if(data<1000000000000000ULL){ size = 15; offset = 100000000000000ULL; }
 	else if(data<10000000000000000ULL){ size = 16; offset = 1000000000000000ULL; }
+	else {MaximizeErrorHandler("toStringUnsignDec size is too long"); return;}
+	u08 i = 0;
 	while(size) {
 		if(size != 1){
 				 c_str[i] = (data/offset) + 0x30;
@@ -207,11 +210,14 @@ static s64 toInt(s08 razryad, const string_t c_str){
             res <<= 4;
             res |= c_str[i] - '0';
             razryad--;
-        }
-        else if(c_str[i] >= 'A' && c_str[i] <= 'F') {
+        }else if(c_str[i] >= 'A' && c_str[i] <= 'F') {
             res <<= 4;
             res |= c_str[i]-'A'+10;
             razryad--;
+        }else if(c_str[i] >= 'a' && c_str[i] <= 'f') {
+        	res <<= 4;
+        	res |= c_str[i]-'a'+10;
+        	razryad--;
         }
         else if(res != 0) break;
         if(razryad <= 0) break;
@@ -356,3 +362,120 @@ void fillRightStr(u16 size, string_t str, char symb) {
 		str[i] = symb;
 	}
 }
+
+/* Печать в строку
+ * Пока поддерживаются
+ * %B, unsigned u08
+ * %I, unsigned u16
+ * %D, unsigned u32
+ * %L, unsigned u64
+ * %b, signed s08
+ * %i, signed s16
+ * %d, signed s32
+ * %l, signed s64
+ * %x, hex unsigned (u08)
+ * %X, hex unsigned (u32)
+ * %F, float,
+ * %c, symb
+ * %s, string
+ * */
+void Sprintf(string_t result, const string_t paternStr, void** params) {
+	if(result == NULL || paternStr == NULL) return;
+	if(params == NULL) {
+		u08 size = strSize(paternStr);
+		strCopy(result, paternStr, size, 0);
+		return;
+	}
+	#undef TEMP_BUF_SIZE
+	#define TEMP_BUF_SIZE 12
+	result[0] = END_STRING;
+	char tempBuf[TEMP_BUF_SIZE];
+	u08 currentPozTempBuf = 0;
+	u08 i = 0;
+	while(paternStr[i] != END_STRING) {
+		if(paternStr[i] == '%') {
+			if(currentPozTempBuf > 0) {
+				tempBuf[currentPozTempBuf] = END_STRING;
+				strCat(result,tempBuf);
+				currentPozTempBuf = 0;
+			}
+			i++;
+			switch(paternStr[i]) {
+			case 'B':
+				toStringDec(**((u08**)params), tempBuf);
+				strCat(result, tempBuf);
+				break;
+			case 'I':
+				toStringDec(**((u16**)params), tempBuf);
+				strCat(result, tempBuf);
+				break;
+			case 'D':
+				toStringDec(**((u32**)params), tempBuf);
+				strCat(result, tempBuf);
+				break;
+			case 'L':
+				toStringDec(**((u64**)params), tempBuf);
+				strCat(result, tempBuf);
+				break;
+			case 'b':
+				toStringDec(**((s08**)params), tempBuf);
+				strCat(result, tempBuf);
+				break;
+			case 'i':
+				toStringDec(**((s16**)params), tempBuf);
+				strCat(result, tempBuf);
+				break;
+			case 'd':
+				toStringDec(**((s32**)params), tempBuf);
+				strCat(result, tempBuf);
+				break;
+			case 'l':
+				toStringDec(**((s64**)params), tempBuf);
+				strCat(result, tempBuf);
+				break;
+			case 'x':
+				toString(4, **((u08**)params), tempBuf);
+				strCat(result, tempBuf);
+				break;
+			case 'X':
+				toString(4, **((u32**)params), tempBuf);
+				strCat(result, tempBuf);
+				break;
+			case 's':
+				strCat(result, (string_t)(*params));
+				break;
+			case 'c':
+				tempBuf[currentPozTempBuf] = **(char**)params;
+				currentPozTempBuf++;
+				break;
+			case 'F':
+			    doubleToString(**((float**)params), tempBuf, 2);
+			    strCat(result, tempBuf);
+			    break;
+			default:
+				strCat(result," !unsupported! ");
+			}
+			params++;
+		} else
+		{
+			if(currentPozTempBuf < TEMP_BUF_SIZE-2) {
+				tempBuf[currentPozTempBuf] = paternStr[i];
+				currentPozTempBuf++;
+			} else {
+				tempBuf[currentPozTempBuf] = paternStr[i];
+				tempBuf[currentPozTempBuf+1] = END_STRING;
+				strCat(result,tempBuf);
+				currentPozTempBuf = 0;
+			}
+		}
+		i++;
+	}
+	if(currentPozTempBuf>0) {
+		tempBuf[currentPozTempBuf] = END_STRING;
+		strCat(result,tempBuf);
+	}
+}
+
+#ifdef __cplusplus
+}
+#endif

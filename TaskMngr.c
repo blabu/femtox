@@ -1,6 +1,5 @@
 #include "TaskMngr.h"
 #include "PlatformSpecific.h"
-#include "logging.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -11,7 +10,8 @@ extern "C" {
 инициализируется таймер счетчик, и включает прерывание по переполнению Т/С0
  */
 
-const char* const _osVersion = "V1.3.0";
+const char* const _osVersion = "V1.3.4.5";
+const BaseSize_t _MAX_BASE_SIZE = 1 << (sizeof(BaseSize_t)>>3);
 
 #ifdef _PWR_SAVE
 u32 minTimeOut = 1; // Минимальное время таймоута для задач из списка таймеров
@@ -79,15 +79,13 @@ extern void initCallBackTask(void);
 #error "Invalid size"
 #endif
 
-volatile static IdleTask_t IdleTask=NULL;
-
-static TaskList_t TaskList[TASK_LIST_LEN];   // Очередь задач - это глобальный масив переменных. Каждый элемент которой состоит из трех переменных.
+static volatile IdleTask_t IdleTask=NULL;
+static volatile TaskList_t TaskList[TASK_LIST_LEN];   // Очередь задач - это глобальный масив переменных. Каждый элемент которой состоит из трех переменных.
 
 // Очередь системных таймеров
 //В очередь записывается задача (указатель на функцию) и выдержка времени необходимая перед постановкой задачи в очередь
-static unsigned int MainTime[TIME_LINE_LEN];// Выдержка времени для конкретной задачи в мс.
-static TaskList_t MainTimer[TIME_LINE_LEN]; // Указатель задачи, которая состоит из указателя на функцию задачи, и двух аргументов
-
+static volatile Time_t MainTime[TIME_LINE_LEN];// Выдержка времени для конкретной задачи в мс.
+static volatile TaskList_t MainTimer[TIME_LINE_LEN]; // Указатель задачи, которая состоит из указателя на функцию задачи, и двух аргументов
 
 volatile static Time_t GlobalTick;
 u32 getTick(void) {
@@ -102,32 +100,25 @@ u32 getTick(void) {
 
 static void ClockService(void){
 #ifdef _PWR_SAVE
-	GlobalTick+=minTimeOut;
+	GlobalTick += minTimeOut;
 #else
 	GlobalTick++;
 #endif
 #ifdef CLOCK_SERVICE
-	if(GlobalTick >= TICK_PER_SECOND) {
+	while(GlobalTick >= TICK_PER_SECOND) {
 		__systemSeconds++;
 		GlobalTick -= TICK_PER_SECOND;
 	}
 #endif
 }
 
-void SetIdleTask(IdleTask_t Task)
-{
-	bool_t flag_ISR = FALSE;
-	if (INTERRUPT_STATUS) //Если прерывания разрешены, то запрещаем их
-	{
-		INTERRUPT_DISABLE;
-		flag_ISR = TRUE;                     // И устанавливаем флаг, что мы не в прерывании
-	}
+void SetIdleTask(IdleTask_t Task){
+	unlock_t unlock = lock(SetIdleTask);
 	IdleTask = Task;
-	if(flag_ISR) INTERRUPT_ENABLE;
+	unlock(SetIdleTask);
 }
 
-static void Idle(void) // Функция включает режим пониженного электропотребления микроконтроллера. При этом перестает работать ядро.
-{
+static void Idle(void) { // Функция включает режим пониженного электропотребления микроконтроллера. При этом перестает работать ядро.
 	if(IdleTask != NULL) IdleTask();
 }
 /********************************************************************************************************************
@@ -136,20 +127,17 @@ static void Idle(void) // Функция включает режим пониж�
  *********************************************************************************************************************
  *********************************************************************************************************************
 ---------------------------------------------------------------------------------------------------------------------*/
-void initFemtOS (void)   // Инициализация менеджера задач
-{
-	u08 i;
+void initFemtOS (void) {  // Инициализация менеджера задач
+	register u08 i;
 	// Отметим, что имя функции является ее указателем.
 	// Вызвать любую функцию можно двояко:
 	//  1. Стандартным способом через ее имя и список параметров Например, shov1();
 	//  2. Через указатель на функцию. К примеру, (*show1)() - операция разыменовывания указателя на функцию;
 	//INTERRUPT_DISABLE;
-	for(i=0;i<TASK_LIST_LEN;i++)  //Набираем очередь задач // Это масив указателей на функции
-	{
-		TaskList[i].Task = NULL;
+	for(i=0;i<TASK_LIST_LEN;i++) { //Набираем очередь задач // Это масив указателей на функции
+			TaskList[i].Task = NULL;
 	}
-	for(i=0; i<TIME_LINE_LEN;i++)
-	{
+	for(i=0; i<TIME_LINE_LEN;i++) {
 		MainTimer[i].Task = NULL; // Вся очередь таймеров состоит из пустышек
 	}
 	_init_Timer();
@@ -174,10 +162,8 @@ void initFemtOS (void)   // Инициализация менеджера зад
 	//INTERRUPT_ENABLE;
 }
 
-void runFemtOS( void )
-{
-	while(1)
-	{
+void runFemtOS( void ) {
+	while(1){
 #ifdef EVENT_LOOP_TASKS
 		EventManager();
 #endif
@@ -187,6 +173,7 @@ void runFemtOS( void )
 
 void ResetFemtOS(void){
 	WATCH_DOG_ON;
+	unlock_t unlock = lock(ResetFemtOS);
 	while(1);
 }
 
@@ -211,7 +198,7 @@ void TimerISR(void) {
 	u32 minCycleService = CycleService(); // Вернет минимальное время из циклических задач
 	if(minTimerService && minCycleService) {
 		if(minTimerService < minCycleService) minTimeOut = minTimerService;
-		else if(minCycleService) minTimeOut = minCycleService;
+		else if(minCycleService != 0) minTimeOut = minCycleService;
 	}
 	else if(minTimerService) minTimeOut = minTimerService;
 	else if(minCycleService) minTimeOut = minCycleService;
@@ -231,55 +218,49 @@ void TimerISR(void) {
 #endif
 } 	//Отработка прерывания по таймеру
 
-static u08 countBegin = 0;    // Указатель на НАЧАЛО очереди (нужен для быстрого диспетчера)
-static u08 countEnd = 0;      // Указатель на КОНЕЦ очереди (нужен для быстрого диспетчера)
+static volatile u08 countBegin = 0;    // Указатель на НАЧАЛО очереди (нужен для быстрого диспетчера)
+static volatile u08 countEnd = 0;      // Указатель на КОНЕЦ очереди (нужен для быстрого диспетчера)
 
 // Функция Планировщика (Менеджера) задач. Она запускает ту функцию, которая должна сейчас выполнятся.
 /*	Берется первая функция из очереди задач (TaskLine[0]) и проверяется не пустая ли она. Если не пустая, то смещаем всю чередь
 на один элемент вверх, а в последний элемент очереди ставим Idle (пустую функцию, включающую режим ожидания МК).
 Берем количество параметров из глобального стека и передаем взятой функции, которая берет свои параметры из глобального стека.
  */
-static void TaskManager(void)
-{
-	BaseSize_t   n;       // Первый аргумент следующей функции (количество параметров)
-	BaseParam_t  a;       // Второй аргумент для следующей фунции (адрес первой переменной)
-	TaskMng Func_point;       // Определяем временную переменную типа указатель на функцию
-	INTERRUPT_DISABLE;
-	if(countBegin != countEnd) // Если очередь не пустая
-	{// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
-		Func_point = TaskList[countBegin].Task; // countBegin - указывает на начало очереди на рабочую задачу
-		a = TaskList[countBegin].arg_p;
-		n = TaskList[countBegin].arg_n;
+static void TaskManager(void) {
+	unlock_t unlock = lock(TaskList);
+	if(countBegin != countEnd) { // Если очередь не пустая
+	// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
+		TaskMng Func_point = TaskList[countBegin].Task; // countBegin - указывает на начало очереди на рабочую задачу
+		BaseParam_t a = TaskList[countBegin].arg_p;
+		BaseSize_t n = TaskList[countBegin].arg_n;
 		countBegin = (countBegin < TASK_LIST_LEN-1)? countBegin+1:0;
-		INTERRUPT_ENABLE;
+		unlock(TaskList);
 		Func_point(n,a);
 		return;
 	}
-	INTERRUPT_ENABLE; // Если очередь пустая включаем прерывания
-	Idle();         // И выполняем функция простоя
+	unlock(TaskList); // Если очередь пустая включаем прерывания
+	Idle();           // И выполняем функция простоя
 }
 
-void SetTask(TaskMng New_Task, BaseSize_t n, BaseParam_t data)
-{
-	bool_t flag_inter = FALSE;
-	if(INTERRUPT_STATUS) //Если прерывания разрешены, то запрещаем их
-	{
-		INTERRUPT_DISABLE;
-		flag_inter = TRUE;                     // И устанавливаем флаг, что мы не в прерывании
-	}
+void SetTask(TaskMng New_Task, BaseSize_t n, BaseParam_t data) {
+	unlock_t unlock = lock(TaskList);
 	register u08 count = (countEnd < TASK_LIST_LEN-1)? countEnd+1:0; //Кольцевой буфер
-	if(count != countBegin) // Если после добавления задачи countEnd не догонит countBegin значит очередь не переполнена
-	{// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
+	if(count != countBegin){ // Если после добавления задачи countEnd не догонит countBegin значит очередь не переполнена
+	// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
 		TaskList[countEnd].Task = New_Task; // Если очередь не переполнится добавляем элемент в очередь
 		TaskList[countEnd].arg_n = n;       // countEnd
 		TaskList[countEnd].arg_p = data;
 		countEnd = count;
-		if(flag_inter) INTERRUPT_ENABLE;
+		unlock(TaskList);
 		return;
 	}// Здесь мы окажемся в редких случаях когда oчередь переполнена
-	writeLogStr("ERROR: task queue overflow");
+    #ifndef USE_TIMER_IF_OVERFLOW_TASK_LIST
+    MaximizeErrorHandler("ERROR: task queue overflow");
+    unlock(TaskList);
+    #else
 	SetTimerTask(New_Task, n, data, TIME_DELAY_IF_BUSY);  //Ставим задачу в очередь(попытаемся записать ее позже)
-	if (flag_inter) INTERRUPT_ENABLE;  //предварительно восстановив прерывания, если надо.
+	unlock(TaskList);
+    #endif
 }
 
 bool_t isEmptyTaskList( void ){
@@ -299,24 +280,20 @@ u08 getFreePositionForTask(void){
 #ifdef SET_FRONT_TASK_ENABLE
 void SetFrontTask (TaskMng New_Task, BaseSize_t n, BaseParam_t data) // Функция помещает в НАЧАЛО очереди задачу New_Task
 {
-	bool_t flag_inter = FALSE;
-	if(INTERRUPT_STATUS)
-	{
-		flag_inter = TRUE;
-		INTERRUPT_DISABLE;
-	}
+	unlock_t unlock = lock(TaskList);
 	register u08 count = (countBegin)? countBegin-1:TASK_LIST_LEN-1; // Определяем указатель начала очереди куда должны вставить новую задачку
-	if(count != countEnd)   // Если очередь еще не переполнена
-	{// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
+	if(count != countEnd) {   // Если очередь еще не переполнена
+	// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
 		countBegin = count;
 		TaskList[countBegin].Task = New_Task;
 		TaskList[countBegin].arg_n = n;
 		TaskList[countBegin].arg_p = data;
+		unlock(TaskList);
 		return;
 	}
 	// Здесь мы окажемся если все таки очередь переполнена (мало вероятный случай)
 	SetTimerTask(New_Task, n, data, TIME_DELAY_IF_BUSY);
-	if (flag_inter) INTERRUPT_ENABLE;  //предварительно восстановив прерывания, если надо.
+	unlock(TaskList);
 }
 #endif  //SET_FRONT_TASK_ENABLE
 
@@ -334,6 +311,7 @@ void delAllTask(void) {
 static u08 lastTimerIndex = 0; // Указывает на индекс следующего СВОБОДНОГО таймера
 #ifdef _PWR_SAVE
 static u32 TimerService (void) {
+	unlock_t unlock = lock(MainTime);
 	u08 index = 0;
 	u32 tempMinTime = 0;
 	while(index < lastTimerIndex) {  // Перебираем всю очередь таймеров
@@ -352,10 +330,12 @@ static u32 TimerService (void) {
 		MainTimer[index].arg_p = MainTimer[lastTimerIndex].arg_p;
 		MainTime[index] = MainTime[lastTimerIndex];
 	}
+	unlock(MainTime);
 	return tempMinTime;
 }
 #else // Класический таймер. Без регулирования скорости работы таймер ОС
 static void TimerService (void) {
+	unlock_t unlock = lock(MainTime);
 	u08 index = 0;
 	while(index < lastTimerIndex) {  // Перебираем всю очередь таймеров
 		if(MainTime[index] > 1) {  // Если таймер еще не дотикал (наиболее вероятно)
@@ -373,18 +353,14 @@ static void TimerService (void) {
 		MainTimer[index].arg_p = MainTimer[lastTimerIndex].arg_p;
 		MainTime[index] = MainTime[lastTimerIndex];
 	}
+	unlock(MainTime);
 }
 #endif
 
 void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time){
-	bool_t flag_inter = FALSE;  // флаг состояния прерывания
-	if (INTERRUPT_STATUS) //Если прерывания разрешены, то запрещаем их
-	{
-		INTERRUPT_DISABLE;
-		flag_inter = TRUE;                     // И устанавливаем флаг, что мы не в прерывании
-	}
-	if(lastTimerIndex < TIME_LINE_LEN) // Если очередь не переполнена
-	{
+	if(New_Time == 0) {SetTask(TPTR, n, data); return;}
+	unlock_t unlock = lock(MainTime);
+	if(lastTimerIndex < TIME_LINE_LEN){ // Если очередь не переполнена
 		MainTimer[lastTimerIndex].Task = TPTR;
 		MainTimer[lastTimerIndex].arg_n = n;
 		MainTimer[lastTimerIndex].arg_p = data;
@@ -393,28 +369,22 @@ void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
 #ifdef _PWR_SAVE
 		if(New_Time < minTimeOut) minTimeOut = _setTickTime(New_Time);
 #endif
-		if(flag_inter) INTERRUPT_ENABLE;
+		unlock(MainTime);
 		return;
 	}
-#ifdef MAXIMIZE_OVERFLOW_ERROR
-#warning "if queue task timers is overflow programm will be stoped"
-	MaximizeErrorHandler();
-#else
-	if(flag_inter) INTERRUPT_ENABLE;
-	writeLogStr("PANIC: HAVE NOT MORE TIMERS");
+	MaximizeErrorHandler("PANIC: HAVE NOT MORE TIMERS");
+	unlock(MainTime);
 	return; //  тут можно сделать return c кодом ошибки - нет свободных таймеров
-#endif
 }
-static u08 findTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data)
-{
+
+static u08 findTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data) {
 	register u08 index = 0;
-	for(;index < lastTimerIndex; index++)
-	{
+	for(;index<lastTimerIndex; index++)	{
 		if((MainTimer[index].Task  == TPTR)&& /* Если уже есть запись с таким же адресом*/
-				(MainTimer[index].arg_p == data)&&
-				(MainTimer[index].arg_n == n))     /* и с таким же списком параметров*/
+		   (MainTimer[index].arg_p == data)&&
+		   (MainTimer[index].arg_n == n))     /* и с таким же списком параметров*/
 		{
-			break;      // Досрочно прекращаем работу цикла
+			break;
 		}
 	}
 	return index;
@@ -423,36 +393,31 @@ static u08 findTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data)
 bool_t updateTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time) {
 	u08 index = findTimer(TPTR,n,data);
 	if(index < lastTimerIndex) {
-		bool_t flag_inter = FALSE;
-		if(INTERRUPT_STATUS){
-			INTERRUPT_DISABLE;
-			flag_inter = TRUE;
-		}
+		unlock_t unlock = lock(MainTime);
 		MainTime[index] = New_Time;
-		if(flag_inter) INTERRUPT_ENABLE;
+		unlock(MainTime);
 		return TRUE;
 	}
 	return FALSE;
 }
 
-void delTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data)
-{
+void delTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data) {
 	u08 index = findTimer(TPTR,n,data);
-	if(index < lastTimerIndex)
-	{
-		bool_t flag_inter = FALSE;
-		if(INTERRUPT_STATUS)
-		{
-			INTERRUPT_DISABLE;
-			flag_inter = TRUE;
-		}
+	if(index < lastTimerIndex){
+		unlock_t unlock = lock(MainTime);
 		lastTimerIndex--;
 		MainTimer[index].Task  = MainTimer[lastTimerIndex].Task;    // На место этого таймера перемещаем последний
 		MainTimer[index].arg_n = MainTimer[lastTimerIndex].arg_n;
 		MainTimer[index].arg_p = MainTimer[lastTimerIndex].arg_p;
 		MainTime[index] = MainTime[lastTimerIndex];
-		if(flag_inter) INTERRUPT_ENABLE;
+		unlock(MainTime);
 	}
+}
+
+void delAllTimerTask(){
+	unlock_t unlock = lock(MainTime);
+    lastTimerIndex = 0;
+    unlock(MainTime);
 }
 
 u08 getFreePositionForTimerTask(void) {
@@ -483,7 +448,7 @@ void memCpy(void* destination, const void* source, const BaseSize_t num) {
 	}
 	if(last) *((byte_ptr)destination) = *((byte_ptr)source);
 #else
-	for (BaseSize_t i = 0; i < num; i++){ //Копирование будет побайтное
+	for (BaseSize_t i=0; i<num; i++){ //Копирование будет побайтное
 		*((byte_ptr)destination + i) = *((byte_ptr)source + i); // Выполняем копирование данных
 	}
 #endif

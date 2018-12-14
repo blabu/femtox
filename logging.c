@@ -5,14 +5,36 @@
  *      Author: oleksiy.khanin
  */
 
-//#include "PlatformSpecific.h" // for _X86
+#include "PlatformSpecific.h" // for _X86
 #include "MyString.h"
 #include "logging.h"
 #include "TaskMngr.h"
 
+#ifndef ENABLE_LOGGING
+void enableLogging(void) {
+}
+void disableLogging(void){
+}
+void writeLogByteArray(u08 sizeBytes, byte_ptr array){}
+
+void disableLogLevel(string_t level) {}
+
+void writeLogWhithStr(const string_t c_str, u32 n){}
+
+void writeLogStr(const string_t c_str){}
+
+void writeLogTempString(string_t tempStr){}
+
+void writeLogFloat(float data){}
+
+void writeLogU32(u32 data){}
+
+void writeSymb(char symb) {}
+#endif
+#ifdef ENABLE_LOGGING
 #ifdef _X86
 #include <stdio.h>
-void enableUART2() {}
+void enableUART2(u32 baud) {}
 void disableUART2() {}
 static void sendCOM2_buf(u08 size, byte_ptr data) {
 	if(size == 0) printf("%s\n", data);
@@ -21,33 +43,60 @@ static void sendCOM2_buf(u08 size, byte_ptr data) {
 			printf("%x ",data[i]);
 		}
 	}
+	fflush(stdout);
 }
 
 static void sendUART2_buf(u08 c) {
 	printf("%c",c);
+	fflush(stdout);
 }
-#else
-#ifdef USE_SOFT_UART
-static void enableUART2(u32 i) {enableSoftUART(TRUE,FALSE);}
-static void disableUART2(){disableSoftUART();}
-static void sendCOM2_buf(u08 u, byte_ptr buf){ sendUART_str(0,(string_t)buf); }
-static void sendUART2_buf(u08 byte) {sendUART_byte(0, byte);}
-#else
-#include "UART2.h"
-#endif
+#elif ARM_STM32
+#include "UART3.h"
 #endif
 #ifndef NULL
 #define NULL ((void*)0)
 #endif
-static string_t disableLavel = NULL;
 
+#ifdef ARM_STM32
+#include "UART2.h"
+static u08 countEnableLogging = 0;
 void enableLogging(void) {
-	enableUART2(115200);
+	if(countEnableLogging > 0) {
+		countEnableLogging++;
+		return;
+	}
+	countEnableLogging = 1;
+#ifndef _X86
+
+//	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,GPIO_PIN_SET);
+#endif// _X86
+	enableUART2(57600);
 }
 
 void disableLogging(void){
-	disableUART2();
+	if(countEnableLogging > 0) countEnableLogging--;
+	if(!countEnableLogging) {
+		disableUART2();
+#ifndef _X86
+//		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,GPIO_PIN_RESET);
+#endif// _X86
+	}
 }
+#endif
+
+#ifdef SOFT_UART_FOR_LOGGING
+static void enableUART2(u32 i) {enableSoftUART(TRUE,FALSE);}
+static void disableUART2(){disableSoftUART();}
+static void sendCOM2_buf(u08 u, byte_ptr buf){ sendUART_str(0,(string_t)buf); }
+static void sendUART2_buf(u08 byte) {sendUART_byte(0, byte);}
+#endif
+
+#ifdef MSP430
+static void sendCOM3_buf(u08 u, byte_ptr buf){}
+static void sendUART3_buf(u08 byte) {}
+#endif
+
+static string_t disableLavel = NULL;
 
 void disableLogLevel(string_t level) {
 	disableLavel = level;
@@ -62,7 +111,8 @@ void writeLogWhithStr(const string_t c_str, u32 n) {
 		return;
 	}
 	strClear(str); strCat(str,c_str);
-	toStringDec(n,str+size);
+	strCat(str," ");
+	toStringDec(n,str+size+1);
 	writeLogTempString(str);
 }
 
@@ -86,7 +136,7 @@ void writeLogFloat(float data) {
 }
 
 void writeLogU32(u32 data) {
-	char tempStr[10];
+	char tempStr[12];
 	toStringDec(data,tempStr);
 	writeLogTempString(tempStr);
 }
@@ -98,17 +148,18 @@ void writeSymb(char symb) {
 #ifdef ALLOC_MEM
 void writeLogByteArray(u08 sizeBytes, byte_ptr array){
 	static string_t str = NULL;
-	if(str != NULL) freeMem((byte_ptr)str);
 	u08 totalSize = sizeBytes*2 + sizeBytes + 1;
-	str = (string_t)allocMem(totalSize); // Выделяем память под строку + под пробелы между символами + байт конца
+	if(totalSize > getAllocateMemmorySize((byte_ptr)(str))) {
+		freeMem((byte_ptr)str);
+		str = (string_t)allocMem(totalSize); // Выделяем память под строку + под пробелы между символами + байт конца
+	}
 	if(str == NULL){
 		writeLogStr("mem err in logging");
 		return;
 	}
-	memSet(str,totalSize,0);
 	u08 poz = 0;
 	for(u08 i = 0; i<sizeBytes; i++) {
-		toStringDec(array[i],&str[poz]);
+		toString(1,array[i],&str[poz]);
 		poz=strSize(str);
 		str[poz] = ' ';
 		poz++;
@@ -116,4 +167,5 @@ void writeLogByteArray(u08 sizeBytes, byte_ptr array){
 	str[poz] = '\0';
 	writeLogStr(str);
 }
-#endif
+#endif // ALLOC_MEM
+#endif // ENABLE_LOGGING

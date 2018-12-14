@@ -1,8 +1,12 @@
+#ifdef _WIN
+#include <mingw.thread.h>
+#include <mingw.mutex.h>
+#elif __unix
 #include <thread>
-#include <chrono>
 #include <mutex>
+#endif
+#include <chrono>
 static std::thread* timerThread;
-static std::mutex mt;
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,64 +14,128 @@ extern "C" {
 #include "PlatformSpecific.h"
 #include "TaskMngr.h"
 #include "logging.h"
-
+#ifdef __cplusplus
+}
+#endif
 
 extern void TimerISR();
 
 #ifdef MAXIMIZE_OVERFLOW_ERROR
-	void MaximizeErrorHandler(){
-		initWatchDog();
-		while(1);
-	}
+void MaximizeErrorHandler(string_t str){
+	initWatchDog();
+	writeLogStr("ERROR handler");
+	writeLogStr(str);
+	exit(1);
+}
 #else
-	void MaximizeErrorHandler(){
-	}
+void MaximizeErrorHandler(string_t str){
+}
 #endif
 /********************************************************************************************************************
-*********************************************************************************************************************
+ *********************************************************************************************************************
                                             ПЛАТФОРМО-ЗАВИСИМЫЕ ФУНКЦИИ														|
-*********************************************************************************************************************
-*********************************************************************************************************************/
+ *********************************************************************************************************************
+ *********************************************************************************************************************/
 
 void initWatchDog() {
-    writeLogStr("start init watch dog");
-    exit(1);
+	writeLogStr(string_t("start init watch dog"));
 }
 
 void resetWatchDog() {
 
 }
 
+#if RESOURCE_LIST > 0xFE
+#error "Resource size list must be less"
+#endif
 
-unsigned char statusIt(){
-    bool res = mt.try_lock();
-    if(res) {
-        mt.unlock();
-        return 1;
-    }
-    return 0;
+
+static std::recursive_mutex mtx;  // Рекурсивный мьютекс для ограничения доступа ко всем ресурсам сразу.
+// Не эффективный локер, но надежный 100%
+static void unLCK(void *resourceId) {mtx.unlock();}
+static unlock_t lock1(void* resourceId) {
+	mtx.lock();
+	return unLCK;
 }
 
-void blockIt() {
-    mt.lock();
+
+#define RESOURCE_LIST 10
+struct {
+	std::mutex mt;  // Мьютекс защищающий определенный ресурс
+	void* resourceId;	// Уникальный идентификатор ресурса
+}resourceMutexList[RESOURCE_LIST]; // Очередь на ресурсы
+static std::mutex mt; // Мьютекс защищающий очередь
+static void unlock(void* resourceId) {
+	mt.lock();
+	for(u08 i=0; i<RESOURCE_LIST; i++) {
+		if(resourceMutexList[i].resourceId == resourceId) {
+			mt.unlock();
+			resourceMutexList[i].mt.unlock();
+			return;
+		}
+	}
+	mt.unlock();
+}
+static void empty(void *resourceId) {}
+static unlock_t lock2(void* resourceId) {
+	s16 saveIndex = -1;
+	mt.lock();
+	for(u08 i=0; i<RESOURCE_LIST; i++) {
+		if(resourceMutexList[i].resourceId == resourceId) {
+			if(resourceMutexList[i].mt.try_lock()) mt.unlock();
+			else {
+				mt.unlock();
+				resourceMutexList[i].mt.lock();
+			}
+			return unlock;
+		}
+		if(resourceMutexList[i].resourceId == NULL) saveIndex = i;
+	}
+	if(saveIndex > 0) { // Еще ни разу не залоченный ресурс
+		resourceMutexList[saveIndex].resourceId = resourceId;
+		resourceMutexList[saveIndex].mt.lock();
+		mt.unlock();
+		return unlock;
+	}
+	mt.unlock();
+	writeLogStr("WARN, Never be here list empty error");
+	return empty;
 }
 
-void unBlockIt(){
-    mt.unlock();
+
+unlock_t lock(void* resourceId) {
+	//Здесь можно сделать выбор какой локер использовать
+	// lock1 - неэффективный по скорости, но надежный и простой на все ресурсы ОДИН примитив синхронизации
+	// lock2 - эффективный по скорости (для каждого ресурса свой мьютекс) Но сложнее, занимает больше места
+	return lock2(resourceId);
 }
 
-static void timer() {
-    while(1) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000/TICK_PER_SECOND));
-        blockIt();
-        TimerISR();
-        unBlockIt();
-    }
+
+static void __timer() {
+	const std::chrono::nanoseconds timeBase =  std::chrono::nanoseconds(1000000000ULL/TICK_PER_SECOND);
+	std::chrono::nanoseconds dT = std::chrono::nanoseconds(0);
+	while(1) {
+		auto tStart = std::chrono::steady_clock::now();
+		TimerISR();
+		dT += (std::chrono::steady_clock::now() - tStart);
+		if(dT < timeBase) {
+			std::this_thread::sleep_for( (timeBase-dT) );
+			dT = std::chrono::nanoseconds(0);
+		}
+		else {
+			dT -= timeBase;
+		}
+	}
 }
 
 void _init_Timer(void){// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
-    writeLogStr("start init timer");
-    timerThread = new std::thread(timer);
+	writeLogStr("start init timer");
+	timerThread = new std::thread(__timer);
+	mt.lock();
+	for(u08 i=0; i<RESOURCE_LIST; i++) {
+		resourceMutexList[i].resourceId = NULL;
+	}
+	mt.unlock();
 }
 
 /*
@@ -75,14 +143,12 @@ void _init_Timer(void){// Инициализация таймера 0, наст�
  * Все програмные UART задействует прерывания одного таймера
  * Все програмные UART должны находится на одном порту ввода вывода, который указывается здесь же
  * Если программных UART будет больше двух необходимо добавлять новые функции в ProgramUART.c
-*/
+ */
 void _initTimerSoftUart() {
 
 }
 
-void initProgramUartGPIO(unsigned short RX_MASK, unsigned short TX_MASK) {
+void initProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK) {
 
 }
-#ifdef __cplusplus
-}
-#endif
+

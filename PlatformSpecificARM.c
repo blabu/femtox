@@ -1,4 +1,5 @@
 #include "PlatformSpecific.h"
+#ifdef ARM_STM32
 #include "TaskMngr.h"
 
 #ifdef MAXIMIZE_OVERFLOW_ERROR
@@ -153,7 +154,7 @@ void _initTimerSoftUart()
 
 }
 
-void initProgramUartGPIO(unsigned short RX_MASK, unsigned short TX_MASK){
+void initProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK){
     GPIO_InitTypeDef gpioStruct;
     gpioStruct.Mode = GPIO_MODE_OUTPUT_PP;
     gpioStruct.Pin = TX_MASK;
@@ -175,5 +176,7 @@ void TIM7_IRQHandler(void){
     	UARTTimerISR();
 	}
 }
+
+#endif
 
 #endif

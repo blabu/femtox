@@ -46,37 +46,26 @@ u16 getAllocateMemmorySize(byte_ptr data) {
 
 void clearAllMemmory(void){
 	u16 i = 0;
-    bool_t flag_int = FALSE;
-    if(INTERRUPT_STATUS)
-    {
-        flag_int = TRUE;
-        INTERRUPT_DISABLE;
-    }
+    unlock_t unlock = lock(heap);
     while(i < HEAP_SIZE) {
     	u08 blockSize = heap[i] & 0x7F;
     	if(!blockSize) break;
     	heap[i] &= ~(1<<7);
     	i+=blockSize+1;
     }
-    if(flag_int) INTERRUPT_ENABLE;
+    unlock(heap);
 }
 
-byte_ptr allocMem(u08 size)  //size - до 127 размер блока выделяемой памяти
-{
+byte_ptr allocMem(u08 size) { //size - до 127 размер блока выделяемой памяти
     if(size > 127 || !size) {
     	return NULL;  // Если попросили больше чем можем дать возвращаем ноль
     }
     u16 i = 0;  // Поиск свободного места начнем с нулевого элемента, максимум определен размером u16
-    bool_t flag_int = FALSE;
-    if(INTERRUPT_STATUS) {
-        flag_int = TRUE;
-        INTERRUPT_DISABLE;
-    }
+    unlock_t unlock = lock(heap);
     while((i+size) < HEAP_SIZE) // Пока мы можем выделить тот объем памяти который у нас попросили
     {
         u08 blockSize = heap[i] & 0x7F;  // Вычисляем размер следующего блока памяти
-        if(!blockSize)     // Если память здесь еще не выделялась
-        {
+        if(!blockSize) {    // Если память здесь еще не выделялась
             heap[i] = (1<<7) + size;    // Выделяем нужный объем памяти
             break;
         }
@@ -97,7 +86,7 @@ byte_ptr allocMem(u08 size)  //size - до 127 размер блока выде�
         heap[i+size+1] = blockSize - size - 1; // Следующий пустой блок будет на один байт короче (этот байт служебный)
         break;
     }
-    if(flag_int) INTERRUPT_ENABLE;
+    unlock(heap);
     if((i+size+1) > HEAP_SIZE) {
     	return NULL; // Если мы вышли из цикла по причине окончания кучи, вернем ноль
     }
@@ -117,7 +106,6 @@ void defragmentation(void){
     u16 i = 0;
     u08 blockSize = 0;
     sizeAllFreeMemmory=HEAP_SIZE;
-    bool_t flag_int = FALSE;
     while(i < HEAP_SIZE) {   // Пока не закончится куча
         u08 currentBlockSize = heap[i]&0x7F; //Выделяем размер блока (младшие 7 байт)
         if(!currentBlockSize) break;   // Если размер нулевой, значит выделения памяти еще не было
@@ -130,14 +118,11 @@ void defragmentation(void){
         if(blockSize) { //Если блок памяти свободен
             u08 SumBlock = (u08)(blockSize + currentBlockSize + 1);
             if(SumBlock < 127) {
-                if(INTERRUPT_STATUS){
-                    flag_int = TRUE;
-                    INTERRUPT_DISABLE;
-                }
-                heap[i - (blockSize+1)] = SumBlock;
+            	unlock_t unlock = lock(heap);
+            	heap[i - (blockSize+1)] = SumBlock;
                 blockSize = SumBlock;
                 i += currentBlockSize + 1;
-                if(flag_int) INTERRUPT_ENABLE;
+                unlock(heap);
                 continue;
             }
         }

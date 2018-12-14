@@ -41,6 +41,8 @@ extern "C" {
 #include "MyString.h" // CBC mode, for memset
 #include "crypt.h"
 
+#ifdef NEED_CRYPT
+
 /*****************************************************************************/
 /* Defines:                                                                  */
 /*****************************************************************************/
@@ -148,8 +150,7 @@ static void KeyExpansion(byte_ptr RoundKey, const byte_ptr Key){
   u32 i, k, j;
   u08 tempa[4]; // Used for the column/row operations
   // The first round key is the key itself.
-  for (i = 0; i < Nk; ++i)
-  {
+  for (i = 0; i < Nk; ++i) {
     RoundKey[(i * 4) + 0] = Key[(i * 4) + 0];
     RoundKey[(i * 4) + 1] = Key[(i * 4) + 1];
     RoundKey[(i * 4) + 2] = Key[(i * 4) + 2];
@@ -157,8 +158,7 @@ static void KeyExpansion(byte_ptr RoundKey, const byte_ptr Key){
   }
 
   // All other round keys are found from the previous round keys.
-  for (i = Nk; i < Nb * (Nr + 1); ++i)
-  {
+  for (i = Nk; i < Nb * (Nr + 1); ++i)  {
     {
       k = (i - 1) * 4;
       tempa[0]=RoundKey[k + 0];
@@ -434,7 +434,7 @@ static void InvCipher(state_t* state, byte_ptr RoundKey)
 /*****************************************************************************/
 #if defined(ECB) && (ECB == 1)
 
-static u08 RoundKey[keyExpSize];
+static u08 RoundKey[keyExpSize];  // ПАМЯТЬ!!!!!
 
 void AesEcbEncrypt(byte_ptr buf, const byte_ptr key){
 	// The KeyExpansion routine must be called before encryption.
@@ -469,7 +469,7 @@ static void XorWithIv(byte_ptr buf, byte_ptr Iv)
 void AesCbcEncrypt_buffer(byte_ptr buf, u32 length, const byte_ptr key, const byte_ptr iv)
 {
   u32 i;
-  byte_ptr Iv;
+  byte_ptr Iv = NULL;
   if(iv) Iv = iv;
   // Skip the key expansion if key is passed as 0
   if (key) {
@@ -534,9 +534,9 @@ void setSeed(u32 seed) {
 }
 
 u32 RandomSimple() {
-	if(s1 == 0 || s2 == 0 || s3 == 0) {
-		s1 = s2 = s3 = getTick();
-	}
+	if(s1 == 0) s1 = getTick();
+	if(s2 == 0) s2 = getAllSeconds();
+	if(s3 == 0)	s3 = s1+s2;
     if(s1 & (0x55)<<(s2 & 0x1F)) {
     	if(s2 & (0x55)<<(s3 & 0x1F))
     		return lfsr113();
@@ -605,6 +605,7 @@ u16 CRC16(BaseSize_t size, byte_ptr msg){
 	}
 	return ((CRC_H << 8) | CRC_L);
 }
+#endif // NEED_CRYPT
 #ifdef __cplusplus
 }
 #endif

@@ -1,7 +1,7 @@
-#ifndef PLATFORMSPECIFIC
-#define PLATFORMSPECIFIC
+#ifndef PLATFORMSPECIFIC_X86
+#define PLATFORMSPECIFIC_X86
 
-#define ARCH 32 /*Архитектура процессора 8, 16, 32 байта (разрядность шины данных)*/
+#include "FemtoxTypes.h"
 
 void initWatchDog();
 void resetWatchDog();
@@ -10,19 +10,12 @@ void resetWatchDog();
                                             ПЛАТФОРМО-ЗАВИСИМЫЕ ФУНКЦИИ														|
 *********************************************************************************************************************
 *********************************************************************************************************************/
+unlock_t lock(void* resourceId);
 
-unsigned char statusIt();
-void blockIt();
-void unBlockIt();
-
-#define INTERRUPT_ENABLE    unBlockIt()
-#define INTERRUPT_DISABLE   blockIt()
-#define INTERRUPT_STATUS    statusIt()
 #define WATCH_DOG_ON  initWatchDog()/*Генерируем Reset*/
-#define TICK_PER_SECOND 500 /*Колличество тиков в секунду*/
+#define TICK_PER_SECOND 1000UL /*Колличество тиков в секунду*/
 
 void _init_Timer(void);	// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
-
 
 /*
  * Для программного UART
@@ -33,4 +26,4 @@ void _init_Timer(void);	// Инициализация таймера 0, наст
 void _initTimerSoftUart();
 void initProgramUartGPIO(unsigned short RX_MASK, unsigned short TX_MASK);
 
-#endif // PLATFORMSPECIFIC
+#endif // PLATFORMSPECIFIC_X86

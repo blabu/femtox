@@ -1,9 +1,10 @@
 #include "PlatformSpecific.h"
-//#include "stm32f103xb.h"
+#ifdef ARM_STM32
+#include "stm32f103xb.h"
 #include "TaskMngr.h"
 
 #ifdef MAXIMIZE_OVERFLOW_ERROR
-	void MaximizeErrorHandler(){
+	void MaximizeErrorHandler(string_t str){
 		initWatchDog();
 		while(1);
 	}
@@ -38,6 +39,8 @@ void resetWatchDog(void){
 	HAL_IWDG_Refresh(&watchDog);
 }
 
+
+#include "config.h"
 static TIM_HandleTypeDef TIM2InitStruct;
 void initTimer2(void){ // APB1 = 72MHz
 	__TIM2_CLK_ENABLE();
@@ -69,10 +72,6 @@ void _init_Timer(){
 	HAL_PWR_DisableSleepOnExit(); // После пробуждения мы работаем в активном режиме
 }
 
-unsigned int _setTickTime(unsigned int timerTicks) {
-	//FIXME Not implemented yet
-}
-
 #ifdef USE_SOFT_UART
 /*
 ****************************************
@@ -99,7 +98,7 @@ void _initTimerSoftUart()
 
 }
 
-void initProgramUartGPIO(unsigned short RX_MASK, unsigned short TX_MASK){
+void initProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK){
     GPIO_InitTypeDef gpioStruct;
     gpioStruct.Mode = GPIO_MODE_OUTPUT_PP;
     gpioStruct.Pin = TX_MASK;
@@ -121,5 +120,7 @@ void TIM7_IRQHandler(void){
     	UARTTimerISR();
 	}
 }
+
+#endif
 
 #endif

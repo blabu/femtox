@@ -20,15 +20,15 @@ volatile Time_t __systemSeconds = 0;
 #define SECONDS_IN_YEAR 31536000UL
 #define SECONDS_IN_DAY 86400UL
 
-#if TIME_INDEX>1
-static u08 timeCorrectSummer = TIME_INDEX;
+#if TIME_INDEX!=0
+static volatile s08 timeCorrectSummer = TIME_INDEX;
 #endif
 
 #define JANUARY   31
 #define FEBRUARY  28
 #define MARCH	  31
 #define APRIL     30
-#define MAY	  31
+#define MAY	  	  31
 #define JUNE      30
 #define JULY	  31
 #define AUGUST	  31
@@ -96,7 +96,7 @@ static u16 getDayAndMonthFromDayInYear(u16 dayInYear) { //LSB - day, MSB - mount
 	}
 	u08 day = dayInYear & 0x1F; // 32 (Обнуляем все старшие биты) на всякий случай
 	month+=1;	// Чтобы год начинался с 1-го месяца
-#if TIME_INDEX>1
+#if TIME_INDEX!=0
 #ifdef SUMMER_TIME
 	//Если месяц больше марта (т.е. апрель или дальше) и меньше ноября (т.е. окябрь или меньше)
 	if(month > 3 && month < 11) timeCorrectSummer = TIME_INDEX+1;
@@ -131,8 +131,11 @@ u08 getMinutes(void){
 }
 
 u08 getHour(void){
-	u08 nowHour = getHourFromSec(getAllSeconds());
+    Time_t sec = getAllSeconds();
+	u08 nowHour = getHourFromSec(sec);
+#if TIME_INDEX!=0
 	nowHour += timeCorrectSummer;
+#endif
 	if(nowHour > 23) nowHour -= 24; // Если часы равны 24 и более
 	return nowHour;
 }
@@ -153,9 +156,14 @@ u08 getDaysInMonth(u08 month) {
 
 void setSeconds(u32 sec) {
 	while(__systemSeconds != sec) __systemSeconds = sec;
+#if TIME_INDEX!=0
+#ifdef SUMMER_TIME
+	getDayAndMonth();
+#endif
+#endif
 }
 
-Date_t getDateFromSeconds(Time_t sec){
+Date_t getDateFromSeconds(Time_t sec, bool_t toLocalTimeZone){
 	Date_t res;
 	u32 minutes, hours, days, year, month;
 	minutes  = sec / 60;
@@ -185,18 +193,33 @@ Date_t getDateFromSeconds(Time_t sec){
 	}
 	res.sec = (u08)sec;   res.min = (u08)minutes; res.hour = (u08)hours;
 	res.day = (u08)days+1;  res.mon = (u08)month+1;   res.year = (u16)year;
-	for(u08 i = 0; i<timeCorrectSummer; i++) addOneHourToDate(&res);
+	if(toLocalTimeZone) {
+#if TIME_INDEX!=0
+#ifdef SUMMER_TIME
+	if(res.mon > 3 && res.mon < 11) timeCorrectSummer = TIME_INDEX+1;
+	else timeCorrectSummer = TIME_INDEX;
+#else
+	timeCorrectSummer = TIME_INDEX;
+#endif
+	for(u08 i = timeCorrectSummer; i; i--) addOneHourToDate(&res);
+#endif
+	}
 	return res;
 }
 
 Time_t getSecondsFromDate(const Date_t*const date) {
 	u16 year = toStandartYear(date->year);
 	u08 dayOffset = getDayOffset(year); // Поправка в днях на высокосные годы
+#if TIME_INDEX!=0
+	const u08 tCorrectSummer = timeCorrectSummer;
+#else
+	const u08 tCorrectSummer = 0;
+#endif
 	year -= 1970;
 	Time_t tempSeconds = (Time_t)year*SECONDS_IN_YEAR +
 						 ((u32)getDayInYearFromDate(date) + dayOffset)*SECONDS_IN_DAY +
-						 (u32)(date->hour)*3600 + (u32)(date->min)*60 + date->sec -
-/*Корректировка времени*/timeCorrectSummer*3600;
+						 (u32)(date->hour)*3600UL + (u32)(date->min)*60UL + date->sec -
+/*Корректировка времени*/tCorrectSummer*3600UL;
 	return tempSeconds;
 }
 

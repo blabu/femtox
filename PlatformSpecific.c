@@ -1,20 +1,13 @@
 #include "PlatformSpecific.h"
-#ifdef ARM_STM32
 #include "TaskMngr.h"
 
-#include "stm32l1xx_hal.h"
-#include "stm32l152xe.h"
-
 #ifdef MAXIMIZE_OVERFLOW_ERROR
-	void MaximizeErrorHandler(string_t str){
-		writeLogStr(str);
+	void MaximizeErrorHandler(){
 		initWatchDog();
 		while(1);
 	}
 #else
-#include "logging.h"
-	void MaximizeErrorHandler(string_t str){
-		writeLogStr(str);
+	void MaximizeErrorHandler(){
 	}
 #endif
 /********************************************************************************************************************
@@ -22,28 +15,6 @@
                                             ПЛАТФОРМО-ЗАВИСИМЫЕ ФУНКЦИИ														|
 *********************************************************************************************************************
 *********************************************************************************************************************/
-
-
-
-#define INTERRUPT_ENABLE  __enable_irq()   //{asm("nop"); __asm__ __volatile__("eint");}
-#define INTERRUPT_DISABLE __disable_irq()  //{__asm__ __volatile__("dint nop"); asm("nop");}
-#define INTERRUPT_STATUS  (__get_CONTROL() & (uint32_t)(1<<7))
-
-static void unlock(void* resourceId) {
-	INTERRUPT_ENABLE
-}
-
-static void empty(void* resourceId) {}
-
-unlock_t lock(void* resourceId){
-	if(INTERRUPT_STATUS) {
-		INTERRUPT_DISABLE;
-		return unlock;
-	}
-	return empty;
-}
-
-
 #define TIME_WATCH_DOG 5000UL /*Время перезапуска таймера в мс*/
 #define RELOAD_VALUE ((40UL*TIME_WATCH_DOG)/128UL)
 #if(RELOAD_VALUE > 0xFFF)
@@ -58,13 +29,13 @@ void initWatchDog(){
 	HAL_IWDG_Init(&watchDog);
 }
 
-void resetWatchDog(void){
+void resetWatchDog(){
 	HAL_IWDG_Refresh(&watchDog);
 }
 
 //#define RTC_CLOCK_SOURCE_LSI
 #define RTC_CLOCK_SOURCE_LSE
-static void lowLevelInitRTC(void) {
+static void lowLevelInitRTC() {
 	RCC_OscInitTypeDef        RCC_OscInitStruct;
 	RCC_PeriphCLKInitTypeDef  PeriphClkInitStruct;
 
@@ -77,13 +48,13 @@ static void lowLevelInitRTC(void) {
 	RCC_OscInitStruct.LSEState = RCC_LSE_ON;
 	RCC_OscInitStruct.LSIState = RCC_LSI_OFF;
 	if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK){
-		MaximizeErrorHandler("lowLevelInitRTC osc config error");
+		MaximizeErrorHandler();
 	}
 
 	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
 	PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
 	if(HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK) {
-		MaximizeErrorHandler("lowLevelInitRTC RCC error");
+		MaximizeErrorHandler();
 	}
 #elif defined (RTC_CLOCK_SOURCE_LSI)
 	RCC_OscInitStruct.OscillatorType =  RCC_OSCILLATORTYPE_LSI | RCC_OSCILLATORTYPE_LSE;
@@ -113,13 +84,14 @@ static void lowLevelInitRTC(void) {
 }
 
 static RTC_HandleTypeDef RTC_Clock;
-void initRTC(void) {
+void initRTC(){
 	RTC_Clock.Instance = RTC;
 	lowLevelInitRTC();
 	HAL_RTCEx_SetWakeUpTimer_IT(&RTC_Clock,(2048/TICK_PER_SECOND)-1,RTC_WAKEUPCLOCK_RTCCLK_DIV16);
 }
 
-void RTC_WKUP_IRQHandler(void) {
+
+void RTC_WKUP_IRQHandler() {
 	HAL_RTCEx_WakeUpTimerIRQHandler(&RTC_Clock);
 }
 
@@ -127,19 +99,13 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc) {
 	TimerISR();
 }
 
-#ifdef NATIVE_TIMER_PWR_SAVE
-#error "Can not compile whith it. Not implemented yet"
-#endif
-
-#ifdef TIMER6_USING
-static const u32 standartTickTime =  625-1;
 static TIM_HandleTypeDef TIM6InitStruct;
-void initTimer6(void){ // APB1 = 8MHz
+void initTimer6(){ // APB1 = 8MHz
 	__TIM6_CLK_ENABLE();
 	TIM6InitStruct.Instance = TIM6;
 	TIM6InitStruct.Init.CounterMode = TIM_COUNTERMODE_UP;
-	TIM6InitStruct.Init.Period = standartTickTime; // OLD_VALUE = 5000-1
-	TIM6InitStruct.Init.Prescaler = 128-1;// OLD VALUE = 16-1;
+	TIM6InitStruct.Init.Period = 5000-1;
+	TIM6InitStruct.Init.Prescaler = 16-1;
 	TIM6InitStruct.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	HAL_TIM_Base_Init(&TIM6InitStruct);     // Init timer
 	HAL_TIM_Base_Start_IT(&TIM6InitStruct);
@@ -153,27 +119,13 @@ void TIM6_IRQHandler(void){
 		TimerISR();
 	}
 }
-#ifdef NATIVE_TIMER_PWR_SAVE
-unsigned int _setTickTime(unsigned int timerTicks) {
-	unsigned int oldValue = TIM6InitStruct.Init.Period;
-	unsigned int newValue = standartTickTime;
-	unsigned int i = 1;
-	for(;i<timerTicks; i++) {
-		if(newValue > 0xFFFF-1) break;
-		newValue += standartTickTime;
-	}
-	if(newValue != oldValue) {
-		__HAL_TIM_SET_AUTORELOAD(&TIM6InitStruct,newValue);
-	}
-	return i;
-}
-#endif //NATIVE_TIMER_PWR_SAVE
-#endif //FOR_TIMER_6
+
 
 void _init_Timer(){
 	initRTC();
 	HAL_PWR_DisableSleepOnExit(); // После пробуждения мы работаем в активном режиме
 }
+
 
 #ifdef USE_SOFT_UART
 /*
@@ -183,25 +135,22 @@ void _init_Timer(){
 ****************************************
 */
 TIM_HandleTypeDef TIM7InitStruct;
+#include "ProgrammUART.h"
 #include "stm32l1xx_hal_gpio.h"
 
-//26 мкс
-void _initTimerSoftUart(){
+//52 мкс
+void _initTimerSoftUart()
+{
 	__TIM7_CLK_ENABLE();
 	TIM7InitStruct.Instance = TIM7;
 	TIM7InitStruct.Init.CounterMode = TIM_COUNTERMODE_UP;
-	TIM7InitStruct.Init.Period = 26-1;
+	TIM7InitStruct.Init.Period = 52-1;
 	TIM7InitStruct.Init.Prescaler = 4-1;
 	TIM7InitStruct.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	HAL_TIM_Base_Init(&TIM7InitStruct);     // Init timer
 	HAL_TIM_Base_Start_IT(&TIM7InitStruct);
 	HAL_NVIC_EnableIRQ(TIM7_IRQn);
-}
 
-void _deInitTimerSoftUart() {
-	HAL_TIM_Base_Stop_IT(&TIM7InitStruct);
-	HAL_TIM_Base_DeInit(&TIM7InitStruct);
-	__TIM7_CLK_DISABLE();
 }
 
 void initProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK){
@@ -210,26 +159,14 @@ void initProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK){
     gpioStruct.Pin = TX_MASK;
     gpioStruct.Pull = GPIO_NOPULL;
     gpioStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    HAL_GPIO_Init(TX_PORT,&gpioStruct);
-    HAL_GPIO_WritePin(TX_PORT,TX_MASK,GPIO_PIN_SET);
+    HAL_GPIO_Init(PROGRAMM_TX_PORT,&gpioStruct);
+    HAL_GPIO_WritePin(PROGRAMM_TX_PORT,TX_MASK,GPIO_PIN_SET);
 
     gpioStruct.Mode = GPIO_MODE_INPUT;
     gpioStruct.Pin = RX_MASK;
     gpioStruct.Pull = GPIO_PULLUP;
     gpioStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    HAL_GPIO_Init(RX_PIN,&gpioStruct);
-}
-
-void deInitProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK) {
-    HAL_GPIO_WritePin(TX_PORT,TX_MASK,GPIO_PIN_RESET);
-    GPIO_InitTypeDef gpioStruct;
-    gpioStruct.Mode = GPIO_MODE_OUTPUT_OD;
-    gpioStruct.Pin = RX_MASK;
-    gpioStruct.Pull = GPIO_NOPULL;
-    gpioStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(RX_PIN,&gpioStruct);
-    HAL_GPIO_WritePin(RX_PIN,RX_MASK,GPIO_PIN_RESET);
-
+    HAL_GPIO_Init(PROGRAMM_RX_PIN,&gpioStruct);
 }
 
 void TIM7_IRQHandler(void){
@@ -239,5 +176,4 @@ void TIM7_IRQHandler(void){
 	}
 }
 
-#endif
 #endif

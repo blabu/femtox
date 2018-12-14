@@ -1,6 +1,6 @@
 #ifndef PLATFORMSPECIFIC
 #define PLATFORMSPECIFIC
-#include <io430.h>
+#include <msp430.h>
 #include "FemtoxConf.h"
 
 /********************************************************************************************************************
@@ -9,24 +9,27 @@
 *********************************************************************************************************************
 *********************************************************************************************************************/
 
-#define ARCH 8/*Архитектура процессора 8, 16, 32 байта (разрядность шины данных)*/
-#define _IAR_
-
 void initWatchDog(void);
 void resetWatchDog(void);
 
 #define INTERRUPT_ENABLE  __enable_interrupt()
 #define INTERRUPT_DISABLE __disable_interrupt()
-#define INTERRUPT_STATUS  __get_interrupt_state()
+#define INTERRUPT_STATUS  (__get_interrupt_state() & GIE)
 #define WATCH_DOG_ON  WDTCTL = WDTPW /*Генерируем Reset*/
-#define TICK_PER_SECOND 100 /*Колличество тиков в секунду*/
+#define TICK_PER_SECOND 100UL /*Колличество тиков в секунду*/
 
 void _init_Timer(void);	// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
 
+#include "../PROPERTIES.h"
 #ifdef USE_SOFT_UART
+#ifdef YAMPOL
 #define TX_PORT   P3OUT
 #define RX_PIN    P3IN
-
+#endif
+#ifdef G25_TANDEM
+#define TX_PORT   P1OUT
+#define RX_PIN    P1IN
+#endif
 /*
  * Для программного UART
  * Все програмные UART задействует прерывания одного таймера
