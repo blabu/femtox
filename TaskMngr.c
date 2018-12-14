@@ -10,7 +10,7 @@ extern "C" {
 инициализируется таймер счетчик, и включает прерывание по переполнению Т/С0
  */
 
-const char* const _osVersion = "V1.3.4.5";
+const char* const _osVersion = "V1.4.0.0";
 const BaseSize_t _MAX_BASE_SIZE = 1 << (sizeof(BaseSize_t)>>3);
 
 #ifdef _PWR_SAVE

@@ -2,7 +2,7 @@
 #define PLATFORMSPECIFIC
 #include "stm32l1xx_hal.h"
 #include "stm32l152xe.h"
-
+#include "FemtoxTypes.h"
 //#include "stm32f1xx_hal.h"
 //#include "stm32f1xx.h"
 #include "cmsis_gcc.h"

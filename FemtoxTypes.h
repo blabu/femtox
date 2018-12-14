@@ -31,6 +31,7 @@ typedef unsigned char* byte_ptr;
 typedef unsigned short  BaseSize_t; // Первый аргумент для задачи в диспетчере
 typedef void* BaseParam_t;  // Второй аргумент для задачи в диспетчере
 
+typedef void(*unlock_t)(void* resourceId);
 typedef void (*IdleTask_t)(void);      // Указатель на функцию обработки холостого хода void funcIDLE(void)
 typedef void (*CycleFuncPtr_t)(void);  // Указатель на функцию void func(void). Для циклического выполнения в прерывании таймера
 typedef bool_t (*Predicat_t)(void);    // Указатель на функцию предикат (bool_t func1(void))

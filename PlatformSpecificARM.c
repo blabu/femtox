@@ -22,6 +22,27 @@
 #error "RELOAD value to longer"
 #endif
 
+
+
+#define INTERRUPT_ENABLE  __enable_irq()   //{asm("nop"); __asm__ __volatile__("eint");}
+#define INTERRUPT_DISABLE __disable_irq()  //{__asm__ __volatile__("dint nop"); asm("nop");}
+#define INTERRUPT_STATUS  (__get_CONTROL() & (uint32_t)(1<<7))
+
+static void unlock(void* resourceId) {
+	INTERRUPT_ENABLE;
+}
+
+static void empty(void* resourceId) {}
+
+unlock_t lock(void* resourceId){
+	if(INTERRUPT_STATUS) {
+		INTERRUPT_DISABLE;
+		return unlock;
+	}
+	return empty;
+}
+
+
 static IWDG_HandleTypeDef watchDog;
 void initWatchDog(){
 	watchDog.Instance = IWDG;
