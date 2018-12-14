@@ -64,7 +64,6 @@ void initDataStruct(void)  // Инициализация абстрактной 
 // Функция создает абстрактную структуру данных (резервирует место под нее в глобальном массиве)
 // sizeElement - размер одного элемента в БАЙТАХ, sizeAll - размер очереди в ЭЛЕМЕНТАХ
 u08 CreateDataStruct(const void* D, const BaseSize_t sizeElement, const BaseSize_t sizeAll){
-    bool_t flag_int = FALSE;
     register u08 i = 0;
     for(; i<ArraySize; i++) // Ищем пустое место в списке для новой структуры данных
     {
@@ -72,16 +71,13 @@ u08 CreateDataStruct(const void* D, const BaseSize_t sizeElement, const BaseSize
         if(Data_Array[i].Data == NULL) break;
     }
     if(i == ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;
-    if(INTERRUPT_STATUS) {
-        flag_int = TRUE;
-        INTERRUPT_DISABLE;
-    }
+    unlock_t unlock = lock(Data_Array[i].Data);
     Data_Array[i].Data = (void*)D; // Адрес начала
     Data_Array[i].sizeElement = sizeElement; // размер одного элемента в байтах
     Data_Array[i].sizeAllElements = sizeAll; // Размер всей очереди в элементах
     Data_Array[i].firstCount= 0;
     Data_Array[i].lastCount = 0;
-    if(flag_int) INTERRUPT_ENABLE;
+    unlock(Data_Array[i].Data);
     return EVERYTHING_IS_OK;
 }
 
@@ -90,6 +86,7 @@ u08 delDataStruct(const void* Data)  // Удаляем из массива аб�
 {
     u08 i = findNumberDataStruct(Data);
     if(i == ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;  // Если такой не существует в массиве, выдаем ошибку
+    unlock_t unlock = lock(Data_Array[i].Data);
     Data_Array[i].Data = NULL;    // Если абстрактная структура данных есть удаляем ее
     return EVERYTHING_IS_OK;
 }
@@ -123,19 +120,15 @@ static BaseSize_t decFirst(AbstractDataType* d) {
 }
 
 u08 PutToCycleDataStruct(const void* Elem, const void* Array) {
-    bool_t flag_int = FALSE;
     register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если мы не нашли абстрактную структуру данных с указанным идентификтором выходим
-    if(INTERRUPT_STATUS){
-        flag_int = TRUE;
-        INTERRUPT_DISABLE;
-    }
+    unlock_t unlock = lock(Data_Array[i].Data);
     unsigned int offset = Data_Array[i].firstCount * Data_Array[i].sizeElement; //вычисляем смещение в байтах
     void* dst = (void*)((byte_ptr)Data_Array[i].Data + offset);     // Определяем адресс куда копировать
     memCpy(dst, Elem, Data_Array[i].sizeElement); // Вставляем наш элемент
     Data_Array[i].firstCount = incFirst(&Data_Array[i]);
     Data_Array[i].lastCount  = decLast(&Data_Array[i]);
-    if(flag_int) INTERRUPT_ENABLE;
+    unlock(Data_Array[i].Data);
     return EVERYTHING_IS_OK;
 }
 
@@ -143,17 +136,13 @@ u08 GetFromCycleDataStruct(void* returnValue, const void* Array){
     register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
     if(Data_Array[i].lastCount > 0) { // Если есть какие либо данные
-	    bool_t flag_int = FALSE;
-    	if(INTERRUPT_STATUS) {
-    		flag_int = TRUE;
-    		INTERRUPT_DISABLE;
-    	}
+    	unlock_t unlock = lock(Data_Array[i].Data);
     	Data_Array[i].firstCount = decFirst(&Data_Array[i]);
         Data_Array[i].lastCount = incLast(&Data_Array[i]);
     	unsigned int offset = Data_Array[i].firstCount * Data_Array[i].sizeElement;  // Определяем смещение на элемент, который надо достать
     	void* dst = (void*)((byte_ptr)Data_Array[i].Data + offset);     // Записываем адрес памяти свободной ячейки
     	memCpy(returnValue, dst, Data_Array[i].sizeElement);   // Если структура данных найдена, читаем от туда первый (самый старый) элемент
-    	if(flag_int) INTERRUPT_ENABLE;  // Если все происходило не в прерывании восстанавливаем разрешение прерываний
+    	unlock(Data_Array[i].Data);  // Если все происходило не в прерывании восстанавливаем разрешение прерываний
     	return EVERYTHING_IS_OK;   // Если все впорядке возвращаем ноль
     }
     else {
@@ -164,152 +153,116 @@ u08 GetFromCycleDataStruct(void* returnValue, const void* Array){
 
 //Положить элемент Elem в начало структуры данных Array
 u08 PutToFrontDataStruct(const void* Elem, const void* Array){
-    bool_t flag_int = FALSE;
     register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если мы не нашли абстрактную структуру данных с указанным идентификтором выходим
     BaseSize_t frontCount = incFirst(&Data_Array[i]); 		  // Будущий указатель на СВОБОДНЫЙ элемент
     if(frontCount == Data_Array[i].lastCount) return OVERFLOW_OR_EMPTY_ERROR;  // Если после добавления мы догоним lastCount, значит структура заполнена
-    if(INTERRUPT_STATUS) {
-        flag_int = TRUE;
-        INTERRUPT_DISABLE;
-    }
+    unlock_t unlock = lock(Data_Array[i].Data);
     unsigned int offset = Data_Array[i].firstCount * Data_Array[i].sizeElement; //вычисляем смещение в байтах
     void* dst = (void*)((byte_ptr)Data_Array[i].Data + offset);     // Определяем адресс куда копировать
     memCpy(dst, Elem, Data_Array[i].sizeElement); // Вставляем наш элемент
     Data_Array[i].firstCount = frontCount;
-    if(flag_int) INTERRUPT_ENABLE;
+    unlock(Data_Array[i].Data);
     return EVERYTHING_IS_OK;
 }
 
 // Положить элемент Elem в конец абстрактной структуры данных Array
 u08 PutToEndDataStruct(const void* Elem, const void* Array){
-    bool_t flag_int = FALSE;
     register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если мы не нашли абстрактную структуру данных с указанным идентификтором выходим
     BaseSize_t endCount = incLast(&Data_Array[i]);
     if(endCount == Data_Array[i].firstCount) return OVERFLOW_OR_EMPTY_ERROR;  //Если после добавления струтктура переполнится не добавляем
-    if(INTERRUPT_STATUS) {
-        flag_int = TRUE;
-        INTERRUPT_DISABLE;
-    }
+    unlock_t unlock = lock(Data_Array[i].Data);
     unsigned int offset = endCount * Data_Array[i].sizeElement;  // Определяем смещение на свободную позицию (количество байт)
     void* dst = (void*)((byte_ptr)Data_Array[i].Data + offset); // Записываем адрес памяти начала свободной ячейки
     memCpy(dst, Elem, Data_Array[i].sizeElement);  // Копируем все байты Elem в массив Array с заданным смещением
     Data_Array[i].lastCount = endCount;           // После копирования инкрементируем текущую позицию
-    if(flag_int) INTERRUPT_ENABLE;
+    unlock(Data_Array[i].Data);
     return EVERYTHING_IS_OK;
 }
 
 u08 GetFromFrontDataStruct(void* returnValue, const void* Array) // Достаем элемент с начала структуры данных
 {
-    bool_t flag_int = FALSE;
     register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
     if(Data_Array[i].firstCount == Data_Array[i].lastCount) {return OVERFLOW_OR_EMPTY_ERROR;} // Если она пустая читать нечего
-    if(INTERRUPT_STATUS) {
-        flag_int = TRUE;
-        INTERRUPT_DISABLE;
-    }
+    unlock_t unlock = lock(Data_Array[i].Data);
     Data_Array[i].firstCount = decFirst(&Data_Array[i]);
     unsigned int offset = Data_Array[i].firstCount * Data_Array[i].sizeElement;  // Определяем смещение на элемент, который надо достать
     void* dst = (void*)((byte_ptr)Data_Array[i].Data + offset);     // Записываем адрес памяти свободной ячейки
     memCpy(returnValue, dst, Data_Array[i].sizeElement);   // Если структура данных найдена, читаем от туда первый (самый старый) элемент
-    if(flag_int) INTERRUPT_ENABLE;  // Если все происходило не в прерывании восстанавливаем разрешение прерываний
+    unlock(Data_Array[i].Data);// Если все происходило не в прерывании восстанавливаем разрешение прерываний
     return EVERYTHING_IS_OK;   // Если все впорядке возвращаем ноль
 }
 
 u08 GetFromEndDataStruct(void* returnValue, const void* Array) // Достаем элемент с конца структуры данных
 {
-    bool_t flag_int = FALSE;
     register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
     if(Data_Array[i].lastCount == Data_Array[i].firstCount) return OVERFLOW_OR_EMPTY_ERROR; //Проверка пустая ли структура данных
-    if(INTERRUPT_STATUS) {
-        flag_int = TRUE;
-        INTERRUPT_DISABLE;
-    }
+    unlock_t unlock = lock(Data_Array[i].Data);
     unsigned int offset = Data_Array[i].lastCount*Data_Array[i].sizeElement;
     void* src = (void*)((byte_ptr)Data_Array[i].Data+offset);
     memCpy(returnValue, src, Data_Array[i].sizeElement);   // Если структура данных найдена, читаем от туда первый (самый старый) элемент
     Data_Array[i].lastCount = decLast(&Data_Array[i]);
-    if(flag_int) INTERRUPT_ENABLE;  // Если все происходило не в прерывании восстанавливаем разрешение прерываний
+    unlock(Data_Array[i].Data);// Если все происходило не в прерывании восстанавливаем разрешение прерываний
     return EVERYTHING_IS_OK;   // Если все впорядке возвращаем ноль
 }
 
 u08 delFromFrontDataStruct(const void* const Data)
 {
-    bool_t flag_int = FALSE;
     register u08 i = findNumberDataStruct(Data);
     if(i == ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
     if(Data_Array[i].firstCount == Data_Array[i].lastCount) {return OVERFLOW_OR_EMPTY_ERROR;} // Если она пустая читать нечего
-    if(INTERRUPT_STATUS) {
-        flag_int = TRUE;
-        INTERRUPT_DISABLE;
-    }
+    unlock_t unlock = lock(Data_Array[i].Data);
     Data_Array[i].firstCount = decFirst(&Data_Array[i]);
-    if(flag_int) INTERRUPT_ENABLE;  // Если все происходило не в прерывании восстанавливаем разрешение прерываний
+    unlock(Data_Array[i].Data); // Если все происходило не в прерывании восстанавливаем разрешение прерываний
     return EVERYTHING_IS_OK;   // Если все впорядке возвращаем ноль
 }
 
 u08 delFromEndDataStruct(const void* const Data)
 {
-    bool_t flag_int = FALSE;
     register u08 i = findNumberDataStruct(Data);
     if(i == ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
     if(Data_Array[i].lastCount == Data_Array[i].firstCount) return OVERFLOW_OR_EMPTY_ERROR; //Проверка пустая ли структура данных
-    if(INTERRUPT_STATUS){
-        flag_int = TRUE;
-        INTERRUPT_DISABLE;
-    }
+    unlock_t unlock = lock(Data_Array[i].Data);
     Data_Array[i].lastCount = decLast(&Data_Array[i]);
-    if(flag_int) INTERRUPT_ENABLE;  // Если все происходило не в прерывании восстанавливаем разрешение прерываний
+    unlock(Data_Array[i].Data);// Если все происходило не в прерывании восстанавливаем разрешение прерываний
     return EVERYTHING_IS_OK;   // Если все впорядке возвращаем ноль
 }
 
 u08 peekFromFrontData(void* returnValue, const void* Array) {
-    bool_t flag_int = FALSE;
     register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
     if(Data_Array[i].firstCount == Data_Array[i].lastCount) {return OVERFLOW_OR_EMPTY_ERROR;} // Если она пустая читать нечего
-    if(INTERRUPT_STATUS) {
-        flag_int = TRUE;
-        INTERRUPT_DISABLE;
-    }
+    unlock_t unlock = lock(Data_Array[i].Data);
     u08 count = decFirst(&Data_Array[i]);
     unsigned int offset = count * Data_Array[i].sizeElement;  // Определяем смещение на элемент, который надо достать
     void* dst = (void*)((byte_ptr)Data_Array[i].Data + offset); // Записываем адрес памяти свободной ячейки
     memCpy(returnValue, dst, Data_Array[i].sizeElement);   // Если структура данных найдена, читаем от туда первый (самый старый) элемент
-    if(flag_int) INTERRUPT_ENABLE;  // Если все происходило не в прерывании восстанавливаем разрешение прерываний
+    unlock(Data_Array[i].Data);// Если все происходило не в прерывании восстанавливаем разрешение прерываний
     return EVERYTHING_IS_OK;   // Если все впорядке возвращаем ноль
 }
 
 u08 peekFromEndData(void* returnValue, const void* Array) {
-    bool_t flag_int = FALSE;
     register u08 i = findNumberDataStruct(Array);
     if(i == ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
     if(Data_Array[i].lastCount == Data_Array[i].firstCount) return OVERFLOW_OR_EMPTY_ERROR; //Проверка пустая ли структура данных
-    if(INTERRUPT_STATUS){
-        flag_int = TRUE;
-        INTERRUPT_DISABLE;
-    }
+    unlock_t unlock = lock(Data_Array[i].Data);
     unsigned int offset = Data_Array[i].lastCount * Data_Array[i].sizeElement;
     void* src = (void*)((byte_ptr)Data_Array[i].Data+offset);
     memCpy(returnValue, src, Data_Array[i].sizeElement);   // Если структура данных найдена, читаем от туда первый (самый старый) элемент
-    if(flag_int) INTERRUPT_ENABLE;  // Если все происходило не в прерывании восстанавливаем разрешение прерываний
+    unlock(Data_Array[i].Data);// Если все происходило не в прерывании восстанавливаем разрешение прерываний
     return EVERYTHING_IS_OK;   // Если все впорядке возвращаем ноль
 }
 
 void clearDataStruct(const void * const Data){
-    bool_t flag_int = FALSE;
     register u08 i = findNumberDataStruct(Data);
     if(i == ArraySize) return;
-    if(INTERRUPT_STATUS) {
-        flag_int = TRUE;
-        INTERRUPT_DISABLE;
-    }
+    unlock_t unlock = lock(Data_Array[i].Data);
     Data_Array[i].firstCount = 0; // Очищаем от данных наш массив
     Data_Array[i].lastCount = 0;
-    if(flag_int) INTERRUPT_ENABLE;  // Если все происходило не в прерывании восстанавливаем разрешение прерываний
+    unlock(Data_Array[i].Data);
 }
 
 bool_t isEmptyDataStruct(const void* const Data){

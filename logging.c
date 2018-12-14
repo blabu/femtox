@@ -159,7 +159,7 @@ void writeLogByteArray(u08 sizeBytes, byte_ptr array){
 	}
 	u08 poz = 0;
 	for(u08 i = 0; i<sizeBytes; i++) {
-		toStringDec(array[i],&str[poz]);
+		toString(1,array[i],&str[poz]);
 		poz=strSize(str);
 		str[poz] = ' ';
 		poz++;

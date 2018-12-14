@@ -22,17 +22,14 @@ extern "C" {
 #if EVENT_LIST_SIZE > 0xFE
 #error "incompatible size"
 #endif
-typedef struct
-{
+typedef struct {
     Predicat_t      Predicat;   // Указатель на функцию условия
     CycleFuncPtr_t  CallBack;
 } EventsType;
 EventsType EventList[EVENT_LIST_SIZE];
 
-void initEventList(void)
-{
-    for(u08 i = 0; i<EVENT_LIST_SIZE; i++)
-    {
+void initEventList(void) {
+    for(u08 i = 0; i<EVENT_LIST_SIZE; i++) {
         EventList[i].Predicat = NULL;
     }
 }
@@ -48,33 +45,23 @@ void EventManager( void )
 bool_t CreateEvent(Predicat_t condition, CycleFuncPtr_t effect) // Регистрирует новое событие в списке событий
 {
     u08 i = 0;
-    bool_t flag_inter = FALSE;
-    if (INTERRUPT_STATUS)		 	// Проверка в прерывании мы или нет
-    {							 	// Значит мы не в прерывании
-        INTERRUPT_DISABLE;          // Отключаем прерывание
-        flag_inter = TRUE;			// Устанавливаем флаг, что мы не в прерывании
-    }
+    unlock_t unlock = lock(EventList);
     for(;i < EVENT_LIST_SIZE; i++)
     {
         if(EventList[i].Predicat == NULL) break; // find empty event task
     }
-    if(i == EVENT_LIST_SIZE) {if(flag_inter) INTERRUPT_ENABLE; return FALSE;} // Событие невозможно создать т.к. очередь событий переполнена
+    if(i == EVENT_LIST_SIZE) {unlock(EventList); return FALSE;} // Событие невозможно создать т.к. очередь событий переполнена
     EventList[i].Predicat = condition;
     EventList[i].CallBack = effect;
-    if(flag_inter) INTERRUPT_ENABLE; //Далее востанавливаем прерывания (если необходимо)
+    unlock(EventList); //Далее востанавливаем прерывания (если необходимо)
     return TRUE;
 }
 
 void delEvent(Predicat_t condition)
 {
     u08 i = 0;
-    bool_t flag_inter = FALSE;
     u08 countDeletedEvent = 0;
-    if (INTERRUPT_STATUS)		 	// Проверка в прерывании мы или нет
-    {							 	// Значит мы не в прерывании
-        INTERRUPT_DISABLE;          // Отключаем прерывание
-        flag_inter = TRUE;			// Устанавливаем флаг, что мы не в прерывании
-    }
+    unlock_t unlock = lock(EventList);
     for(;i<EVENT_LIST_SIZE;i++)     // Выполняем поиск нашего события
     {
         if(EventList[i].Predicat == NULL) break;    // Если дошли до пустого, а значит последнего выходим из цикла
@@ -91,7 +78,7 @@ void delEvent(Predicat_t condition)
             EventList[i].Predicat = NULL;   // А текущее место освобождаем
         }
     }
-    if(flag_inter) INTERRUPT_ENABLE;
+    unlock(EventList);
 }
 #endif //EVENT_LOOP_TASKS
 
