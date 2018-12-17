@@ -1,11 +1,10 @@
-#include "PlatformSpecific.h"
-#ifdef ARM_STM32
+#include "PlatformSpecificARM.h"
 #include "TaskMngr.h"
-
 #include "stm32l1xx_hal.h"
 #include "stm32l152xe.h"
 
 #ifdef MAXIMIZE_OVERFLOW_ERROR
+#include "logging.h"
 	void MaximizeErrorHandler(string_t str){
 		writeLogStr(str);
 		initWatchDog();
@@ -29,13 +28,13 @@
 #define INTERRUPT_DISABLE __disable_irq()  //{__asm__ __volatile__("dint nop"); asm("nop");}
 #define INTERRUPT_STATUS  (__get_CONTROL() & (uint32_t)(1<<7))
 
-static void unlock(void* resourceId) {
+static void unlock(const void*const resourceId) {
 	INTERRUPT_ENABLE;
 }
 
-static void empty(void* resourceId) {}
+static void empty(const void*const resourceId) {}
 
-unlock_t lock(void* resourceId){
+unlock_t lock(const void*const resourceId){
 	if(INTERRUPT_STATUS) {
 		INTERRUPT_DISABLE;
 		return unlock;
@@ -239,5 +238,4 @@ void TIM7_IRQHandler(void){
 	}
 }
 
-#endif
 #endif

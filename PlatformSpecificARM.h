@@ -1,11 +1,12 @@
-#ifndef PLATFORMSPECIFIC
-#define PLATFORMSPECIFIC
+#ifndef PLATFORMSPECIFIC_ARM
+#define PLATFORMSPECIFIC_ARM
 #include "stm32l1xx_hal.h"
 #include "stm32l152xe.h"
-#include "FemtoxTypes.h"
 //#include "stm32f1xx_hal.h"
 //#include "stm32f1xx.h"
 #include "cmsis_gcc.h"
+
+#include "FemtoxTypes.h"
 
 void initWatchDog();
 void resetWatchDog();
@@ -14,7 +15,7 @@ void resetWatchDog();
                                             ПЛАТФОРМО-ЗАВИСИМЫЕ ФУНКЦИИ														|
 *********************************************************************************************************************
 *********************************************************************************************************************/
-unlock_t lock(void* resourceId);
+unlock_t lock(const void*const resourceId);
 
 #define WATCH_DOG_ON  initWatchDog()/*Генерируем Reset*/
 #define TICK_PER_SECOND 128 /*Колличество тиков в секунду*/
@@ -45,4 +46,4 @@ extern TIM_HandleTypeDef TIM7InitStruct;
 #define CLEAR_TX_PIN(PORT,PIN_MASK) HAL_GPIO_WritePin(PORT,PIN_MASK,GPIO_PIN_RESET)
 
 
-#endif // PLATFORMSPECIFIC
+#endif // PLATFORMSPECIFIC_ARM
