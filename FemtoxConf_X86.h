@@ -6,14 +6,15 @@
  *  Created on: 18 лип. 2018 р.
  *      Author: Admin
  */
+
 #ifndef FEMTOXCONF_H_
 #define FEMTOXCONF_H_
 
-//#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
+#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
 #define DATA_STRUCT_MANAGER   /*Включаем работу с очередями средствами деспетчера*/
 #define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/
-//#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
-//#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
+#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
+#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 #define ALLOC_MEM   /*Включение динамического выделения памяти*/
 #define EVENT_LOOP_TASKS
 //#define USE_SOFT_UART
@@ -26,36 +27,36 @@
 //#define _PWR_SAVE
 #define NEED_CRYPT
 
-#define TASK_LIST_LEN 10U /*Длина очереди задач*/
-#define TIME_LINE_LEN 30U /*Максимальне количество системных таймеров*/
+#define TASK_LIST_LEN 250U /*Длина очереди задач*/
+#define TIME_LINE_LEN 250U /*Максимальне количество системных таймеров*/
 #define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
 #ifdef EVENT_LOOP_TASKS
-#define EVENT_LIST_SIZE 10
+#define EVENT_LIST_SIZE 100
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
-#define ArraySize   12 /*Общее количество всех структур данных*/
+#define ArraySize   120 /*Общее количество всех структур данных*/
 #endif
 
 #ifdef MUTEX_ENABLE
-#define MUTEX_SIZE 8 /*Может быть 8,16,32 бита, и соответсвенно столько же мьютексов*/
+#define MUTEX_SIZE 32 /*Может быть 8,16,32 бита, и соответсвенно столько же мьютексов*/
 #endif
 
 #ifdef CYCLE_FUNC
-#define TIMERS_ARRAY_SIZE 15
+#define TIMERS_ARRAY_SIZE 150
 #endif
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 10000UL /*6500*/
+#define HEAP_SIZE 65530UL /*6500*/
 #endif
 
 #ifdef CALL_BACK_TASK
-#define CALL_BACK_TASK_LIST_LEN 30
+#define CALL_BACK_TASK_LIST_LEN 60
 #endif
 
 #ifdef SIGNALS_TASK
-#define SIGNAL_LIST_LEN 10
+#define SIGNAL_LIST_LEN 50
 #endif
 
 #ifdef _PWR_SAVE
