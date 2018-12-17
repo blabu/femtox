@@ -16,23 +16,15 @@ extern "C" {
 static globalFlags_t GlobalFlags = 0;
 
 void setFlags(globalFlags_t flagMask) {
-	bool_t flag_int = FALSE;
-	if(INTERRUPT_STATUS){
-		flag_int = TRUE;
-		INTERRUPT_DISABLE;
-	}
+	unlock_t unlock = lock(&GlobalFlags);
 	GlobalFlags |= flagMask;
-	if(flag_int) INTERRUPT_ENABLE;
+	unlock(&GlobalFlags);
 }
 
 void clearFlags(globalFlags_t flagMask) {
-	bool_t flag_int = FALSE;
-	if(INTERRUPT_STATUS){
-		flag_int = TRUE;
-		INTERRUPT_DISABLE;
-	}
+	unlock_t unlock = lock(&GlobalFlags);
 	GlobalFlags &= ~flagMask;
-	if(flag_int) INTERRUPT_ENABLE;
+	unlock(&GlobalFlags);
 }
 
 bool_t getFlags(globalFlags_t flagMask){

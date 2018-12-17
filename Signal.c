@@ -16,7 +16,7 @@ static TaskMng taskList[SIGNAL_LIST_LEN];
 static void* signalList[SIGNAL_LIST_LEN];
 
 // Прочесываем очередь, находим задачи подписанные на этот сигнал и вызываем их. При этом задачи из списка не удаляются
-void emitSignal(void* signal, BaseSize_t arg_n, BaseParam_t arg_p) {
+void emitSignal(const void*const signal, BaseSize_t arg_n, BaseParam_t arg_p) {
 	for(u08 i = 0; i<SIGNAL_LIST_LEN; i++) {
 		if(signalList[i] == signal) {
 			if(taskList[i] != NULL) {
@@ -26,32 +26,24 @@ void emitSignal(void* signal, BaseSize_t arg_n, BaseParam_t arg_p) {
 	}
 }
 
-void connectTaskToSignal(TaskMng task, void* signal) {
-	bool_t flagISR = FALSE;
+void connectTaskToSignal(const TaskMng task, const void*const signal) {
 	for(u08 i = 0; i<SIGNAL_LIST_LEN; i++) {
 		if(signalList[i] == NULL) {
-			if(INTERRUPT_STATUS) {
-				flagISR = TRUE;
-				INTERRUPT_DISABLE;
-			}
-			signalList[i] = signal;
+			unlock_t unlock = lock(signalList);
+			signalList[i] = (void*)signal;
 			taskList[i] = task;
-			if(flagISR) INTERRUPT_ENABLE;
+			unlock(signalList);
 			return;
 		}
 	}
 }
 
-void disconnectTaskFromSignal(TaskMng task, void* signal){
-	bool_t flagISR = FALSE;
+void disconnectTaskFromSignal(const TaskMng task, const void*const signal){
 	for(u08 i = 0; i<SIGNAL_LIST_LEN; i++) {
 		if(signalList[i] == signal && taskList[i] == task) {
-			if(INTERRUPT_STATUS) {
-				flagISR = TRUE;
-				INTERRUPT_DISABLE;
-			}
+			unlock_t unlock = lock(signalList);
 			signalList[i] = NULL;
-			if(flagISR) INTERRUPT_ENABLE;
+			unlock(signalList);
 		}
 	}
 }

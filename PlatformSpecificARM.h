@@ -2,13 +2,11 @@
 #define PLATFORMSPECIFIC
 #include "stm32l1xx_hal.h"
 #include "stm32l152xe.h"
-
+#include "FemtoxTypes.h"
 //#include "stm32f1xx_hal.h"
 //#include "stm32f1xx.h"
 #include "cmsis_gcc.h"
 
-#define _ARM32
-#define ARCH 32 /*Архитектура процессора 8, 16, 32 байта (разрядность шины данных)*/
 void initWatchDog();
 void resetWatchDog();
 /********************************************************************************************************************
@@ -16,9 +14,8 @@ void resetWatchDog();
                                             ПЛАТФОРМО-ЗАВИСИМЫЕ ФУНКЦИИ														|
 *********************************************************************************************************************
 *********************************************************************************************************************/
-#define INTERRUPT_ENABLE  __enable_irq()   //{asm("nop"); __asm__ __volatile__("eint");}
-#define INTERRUPT_DISABLE __disable_irq()  //{__asm__ __volatile__("dint nop"); asm("nop");}
-#define INTERRUPT_STATUS  (__get_CONTROL() & (uint32_t)(1<<7))
+unlock_t lock(void* resourceId);
+
 #define WATCH_DOG_ON  initWatchDog()/*Генерируем Reset*/
 #define TICK_PER_SECOND 128 /*Колличество тиков в секунду*/
 

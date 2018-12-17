@@ -54,12 +54,12 @@ void deleteList(ListNode_t* listPtr) {
 // flag 0...6 bits is a size of data, and last 7's bit is a flag for allocate memmory
 ListNode_t* putToEndList(ListNode_t* list, void* data, u08 Flagalloc_Datasize) {
 	if(list == NULL || data == NULL) {
-		writeLogStr("putToEndList Incorrect input value");
+		writeLogStr("ERROR putToEndList Incorrect input value");
 		return NULL;
 	}
 	ListNode_t* newNode = (ListNode_t*)allocMem(sizeof(ListNode_t));
 	if(newNode == NULL) {
-		writeLogStr("putToEndList Memory error");
+		writeLogStr("ERROR putToEndList Memory error");
 		return NULL;
 	}
 	byte_ptr temp;
@@ -68,7 +68,7 @@ ListNode_t* putToEndList(ListNode_t* list, void* data, u08 Flagalloc_Datasize) {
 		u08 size = Flagalloc_Datasize & 0x7F;
 		temp = (byte_ptr)allocMem(size);
 		if(temp == NULL) {
-			writeLogStr("Error when try alloc mem for data");
+			writeLogStr("ERROR when try alloc mem for data");
 			freeMem((byte_ptr)newNode);
 			return NULL;
 		}
@@ -84,12 +84,12 @@ ListNode_t* putToEndList(ListNode_t* list, void* data, u08 Flagalloc_Datasize) {
 
 ListNode_t* putToFrontList(ListNode_t* list, void* data, u08 Flagalloc_Datasize) {
 	if(list == NULL || data == NULL){
-		writeLogStr("putToFrontList Incorrect input value");
+		writeLogStr("ERROR putToFrontList Incorrect input value");
 		return NULL;
 	}
 	ListNode_t* newNode = (ListNode_t*)allocMem(sizeof(ListNode_t));
 	if(newNode == NULL) {
-		writeLogStr("putToFrontList Memory error");
+		writeLogStr("ERROR putToFrontList Memory error");
 		return NULL;
 	}
 	byte_ptr temp = NULL;
@@ -112,7 +112,7 @@ ListNode_t* putToFrontList(ListNode_t* list, void* data, u08 Flagalloc_Datasize)
 
 ListNode_t* getFromEndList(ListNode_t* list, void** result){
     if(list == NULL) {
-    	writeLogStr("getFromEndList Incorrect input value");
+    	writeLogStr("ERROR getFromEndList Incorrect input value");
     	return NULL;
     }
     ListNode_t* tail = findTail(list); // Ищем последний элемент
@@ -128,7 +128,7 @@ ListNode_t* getFromEndList(ListNode_t* list, void** result){
 
 ListNode_t* getFromFrontList(ListNode_t* list, void** result){
     if(list == NULL) {
-    	writeLogStr("getFromFrontList Incorrect input value");
+    	writeLogStr("ERROR getFromFrontList Incorrect input value");
     	return NULL;
     }
     ListNode_t* head = findHead(list); // Ищем последний элемент
