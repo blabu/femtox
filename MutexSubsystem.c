@@ -31,7 +31,7 @@ bool_t tryGetMutex(const mutexType mutexNumb) {
 
 #include "logging.h"
 // TRUE - Если мьютекс захватить НЕ УДАЛОСЬ
-bool_t getMutex(const mutexType mutexNumb, TaskMng TPTR, BaseSize_t n, BaseParam_t data) {
+bool_t getMutex(const mutexType mutexNumb, const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data) {
     if(mutexNumb >= MUTEX_SIZE) return FALSE;// Если номер мьютекса больше возможного варианта выходим из функции
     unlock_t unlock = lock(&MyMutex);
     if(MyMutex & (1<<mutexNumb)) { // Если мьютекс с таким номером захвачен

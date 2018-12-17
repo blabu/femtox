@@ -33,7 +33,7 @@ u16 getFreeMemmorySize(void){
     return sizeAllFreeMemmory;
 }
 
-u16 getAllocateMemmorySize(byte_ptr data) {
+u16 getAllocateMemmorySize(const byte_ptr data) {
     u16 size = 0;
 	if(data > heap &&
        data < heap + HEAP_SIZE)  // Если мы передали валидный указатель
@@ -56,7 +56,7 @@ void clearAllMemmory(void){
     unlock(heap);
 }
 
-byte_ptr allocMem(u08 size) { //size - до 127 размер блока выделяемой памяти
+byte_ptr allocMem(const u08 size) { //size - до 127 размер блока выделяемой памяти
     if(size > 127 || !size) {
     	return NULL;  // Если попросили больше чем можем дать возвращаем ноль
     }
@@ -93,7 +93,7 @@ byte_ptr allocMem(u08 size) { //size - до 127 размер блока выде
     return (heap + i + 1); // Иначе вернем валидный указатель на начало массива
 }
 
-void freeMem(byte_ptr data) {
+void freeMem(const byte_ptr data) {
     if(data > heap &&
        data < heap + HEAP_SIZE)  // Если мы передали валидный указатель
     {

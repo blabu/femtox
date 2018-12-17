@@ -112,9 +112,9 @@ static void ClockService(void){
 #endif
 }
 
-void SetIdleTask(IdleTask_t Task){
+void SetIdleTask(const IdleTask_t Task){
 	unlock_t unlock = lock(SetIdleTask);
-	IdleTask = Task;
+	IdleTask = (IdleTask_t)Task;
 	unlock(SetIdleTask);
 }
 
@@ -173,7 +173,6 @@ void runFemtOS( void ) {
 
 void ResetFemtOS(void){
 	WATCH_DOG_ON;
-	unlock_t unlock = lock(ResetFemtOS);
 	while(1);
 }
 
@@ -227,23 +226,23 @@ static volatile u08 countEnd = 0;      // Указатель на КОНЕЦ о�
 Берем количество параметров из глобального стека и передаем взятой функции, которая берет свои параметры из глобального стека.
  */
 static void TaskManager(void) {
-	unlock_t unlock = lock(TaskList);
+	unlock_t unlock = lock((void*)TaskList);
 	if(countBegin != countEnd) { // Если очередь не пустая
 	// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
 		TaskMng Func_point = TaskList[countBegin].Task; // countBegin - указывает на начало очереди на рабочую задачу
 		BaseParam_t a = TaskList[countBegin].arg_p;
 		BaseSize_t n = TaskList[countBegin].arg_n;
 		countBegin = (countBegin < TASK_LIST_LEN-1)? countBegin+1:0;
-		unlock(TaskList);
+		unlock((void*)TaskList);
 		Func_point(n,a);
 		return;
 	}
-	unlock(TaskList); // Если очередь пустая включаем прерывания
+	unlock((void*)TaskList); // Если очередь пустая включаем прерывания
 	Idle();           // И выполняем функция простоя
 }
 
-void SetTask(TaskMng New_Task, BaseSize_t n, BaseParam_t data) {
-	unlock_t unlock = lock(TaskList);
+void SetTask(const TaskMng New_Task, const BaseSize_t n, const BaseParam_t data) {
+	unlock_t unlock = lock((void*)TaskList);
 	register u08 count = (countEnd < TASK_LIST_LEN-1)? countEnd+1:0; //Кольцевой буфер
 	if(count != countBegin){ // Если после добавления задачи countEnd не догонит countBegin значит очередь не переполнена
 	// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
@@ -251,15 +250,15 @@ void SetTask(TaskMng New_Task, BaseSize_t n, BaseParam_t data) {
 		TaskList[countEnd].arg_n = n;       // countEnd
 		TaskList[countEnd].arg_p = data;
 		countEnd = count;
-		unlock(TaskList);
+		unlock((void*)TaskList);
 		return;
 	}// Здесь мы окажемся в редких случаях когда oчередь переполнена
     #ifndef USE_TIMER_IF_OVERFLOW_TASK_LIST
     MaximizeErrorHandler("ERROR: task queue overflow");
-    unlock(TaskList);
+    unlock((void*)TaskList);
     #else
 	SetTimerTask(New_Task, n, data, TIME_DELAY_IF_BUSY);  //Ставим задачу в очередь(попытаемся записать ее позже)
-	unlock(TaskList);
+	unlock((void*)TaskList);
     #endif
 }
 
@@ -278,7 +277,7 @@ u08 getFreePositionForTask(void){
 }
 
 #ifdef SET_FRONT_TASK_ENABLE
-void SetFrontTask (TaskMng New_Task, BaseSize_t n, BaseParam_t data) // Функция помещает в НАЧАЛО очереди задачу New_Task
+void SetFrontTask (const TaskMng New_Task, const BaseSize_t n, const BaseParam_t data) // Функция помещает в НАЧАЛО очереди задачу New_Task
 {
 	unlock_t unlock = lock(TaskList);
 	register u08 count = (countBegin)? countBegin-1:TASK_LIST_LEN-1; // Определяем указатель начала очереди куда должны вставить новую задачку
@@ -311,7 +310,7 @@ void delAllTask(void) {
 static u08 lastTimerIndex = 0; // Указывает на индекс следующего СВОБОДНОГО таймера
 #ifdef _PWR_SAVE
 static u32 TimerService (void) {
-	unlock_t unlock = lock(MainTime);
+	unlock_t unlock = lock((void*)MainTime);
 	u08 index = 0;
 	u32 tempMinTime = 0;
 	while(index < lastTimerIndex) {  // Перебираем всю очередь таймеров
@@ -330,12 +329,12 @@ static u32 TimerService (void) {
 		MainTimer[index].arg_p = MainTimer[lastTimerIndex].arg_p;
 		MainTime[index] = MainTime[lastTimerIndex];
 	}
-	unlock(MainTime);
+	unlock((void*)MainTime);
 	return tempMinTime;
 }
 #else // Класический таймер. Без регулирования скорости работы таймер ОС
 static void TimerService (void) {
-	unlock_t unlock = lock(MainTime);
+	unlock_t unlock = lock((void*)MainTime);
 	u08 index = 0;
 	while(index < lastTimerIndex) {  // Перебираем всю очередь таймеров
 		if(MainTime[index] > 1) {  // Если таймер еще не дотикал (наиболее вероятно)
@@ -353,13 +352,13 @@ static void TimerService (void) {
 		MainTimer[index].arg_p = MainTimer[lastTimerIndex].arg_p;
 		MainTime[index] = MainTime[lastTimerIndex];
 	}
-	unlock(MainTime);
+	unlock((void*)MainTime);
 }
 #endif
 
-void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time){
+void SetTimerTask(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data, const Time_t New_Time){
 	if(New_Time == 0) {SetTask(TPTR, n, data); return;}
-	unlock_t unlock = lock(MainTime);
+	unlock_t unlock = lock((void*)MainTime);
 	if(lastTimerIndex < TIME_LINE_LEN){ // Если очередь не переполнена
 		MainTimer[lastTimerIndex].Task = TPTR;
 		MainTimer[lastTimerIndex].arg_n = n;
@@ -369,15 +368,15 @@ void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
 #ifdef _PWR_SAVE
 		if(New_Time < minTimeOut) minTimeOut = _setTickTime(New_Time);
 #endif
-		unlock(MainTime);
+		unlock((void*)MainTime);
 		return;
 	}
 	MaximizeErrorHandler("PANIC: HAVE NOT MORE TIMERS");
-	unlock(MainTime);
+	unlock((void*)MainTime);
 	return; //  тут можно сделать return c кодом ошибки - нет свободных таймеров
 }
 
-static u08 findTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data) {
+static u08 findTimer(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data) {
 	register u08 index = 0;
 	for(;index<lastTimerIndex; index++)	{
 		if((MainTimer[index].Task  == TPTR)&& /* Если уже есть запись с таким же адресом*/
@@ -390,34 +389,34 @@ static u08 findTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data) {
 	return index;
 }
 
-bool_t updateTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time) {
+bool_t updateTimer(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data, const Time_t New_Time) {
 	u08 index = findTimer(TPTR,n,data);
 	if(index < lastTimerIndex) {
-		unlock_t unlock = lock(MainTime);
+		unlock_t unlock = lock((void*)MainTime);
 		MainTime[index] = New_Time;
-		unlock(MainTime);
+		unlock((void*)MainTime);
 		return TRUE;
 	}
 	return FALSE;
 }
 
-void delTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data) {
+void delTimerTask(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data) {
 	u08 index = findTimer(TPTR,n,data);
 	if(index < lastTimerIndex){
-		unlock_t unlock = lock(MainTime);
+		unlock_t unlock = lock((void*)MainTime);
 		lastTimerIndex--;
 		MainTimer[index].Task  = MainTimer[lastTimerIndex].Task;    // На место этого таймера перемещаем последний
 		MainTimer[index].arg_n = MainTimer[lastTimerIndex].arg_n;
 		MainTimer[index].arg_p = MainTimer[lastTimerIndex].arg_p;
 		MainTime[index] = MainTime[lastTimerIndex];
-		unlock(MainTime);
+		unlock((void*)MainTime);
 	}
 }
 
 void delAllTimerTask(){
-	unlock_t unlock = lock(MainTime);
+	unlock_t unlock = lock((void*)MainTime);
     lastTimerIndex = 0;
-    unlock(MainTime);
+    unlock((void*)MainTime);
 }
 
 u08 getFreePositionForTimerTask(void) {
