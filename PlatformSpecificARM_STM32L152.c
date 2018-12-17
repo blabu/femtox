@@ -30,7 +30,7 @@
 #define INTERRUPT_STATUS  (__get_CONTROL() & (uint32_t)(1<<7))
 
 static void unlock(void* resourceId) {
-	INTERRUPT_ENABLE
+	INTERRUPT_ENABLE;
 }
 
 static void empty(void* resourceId) {}
