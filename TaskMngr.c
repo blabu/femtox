@@ -163,7 +163,7 @@ void initFemtOS (void) {  // Инициализация менеджера за�
 }
 
 void runFemtOS( void ) {
-	while(1){
+	while(TRUE) {
 #ifdef EVENT_LOOP_TASKS
 		EventManager();
 #endif
@@ -235,10 +235,10 @@ static void TaskManager(void) {
 		countBegin = (countBegin < TASK_LIST_LEN-1)? countBegin+1:0;
 		unlock((void*)TaskList);
 		Func_point(n,a);
-		return;
+	} else {
+		unlock((void*)TaskList); // Если очередь пустая включаем прерывания
+		Idle();           // И выполняем функция простоя
 	}
-	unlock((void*)TaskList); // Если очередь пустая включаем прерывания
-	Idle();           // И выполняем функция простоя
 }
 
 void SetTask(const TaskMng New_Task, const BaseSize_t n, const BaseParam_t data) {
@@ -277,8 +277,7 @@ u08 getFreePositionForTask(void){
 }
 
 #ifdef SET_FRONT_TASK_ENABLE
-void SetFrontTask (const TaskMng New_Task, const BaseSize_t n, const BaseParam_t data) // Функция помещает в НАЧАЛО очереди задачу New_Task
-{
+void SetFrontTask (const TaskMng New_Task, const BaseSize_t n, const BaseParam_t data){ // Функция помещает в НАЧАЛО очереди задачу New_Task
 	unlock_t unlock = lock(TaskList);
 	register u08 count = (countBegin)? countBegin-1:TASK_LIST_LEN-1; // Определяем указатель начала очереди куда должны вставить новую задачку
 	if(count != countEnd) {   // Если очередь еще не переполнена
@@ -369,11 +368,10 @@ void SetTimerTask(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data
 		if(New_Time < minTimeOut) minTimeOut = _setTickTime(New_Time);
 #endif
 		unlock((void*)MainTime);
-		return;
+	} else {
+		MaximizeErrorHandler("PANIC: HAVE NOT MORE TIMERS");
+		unlock((void*)MainTime);
 	}
-	MaximizeErrorHandler("PANIC: HAVE NOT MORE TIMERS");
-	unlock((void*)MainTime);
-	return; //  тут можно сделать return c кодом ошибки - нет свободных таймеров
 }
 
 static u08 findTimer(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data) {

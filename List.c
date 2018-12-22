@@ -111,59 +111,61 @@ ListNode_t* putToFrontList(ListNode_t* list, void* data, u08 Flagalloc_Datasize)
 }
 
 ListNode_t* getFromEndList(ListNode_t* list, void** result){
-    if(list == NULL) {
-    	writeLogStr("ERROR getFromEndList Incorrect input value");
-    	return NULL;
-    }
-    ListNode_t* tail = findTail(list); // Ищем последний элемент
-    ListNode_t* prev = NULL;
-    *result = tail->data; // Сохраняем указатель на данные
-    if(tail->prev != NULL) {
-    		prev = tail->prev;
-            prev->next = NULL;
-    }
-    freeMem((byte_ptr)tail);
-    return prev;
+	if(list != NULL) {
+		ListNode_t* tail = findTail(list); // Ищем последний элемент
+		ListNode_t* prev = NULL;
+		*result = tail->data; // Сохраняем указатель на данные
+		if(tail->prev != NULL) {
+			prev = tail->prev;
+			prev->next = NULL;
+		}
+		freeMem((byte_ptr)tail);
+		return prev;
+	}
+	writeLogStr("ERROR getFromEndList Incorrect input value");
+	return NULL;
 }
 
 ListNode_t* getFromFrontList(ListNode_t* list, void** result){
-    if(list == NULL) {
-    	writeLogStr("ERROR getFromFrontList Incorrect input value");
-    	return NULL;
-    }
-    ListNode_t* head = findHead(list); // Ищем последний элемент
-    ListNode_t* next = NULL;
-    *result = head->data;
-    if(head->next != NULL) {
-        head->next->prev = NULL;
-        next = head->next;
-    }
-    freeMem((byte_ptr)head);
-    return next;
+	if(list != NULL) {
+		ListNode_t* head = findHead(list); // Ищем последний элемент
+		ListNode_t* next = NULL;
+		*result = head->data;
+		if(head->next != NULL) {
+			head->next->prev = NULL;
+			next = head->next;
+		}
+		freeMem((byte_ptr)head);
+		return next;
+	}
+   	writeLogStr("ERROR getFromFrontList Incorrect input value");
+   	return NULL;
 }
 
 BaseSize_t getSizeList(ListNode_t* list){
-    if(list == NULL) return 0;
-    BaseSize_t size = 0;
-	ListNode_t * head = findHead(list);
-	if(head != NULL) {
-        while(head->next != NULL) {
-        	head = head->next;
-        	size++;
-        }
+	BaseSize_t size = 0;
+	if(list != NULL) {
+		ListNode_t * head = findHead(list);
+		if(head != NULL) {
+			while(head->next != NULL) {
+				head = head->next;
+				size++;
+			}
+		}
 	}
     return size;
 }
 
 void ForEachListNodes(ListNode_t* list, TaskMng task, bool_t flagToManager, BaseSize_t arg_n) {
-    if(list == NULL) return;
-	ListNode_t* head = findHead(list);
-	if(head != NULL) {
-		do {
-			if(flagToManager)SetTask(task, arg_n, (BaseParam_t)head->data);
-			else task(arg_n, (BaseParam_t)head->data);
-			head = head->next;
-		}while(head != NULL);
+	if(list != NULL) {
+		ListNode_t* head = findHead(list);
+		if(head != NULL) {
+			do {
+				if(flagToManager)SetTask(task, arg_n, (BaseParam_t)head->data);
+				else task(arg_n, (BaseParam_t)head->data);
+				head = head->next;
+			}while(head != NULL);
+		}
 	}
 }
 

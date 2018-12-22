@@ -9,8 +9,8 @@
 #define PLATFORM_H_
 
 //#define MSP430 1
-#define ARM_STM32 1
-//#define _X86 1
+//#define ARM_STM32 1
+#define _X86 1
 
 #define ARCH 32 /*Архитектура процессора 8, 16, 32 байта (разрядность шины данных)*/
 #define _ARM32
