@@ -11,7 +11,7 @@ extern const char* const _osVersion;
 void initFemtOS(void);    /* Инициализация менеджера задач. Здесь весь список задач (масив TaskLine) иницмализируется функцией Idle*/
 void ResetFemtOS(void);  // Програмный сброс микроконтроллера
 void runFemtOS( void ); // Запуск операционной системы
-void SetTask (TaskMng New_Task, BaseSize_t n, BaseParam_t data); /* Функция помещает в конец очереди задачу New_Task с количеством параметров n. И параметрами data[n]
+void SetTask (const TaskMng New_Task, const BaseSize_t n, const BaseParam_t data); /* Функция помещает в конец очереди задачу New_Task с количеством параметров n. И параметрами data[n]
 Прочесываем всю очередь задач в поисках пустой функции (Idle). Когда нашли засовываем вместо нее новую задачу
 и выходим из функции. Если не нашли пустой функции и засовывать задачу некуда просто выходим из функции. Можно также возвращать
 код ошибки если не удалось записать задачу и нормального завершения. Тогда функция будет иметь тип не void, а uint8_t.
@@ -22,7 +22,7 @@ u08 getFreePositionForTask(void);
 u08 getFreePositionForTimerTask(void);
 
 #ifdef SET_FRONT_TASK_ENABLE
-void SetFrontTask (TaskMng New_Task, BaseSize_t n, BaseParam_t data); // Поставить задачу в начало очереди
+void SetFrontTask (const TaskMng New_Task, const BaseSize_t n, const BaseParam_t data); // Поставить задачу в начало очереди
 #endif
 //Сами задачи следует делать небольшими.
 
@@ -31,7 +31,7 @@ void delAllTask(void);
 //********************************СИСТЕМНЫЙ ТАЙМЕР*********************************************
 void TimerISR(void); //Обработчик прерывания по совпадению теущего значения таймера и счетчика.
 
-void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time); //Постановщик задач c количеством параметров n в таймер.
+void SetTimerTask(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data, const Time_t New_Time); //Постановщик задач c количеством параметров n в таймер.
 /*Функция устанавливающая задачу в очередь по таймеру. На входе адрес перехода (имя задачи) и время в тиках службы таймера.
 Время двухбайтное, т.е. от 1 до 65535 измеряеться в переплнениях таймера0. Не имеет значение
 какой таймер использовать. Если в очереди таймеров уже есть таймер с такой задачей, то происходит апдейт времени. Две одинаковых задачи в
@@ -40,17 +40,17 @@ void SetTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time)
 надо соблюдать атомарность добавления в очередь. Причем не тупо запрещать/разрешать прерывания, а
 восстанавливать состояние прерываний.
  */
-bool_t updateTimer(TaskMng TPTR, BaseSize_t n, BaseParam_t data, Time_t New_Time);
-void delTimerTask(TaskMng TPTR, BaseSize_t n, BaseParam_t data);
+bool_t updateTimer(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data, const Time_t New_Time);
+void delTimerTask(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data);
 void delAllTimerTask();
-void SetIdleTask(IdleTask_t Task);
+void SetIdleTask(const IdleTask_t Task);
 // Можно задать IDLE задачку, которая выполняется когда есть свободное время у процессора
 //Задача должна иметь сигнатуру void Task(void)
 
 
 u32 getTick(void);
 
-void MaximizeErrorHandler(string_t str);
+void MaximizeErrorHandler(const string_t str);
 
 void memCpy(void * destination, const void * source, const BaseSize_t num);
 void memSet(void* destination, const BaseSize_t size, const u08 value);
@@ -105,7 +105,7 @@ void showAllDataStruct(void); // передает в ЮАРТ данные о в
 // TRUE - Если мьютекс захватить НЕ УДАЛОСЬ
 bool_t tryGetMutex(const mutexType mutexNumb);
 // TRUE - Если мьютекс захватить НЕ УДАЛОСЬ
-bool_t getMutex(const mutexType mutexNumb, TaskMng TPTR, BaseSize_t n, BaseParam_t data); // Пытается захватить мьютекс Вернет TRUE если захватить не удалось
+bool_t getMutex(const mutexType mutexNumb, const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data); // Пытается захватить мьютекс Вернет TRUE если захватить не удалось
 void freeMutex(const mutexType mutexNumb);     // Освобождает мьютекс
 #define GET_MUTEX(mutexNumb, TaskPTR, arg_n, arg_p) if(getMutex((mutexType)mutexNumb, (TaskMng)TaskPTR,(BaseSize_t)arg_n, (BaseParam_t)arg_p)) return
 #define FREE_MUTEX(mutexNumb) freeMutex((mutexType)mutexNumb)
@@ -125,12 +125,12 @@ globalFlags_t getGlobalFlags(void);
 #endif
 
 #ifdef ALLOC_MEM
-byte_ptr allocMem(u08 size);  //size - до 127 размер блока выделяемой памяти
+byte_ptr allocMem(const u08 size);  //size - до 127 размер блока выделяемой памяти
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
-void freeMem(byte_ptr data);  // Освобождение памяти
+void freeMem(const byte_ptr data);  // Освобождение памяти
 void defragmentation(void);         // Дефрагментация памяти
 u16 getFreeMemmorySize(void);
-u16 getAllocateMemmorySize(byte_ptr data);
+u16 getAllocateMemmorySize(const byte_ptr data);
 void clearAllMemmory(void); // Аварийное освобождение памяти
 #endif //ALLOC_MEM
 
@@ -143,7 +143,7 @@ u16 getDayAndMonth(void);
 u08 getDaysInMonth(u08 month);
 Date_t getDateFromSeconds(Time_t sec, bool_t toLocalTimeZone);
 Time_t getSecondsFromDate(const Date_t*const date);
-void setSeconds(u32 sec);
+void setSeconds(const u32 sec);
 void setDate(string_t date); //YY.MM.DD hh:mm:ss
 void dateToString(string_t out, Date_t* date);
 s08 compareDates(const Date_t*const date1, const Date_t*const date2); /* * return >0 if date1 > date2  * return 0 if date = date2  * return <0 if date1 < date2  */
@@ -163,18 +163,18 @@ void subOneDayFromDate(Date_t * date);
 #ifndef EVERYTHING_IS_OK
 #define EVERYTHING_IS_OK 0
 #endif
-u08 registerCallBack(TaskMng task, BaseSize_t arg_n, BaseParam_t arg_p, void* labelPtr);
-void execCallBack(void* labelPtr);
-void execErrorCallBack(BaseSize_t errorCode, void* labelPtr);
-void deleteCallBack(BaseSize_t arg_n, void* labelPtr);
-u08 changeCallBackLabel(void* oldLabel, void* newLabel);
+u08 registerCallBack(const TaskMng task, const BaseSize_t arg_n, const BaseParam_t arg_p, const void*const labelPtr);
+void execCallBack(const void*const labelPtr);
+void execErrorCallBack(const BaseSize_t errorCode, const void*const labelPtr);
+void deleteCallBack(const BaseSize_t arg_n, const void*const labelPtr);
+u08 changeCallBackLabel(const void* oldLabel, const void*const newLabel);
 void clearAllCallBackList();
 #endif
 
 #ifdef SIGNALS_TASK
-void connectTaskToSignal(TaskMng task, void* signal);
-void disconnectTaskFromSignal(TaskMng task, void* signal);
-void emitSignal(void* signal, BaseSize_t arg_n, BaseParam_t arg_p);
+void connectTaskToSignal(const TaskMng task, const void*const signal);
+void disconnectTaskFromSignal(const TaskMng task, const void*const signal);
+void emitSignal(const void*const signal, BaseSize_t arg_n, BaseParam_t arg_p);
 #endif
 
 #ifdef USE_SOFT_UART
@@ -199,7 +199,7 @@ void UARTTimerISR(); // Само прерывание
 #endif //USE_SOFT_UART
 
 //---------------------------------------------------------	СИНОНИМЫ API функций ядра ------------------------------------------------------------
-#define Scheduler()	runFemtOS()		/*Функция диспетчера*/
+#define Scheduler()	    runFemtOS()		/*Функция диспетчера*/
 #define Manager()       runFemtOS()
 #define init_Mng()	initFemtOS()
 #define CreateTask(New_Task, n, data)  SetTask((TaskMng)New_Task, (BaseSize_t)n, (BaseParam_t)data)

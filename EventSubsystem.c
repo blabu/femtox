@@ -34,31 +34,31 @@ void initEventList(void) {
     }
 }
 
-void EventManager( void )
-{
+void EventManager( void ) {
     for(u08 i = 0; i<EVENT_LIST_SIZE; i++) {
         if(EventList[i].Predicat == NULL) break;        // При первом
         if(EventList[i].Predicat()) SetTask((TaskMng)EventList[i].CallBack,0,0);
     }
 }
 
-bool_t CreateEvent(Predicat_t condition, CycleFuncPtr_t effect) // Регистрирует новое событие в списке событий
-{
+bool_t CreateEvent(Predicat_t condition, CycleFuncPtr_t effect) {// Регистрирует новое событие в списке событий
     u08 i = 0;
     unlock_t unlock = lock(EventList);
     for(;i < EVENT_LIST_SIZE; i++)
     {
         if(EventList[i].Predicat == NULL) break; // find empty event task
     }
-    if(i == EVENT_LIST_SIZE) {unlock(EventList); return FALSE;} // Событие невозможно создать т.к. очередь событий переполнена
-    EventList[i].Predicat = condition;
-    EventList[i].CallBack = effect;
-    unlock(EventList); //Далее востанавливаем прерывания (если необходимо)
-    return TRUE;
+    if(i < EVENT_LIST_SIZE) {
+    	EventList[i].Predicat = condition;
+    	EventList[i].CallBack = effect;
+    	unlock(EventList); //Далее востанавливаем прерывания (если необходимо)
+    	return TRUE;
+    }
+    unlock(EventList);
+    return FALSE; // Событие невозможно создать т.к. очередь событий переполнена
 }
 
-void delEvent(Predicat_t condition)
-{
+void delEvent(Predicat_t condition){
     u08 i = 0;
     u08 countDeletedEvent = 0;
     unlock_t unlock = lock(EventList);

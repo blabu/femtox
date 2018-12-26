@@ -154,7 +154,7 @@ u08 getDaysInMonth(u08 month) {
 	return daysInMounth[month];
 }
 
-void setSeconds(u32 sec) {
+void setSeconds(const u32 sec) {
 	while(__systemSeconds != sec) __systemSeconds = sec;
 #if TIME_INDEX!=0
 #ifdef SUMMER_TIME

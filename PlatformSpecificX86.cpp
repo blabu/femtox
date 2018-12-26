@@ -1,6 +1,6 @@
-#ifdef _WIN
-#include <mingw.thread.h>
-#include <mingw.mutex.h>
+#ifdef _WIN32
+#include <thread>
+#include <mutex>
 #elif __unix
 #include <thread>
 #include <mutex>
@@ -25,7 +25,7 @@ void MaximizeErrorHandler(string_t str){
 	initWatchDog();
 	writeLogStr("ERROR handler");
 	writeLogStr(str);
-	exit(1);
+	exit(2);
 }
 #else
 void MaximizeErrorHandler(string_t str){
@@ -52,7 +52,7 @@ void resetWatchDog() {
 
 static std::recursive_mutex mtx;  // Рекурсивный мьютекс для ограничения доступа ко всем ресурсам сразу.
 // Не эффективный локер, но надежный 100%
-static void unLCK(void *resourceId) {mtx.unlock();}
+static void unLCK(const void *const resourceId) {mtx.unlock();}
 static unlock_t lock1(void* resourceId) {
 	mtx.lock();
 	return unLCK;
@@ -65,7 +65,7 @@ struct {
 	void* resourceId;	// Уникальный идентификатор ресурса
 }resourceMutexList[RESOURCE_LIST]; // Очередь на ресурсы
 static std::mutex mt; // Мьютекс защищающий очередь
-static void unlock(void* resourceId) {
+static void unlock(const void*const resourceId) {
 	mt.lock();
 	for(u08 i=0; i<RESOURCE_LIST; i++) {
 		if(resourceMutexList[i].resourceId == resourceId) {
@@ -76,7 +76,7 @@ static void unlock(void* resourceId) {
 	}
 	mt.unlock();
 }
-static void empty(void *resourceId) {}
+static void empty(const void* const resourceId) {}
 static unlock_t lock2(void* resourceId) {
 	s16 saveIndex = -1;
 	mt.lock();
