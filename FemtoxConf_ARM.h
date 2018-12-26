@@ -26,6 +26,7 @@
 //#define _DYNAMIC_ARRAY
 //#define _PWR_SAVE
 #define NEED_CRYPT
+//#define ENABLE_LOGGING
 
 #define TASK_LIST_LEN 10U /*Длина очереди задач*/
 #define TIME_LINE_LEN 30U /*Максимальне количество системных таймеров*/
