@@ -1,7 +1,8 @@
-#ifndef PLATFORMSPECIFIC_MSP
-#define PLATFORMSPECIFIC_MSP
+#ifndef PLATFORMSPECIFIC
+#define PLATFORMSPECIFIC
 #include <msp430.h>
 #include "FemtoxConf.h"
+#include "FemtoxTypes.h"
 
 /********************************************************************************************************************
 *********************************************************************************************************************
@@ -12,11 +13,10 @@
 void initWatchDog(void);
 void resetWatchDog(void);
 
-#define INTERRUPT_ENABLE  __enable_interrupt()
-#define INTERRUPT_DISABLE __disable_interrupt()
-#define INTERRUPT_STATUS  (__get_interrupt_state() & GIE)
-#define WATCH_DOG_ON  WDTCTL = WDTPW /*Генерируем Reset*/
+#define WATCH_DOG_ON  initWatchDog() /*Генерируем Reset*/
 #define TICK_PER_SECOND 100UL /*Колличество тиков в секунду*/
+
+unlock_t lock(const void*const resourceId);
 
 void _init_Timer(void);	// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
 
@@ -50,4 +50,4 @@ void deInitProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK);
 #define WRITE_TX_PIN(PORT,PIN_MASK)  (PORT |=  (PIN_MASK))
 #define CLEAR_TX_PIN(PORT,PIN_MASK)  (PORT &= ~(PIN_MASK))
 #endif //USE_SOFT_UART
-#endif // PLATFORMSPECIFIC_MSP
+#endif // PLATFORMSPECIFIC
