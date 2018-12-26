@@ -38,19 +38,19 @@ static u08 findCallBack(const void*const labelPtr){
 u08 registerCallBack(const TaskMng task, const BaseSize_t arg_n, const BaseParam_t arg_p, const void*const labelPtr){
 	unlock_t unlock = lock(callBackList);
 	u08 i = findCallBack(NULL);
-	if(i == CALL_BACK_TASK_LIST_LEN) {
+	if(i < CALL_BACK_TASK_LIST_LEN) {
+		callBackList[i].Task = task;
+		callBackList[i].arg_n = arg_n;
+		callBackList[i].arg_p = arg_p;
+		labelPointer[i] = (void*)labelPtr;
 		unlock(callBackList);
-#ifndef CHECK_ERRORS_CALLBACK
-		MaximizeErrorHandler("Overflow callback tasks");
-#endif
-		return OVERFLOW_OR_EMPTY_ERROR;
+		return EVERYTHING_IS_OK;
 	}
-	callBackList[i].Task = task;
-	callBackList[i].arg_n = arg_n;
-	callBackList[i].arg_p = arg_p;
-	labelPointer[i] = (void*)labelPtr;
 	unlock(callBackList);
-	return EVERYTHING_IS_OK;
+#ifndef CHECK_ERRORS_CALLBACK
+	MaximizeErrorHandler("Overflow callback tasks");
+#endif
+	return OVERFLOW_OR_EMPTY_ERROR;
 }
 
 void clearAllCallBackList() {

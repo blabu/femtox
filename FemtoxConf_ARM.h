@@ -21,23 +21,22 @@
 #define CLOCK_SERVICE
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
-#define SIGNALS_TASK
-#define _LIST_STRUCT
+//#define SIGNALS_TASK
+//#define _LIST_STRUCT
 //#define _DYNAMIC_ARRAY
-#define _PWR_SAVE
+//#define _PWR_SAVE
 #define NEED_CRYPT
-#define ENABLE_LOGGING
 
-#define TASK_LIST_LEN 200U /*Длина очереди задач*/
-#define TIME_LINE_LEN 230U /*Максимальне количество системных таймеров*/
+#define TASK_LIST_LEN 10U /*Длина очереди задач*/
+#define TIME_LINE_LEN 30U /*Максимальне количество системных таймеров*/
 #define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
 #ifdef EVENT_LOOP_TASKS
-#define EVENT_LIST_SIZE 100
+#define EVENT_LIST_SIZE 10
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
-#define ArraySize   200 /*Общее количество всех структур данных*/
+#define ArraySize   12 /*Общее количество всех структур данных*/
 #endif
 
 #ifdef MUTEX_ENABLE
@@ -45,7 +44,7 @@
 #endif
 
 #ifdef CYCLE_FUNC
-#define TIMERS_ARRAY_SIZE 200
+#define TIMERS_ARRAY_SIZE 15
 #endif
 
 #ifdef ALLOC_MEM

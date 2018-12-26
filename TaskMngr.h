@@ -199,7 +199,7 @@ void UARTTimerISR(); // Само прерывание
 #endif //USE_SOFT_UART
 
 //---------------------------------------------------------	СИНОНИМЫ API функций ядра ------------------------------------------------------------
-#define Scheduler()	runFemtOS()		/*Функция диспетчера*/
+#define Scheduler()	    runFemtOS()		/*Функция диспетчера*/
 #define Manager()       runFemtOS()
 #define init_Mng()	initFemtOS()
 #define CreateTask(New_Task, n, data)  SetTask((TaskMng)New_Task, (BaseSize_t)n, (BaseParam_t)data)

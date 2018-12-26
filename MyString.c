@@ -12,21 +12,22 @@ command - строка, которую ищут
 answer  - строка, в которой ищут
 */
 s16 findStr(const string_t small, const string_t big){
-	if(small == NULL || big == NULL) return -1;
-    BaseSize_t small_len = strSize(small);
-    BaseSize_t len = strSize(big);
-    if(small_len>len) return -1;   // Если подстрока длинее строки возвращаем 0
-    register BaseSize_t i = 0, j=0;
-    for(; i<len; i++) // перебираем строку в которой ишем
-    {
-        if(big[i] == small[j]){   // Если текущий символ исходной строки совпал с первым символом сравниваемой строки
-            if(j == small_len-1) return (i-j);    // Если все символы совпали и шли друг за другом
-            j++;                      // Увеличиваем счетчик совпавших символов
-        }
-        else if(j){
-            j=0; i--;
-        }
-    }
+	if(small != NULL && big != NULL) {
+		BaseSize_t small_len = strSize(small);
+		BaseSize_t len = strSize(big);
+		if(small_len>len) return -1;   // Если подстрока длинее строки возвращаем 0
+		register BaseSize_t i = 0, j=0;
+		for(; i<len; i++) // перебираем строку в которой ишем
+		{
+			if(big[i] == small[j]){   // Если текущий символ исходной строки совпал с первым символом сравниваемой строки
+				if(j == small_len-1) return (i-j);    // Если все символы совпали и шли друг за другом
+				j++;                      // Увеличиваем счетчик совпавших символов
+			}
+			else if(j){
+				j=0; i--;
+			}
+		}
+	}
     return -1;
 }
 
