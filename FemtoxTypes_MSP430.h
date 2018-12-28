@@ -5,37 +5,44 @@
  *      Author: Admin
  */
 
-#ifndef FEMTOXTYPES_ARM_H_
-#define FEMTOXTYPES_ARM_H_
+#ifndef FEMTOXTYPES_MSP430_H_
+#define FEMTOXTYPES_MSP430_H_
 
 #include "FemtoxConf.h"
 
-#ifdef ARM_STM32
+#ifdef MSP430
 
 #ifndef NULL
 #define NULL ((void*)0)
 #endif
 
 #define PAIR(T,V) struct{T first; V second;}
+
 typedef char* string_t;
 typedef unsigned long long u64;
 typedef long long s64;
-typedef unsigned int   u32;
-typedef unsigned short u16;
+typedef unsigned long   u32;
+typedef unsigned int   u16;
 typedef unsigned char  u08;
-typedef signed int     s32;
-typedef signed short   s16;
+typedef signed long    s32;
+typedef signed int     s16;
 typedef signed char    s08;
-typedef unsigned int   Time_t;
+typedef u32   Time_t;
+#define MAX_TIME_VALUE 0xFFFFFFFFUL
+#ifndef _WIN32
 typedef enum {FALSE=0, TRUE = !FALSE} bool_t;
+#else
+typedef u08 bool_t;
+#define TRUE 1
+#define FALSE 0
+#endif
 
 typedef unsigned char* byte_ptr;
-typedef unsigned short  BaseSize_t; // Первый аргумент для задачи в диспетчере
+typedef unsigned int  BaseSize_t; // Первый аргумент для задачи в диспетчере
+#define MAX_BASE_SIZE_VALUE 0xFFFF
 typedef void* BaseParam_t;  // Второй аргумент для задачи в диспетчере
-extern const BaseSize_t _MAX_BASE_SIZE;
 
-
-typedef void(*unlock_t)(const void* const resourceId);
+typedef void(*unlock_t)(const void*const resourceId);
 typedef void (*IdleTask_t)(void);      // Указатель на функцию обработки холостого хода void funcIDLE(void)
 typedef void (*CycleFuncPtr_t)(void);  // Указатель на функцию void func(void). Для циклического выполнения в прерывании таймера
 typedef bool_t (*Predicat_t)(void);    // Указатель на функцию предикат (bool_t func1(void))
@@ -88,6 +95,6 @@ typedef struct {
 }DynamicArray_t;
 #endif
 
-#endif //ARM_STM32
+#endif //MSP430
 
-#endif /* FEMTOXTYPES_ARM_H_ */
+#endif /* FEMTOXTYPES_MSP430_H_ */

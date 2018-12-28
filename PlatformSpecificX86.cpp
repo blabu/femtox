@@ -77,6 +77,11 @@ static void unlock(const void*const resourceId) {
 	mt.unlock();
 }
 static void empty(const void* const resourceId) {}
+
+static unlock_t lock3(void* resourceId) {
+	return empty;
+}
+
 static unlock_t lock2(void* resourceId) {
 	s16 saveIndex = -1;
 	mt.lock();
@@ -107,7 +112,8 @@ unlock_t lock(void* resourceId) {
 	//Здесь можно сделать выбор какой локер использовать
 	// lock1 - неэффективный по скорости, но надежный и простой на все ресурсы ОДИН примитив синхронизации
 	// lock2 - эффективный по скорости (для каждого ресурса свой мьютекс) Но сложнее, занимает больше места
-	return lock2(resourceId);
+	// lock3 - пустішка для проверки скорости
+	return lock3(resourceId);
 }
 
 
