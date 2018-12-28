@@ -10,6 +10,8 @@
 
 #include "FemtoxConf.h"
 
+#ifdef _X86
+
 #ifndef NULL
 #define NULL ((void*)0)
 #endif
@@ -28,7 +30,7 @@ typedef unsigned int   Time_t;
 typedef enum {FALSE=0, TRUE = !FALSE} bool_t;
 
 typedef unsigned char* byte_ptr;
-typedef unsigned short  BaseSize_t; // Первый аргумент для задачи в диспетчере
+typedef unsigned int  BaseSize_t; // Первый аргумент для задачи в диспетчере
 typedef void* BaseParam_t;  // Второй аргумент для задачи в диспетчере
 extern const BaseSize_t _MAX_BASE_SIZE;
 
@@ -85,5 +87,7 @@ typedef struct {
 	u08* data;		// Указатель на начало области
 }DynamicArray_t;
 #endif
+
+#endif //_X86
 
 #endif /* FEMTOXTYPES_ARM_H_ */
