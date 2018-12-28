@@ -7,8 +7,8 @@
  *      Author: Admin
  */
 
-#ifndef FEMTOXCONF_ARM_H_
-#define FEMTOXCONF_ARM_H_
+#ifndef FEMTOXCONF_X86_H_
+#define FEMTOXCONF_X86_H_
 
 #define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
 #define DATA_STRUCT_MANAGER   /*Включаем работу с очередями средствами деспетчера*/
@@ -81,4 +81,4 @@
   #define STOP_BITS  1   /*Колличество СТОП битов*/
 #endif
 
-#endif /* FEMTOXCONF_ARM_H_ */
+#endif /* FEMTOXCONF_X86_H_ */

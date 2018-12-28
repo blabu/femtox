@@ -29,6 +29,10 @@ static void TimerService(void);
 #ifdef ALLOC_MEM
 extern void initHeap(void);
 #endif
+#ifdef ALLOC_MEM_LARGE
+extern void initHeap(void);
+#endif
+
 
 #ifdef DATA_STRUCT_MANAGER
 extern void initDataStruct( void );
@@ -144,6 +148,9 @@ void initFemtOS (void) {  // Инициализация менеджера за�
 	IdleTask = NULL;
 	GlobalTick = 0;
 #ifdef ALLOC_MEM
+	initHeap();
+#endif
+#ifdef ALLOC_MEM_LARGE
 	initHeap();
 #endif
 #ifdef DATA_STRUCT_MANAGER
@@ -486,7 +493,7 @@ void memSet(void* destination, const BaseSize_t size, const u08 value) {
 		u32 val = (u32)value<<24 | (u32)value<<16 | (u16)value<<8 | value;
 		for(BaseSize_t i = 0; i<blocks; i++) {
 			*((u32*)destination) = val;
-			destination = (void*)((byte_ptr)destination + 4)
+			destination = (void*)((byte_ptr)destination + 4);
 		}
 	}
 	for(BaseSize_t i = 0; i<last; i++) {

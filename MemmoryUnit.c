@@ -35,8 +35,8 @@ extern "C" {
 static u08 heap[HEAP_SIZE];  // Сама куча
 static BaseSize_t sizeAllFreeMemmory = HEAP_SIZE;
 
-
 void initHeap(void){
+	heap[0] = 0;
 }
 
 BaseSize_t getFreeMemmorySize(void){
@@ -112,8 +112,8 @@ static byte_ptr alloc(byte_ptr startSize, BaseSize_t size) {
 		size >>= 5;
 		i++;
 	}
-	startSize[i] &= ~(1<<5);
-	return (startSize+i+1);
+	startSize[i-1] &= ~(1<<5);
+	return (startSize+i);
 }
 
 static void free(byte_ptr startBlock) {
@@ -127,7 +127,7 @@ byte_ptr allocMem(const BaseSize_t size) {
 	if(size > 0) {
 		BaseSize_t i = 0;
 		unlock_t unlock = lock(heap);
-		while((i+size) > HEAP_SIZE) {
+		while((i+size) < HEAP_SIZE) {
 			BaseSize_t blockSize = getNextBlockSize(&heap[i]);
 			if(!blockSize) {
 				byte_ptr res = alloc(&heap[i],size);
@@ -149,8 +149,10 @@ byte_ptr allocMem(const BaseSize_t size) {
 			byte_ptr result = alloc(&heap[i],size);
 			i += size+calculateSize(size);
 			free(alloc(&heap[i],restSize));
+			unlock(heap);
 			return result;
 		}
+		unlock(heap);
 	}
 	return NULL;
 }
@@ -159,7 +161,9 @@ void freeMem(const byte_ptr data) {
     if(data > heap &&
        data < heap + HEAP_SIZE)  // Если мы передали валидный указатель
     {
+    	unlock_t unlock = lock(heap);
         free(data);
+        unlock(heap);
     }
 }
 
@@ -179,17 +183,18 @@ void defragmentation(void){
         }
         if(blockSize) { //Если блок памяти свободен
         	u08 prevBlkSz = calculateSize(blockSize);
-        	BaseSize_t SumBlock = (BaseSize_t)(blockSize + currentBlockSize + blkSz + prevBlkSz);
+        	BaseSize_t SumBlockSize = (BaseSize_t)(blockSize + currentBlockSize + blkSz + prevBlkSz);
+        	SumBlockSize -= calculateSize(SumBlockSize);
+        	byte_ptr startBlock = heap+i-blockSize-prevBlkSz; // Находим стартовую позицию составного блока
            	unlock_t unlock = lock(heap);
-           	byte_ptr startBlock = heap+i-blockSize-prevBlkSz-blkSz; // Находим стартовую позицию составного блока
-           	free(alloc(startBlock,SumBlock));
-            blockSize = SumBlock; // Тперь составной блок это предыдущий блок
+           	free(alloc(startBlock,SumBlockSize));
+            blockSize = SumBlockSize; // Тперь составной блок это предыдущий блок
             i += currentBlockSize + blkSz;
             unlock(heap);
             continue;
         }
+        i += currentBlockSize + blkSz;
         blockSize = currentBlockSize;
-        i += blockSize + blkSz;
     }
 }
 
@@ -208,6 +213,7 @@ static u16 sizeAllFreeMemmory = HEAP_SIZE;
 
 
 void initHeap(void){
+	heap[0] = 0;
 }
 
 u16 getFreeMemmorySize(void){
@@ -278,7 +284,9 @@ void freeMem(const byte_ptr data) {
     if(data > heap &&
        data < heap + HEAP_SIZE)  // Если мы передали валидный указатель
     {
+    	unlock_t unlock = lock(heap);
         *(data-1) &= ~(1<<7); // Очистим флаг занятости данных (не трогая при этом сами данные и их размер)
+        unlock(heap);
     }
 }
 

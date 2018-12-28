@@ -5,10 +5,8 @@
  *      Author: Admin
  */
 
-#ifndef FEMTOXTYPES_ARM_H_
-#define FEMTOXTYPES_ARM_H_
-
-#include "FemtoxConf.h"
+#ifndef FEMTOXTYPES_X86_H_
+#define FEMTOXTYPES_X86_H_
 
 #ifdef _X86
 
@@ -32,8 +30,6 @@ typedef enum {FALSE=0, TRUE = !FALSE} bool_t;
 typedef unsigned char* byte_ptr;
 typedef unsigned int  BaseSize_t; // Первый аргумент для задачи в диспетчере
 typedef void* BaseParam_t;  // Второй аргумент для задачи в диспетчере
-extern const BaseSize_t _MAX_BASE_SIZE;
-
 
 typedef void(*unlock_t)(const void* const resourceId);
 typedef void (*IdleTask_t)(void);      // Указатель на функцию обработки холостого хода void funcIDLE(void)
@@ -61,6 +57,8 @@ typedef struct {
 	u08 mon;  //Начинаются с 1
 	u16 year;
 } Date_t;
+
+#include "FemtoxConf.h"
 
 #if MUTEX_SIZE <= 8
 typedef u08 mutexType;
@@ -90,4 +88,4 @@ typedef struct {
 
 #endif //_X86
 
-#endif /* FEMTOXTYPES_ARM_H_ */
+#endif /* FEMTOXTYPES_X86_H_ */

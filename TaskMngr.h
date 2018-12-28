@@ -1,8 +1,8 @@
 #ifndef Task_Manager
 #define Task_Manager
 
-#include "FemtoxTypes.h"
 #include "FemtoxConf.h"
+#include "FemtoxTypes.h"
 
 extern const BaseSize_t _MAX_BASE_SIZE;
 extern const char* const _osVersion;
