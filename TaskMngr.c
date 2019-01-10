@@ -507,11 +507,7 @@ void memSet(void* destination, const BaseSize_t size, const u08 value) {
 		u32 val = (u32)value<<24 | (u32)value<<16 | (u16)value<<8 | value;
 		for(BaseSize_t i = 0; i<blocks; i++) {
 			*((u32*)destination) = val;
-<<<<<<< HEAD
 			destination = (void*)((byte_ptr)destination + 4);
-=======
-			destination = (void*)((byte_ptr)destination + 4)
->>>>>>> 6d654406f7700bab71999d04400f305006c11524
 		}
 	}
 	for(BaseSize_t i = 0; i<last; i++) {
