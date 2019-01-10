@@ -10,6 +10,8 @@
 
 #include "FemtoxConf.h"
 
+#ifdef MSP430
+
 #ifndef NULL
 #define NULL ((void*)0)
 #endif
@@ -92,5 +94,7 @@ typedef struct {
 	u08* data;		// Указатель на начало области
 }DynamicArray_t;
 #endif
+
+#endif //MSP430
 
 #endif /* FEMTOXTYPES_MSP430_H_ */

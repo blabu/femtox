@@ -7,15 +7,16 @@
  *      Author: Admin
  */
 
-#ifndef FEMTOXCONF_ARM_H_
-#define FEMTOXCONF_ARM_H_
+#ifndef FEMTOXCONF_X86_H_
+#define FEMTOXCONF_X86_H_
 
 #define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
 #define DATA_STRUCT_MANAGER   /*Включаем работу с очередями средствами деспетчера*/
 #define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/
 #define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
 #define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
-#define ALLOC_MEM   /*Включение динамического выделения памяти*/
+//#define ALLOC_MEM   /*Включение динамического выделения памяти*/
+#define ALLOC_MEM_LARGE   /*Включение динамического выделения памяти без ограничения размера*/
 #define EVENT_LOOP_TASKS
 //#define USE_SOFT_UART
 #define CLOCK_SERVICE
@@ -51,6 +52,9 @@
 #ifdef ALLOC_MEM
 #define HEAP_SIZE 10000UL /*6500*/
 #endif
+#ifdef ALLOC_MEM_LARGE
+#define HEAP_SIZE 1000000UL /*6500*/
+#endif
 
 #ifdef CALL_BACK_TASK
 #define CALL_BACK_TASK_LIST_LEN 30
@@ -77,4 +81,4 @@
   #define STOP_BITS  1   /*Колличество СТОП битов*/
 #endif
 
-#endif /* FEMTOXCONF_ARM_H_ */
+#endif /* FEMTOXCONF_X86_H_ */

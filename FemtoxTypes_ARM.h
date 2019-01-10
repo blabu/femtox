@@ -10,6 +10,8 @@
 
 #include "FemtoxConf.h"
 
+#ifdef ARM_STM32
+
 #ifndef NULL
 #define NULL ((void*)0)
 #endif
@@ -85,5 +87,7 @@ typedef struct {
 	u08* data;		// Указатель на начало области
 }DynamicArray_t;
 #endif
+
+#endif //ARM_STM32
 
 #endif /* FEMTOXTYPES_ARM_H_ */
