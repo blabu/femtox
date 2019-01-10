@@ -4,11 +4,13 @@
  *  Created on: 18 лип. 2018 р.
  *      Author: Admin
  */
-
 #ifndef FEMTOXTYPES_X86_H_
 #define FEMTOXTYPES_X86_H_
 
 #ifdef _X86
+
+#include "FemtoxConf.h"
+
 
 #ifndef NULL
 #define NULL ((void*)0)
