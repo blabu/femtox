@@ -13,6 +13,192 @@
 extern "C" {
 #endif
 
+#ifdef ALLOC_MEM_LARGE
+/*
+Функции работы с кучей. Выделение и удаление памяти в куче.
+Старший бит определяет свободен ли блок памяти или нет
+Следующие два бита определяю начало и конец байтов размерности (аналог скобок)
+Далее идут 5 бит размера.
+******В случае выделеной (уже занятой) памяти******
+100[размер] - единичный размерный байт аллоцированой памяти, заданного размера
+101[размер]111[размер]110[размер] - составной размерный байт аллоцированной памяти
+101[размер]110[размер]
+******В случае свободной памяти******
+000[размер]
+001[размер]011[размер]010[размер]
+001[размер]010[размер]
+размер идет младшим байтом вперед
+*/
+#if HEAP_SIZE  > 0xFFFFFFFF
+#error "incompatible size"
+#endif
+static u08 heap[HEAP_SIZE];  // Сама куча
+static BaseSize_t sizeAllFreeMemmory = HEAP_SIZE;
+
+void initHeap(void){
+	heap[0] = 0;
+}
+
+BaseSize_t getFreeMemmorySize(void){
+    return sizeAllFreeMemmory;
+}
+
+static BaseSize_t getCurrentBlockSize(byte_ptr startBlock_ptr) {
+	BaseSize_t size = 0;
+	for(;;) {
+		size = (size << 5) | (*startBlock_ptr & 0x1F);
+		if( !(*startBlock_ptr & (1<<6)) ) break; // Если бит следующего размерного блока не выставлен выходим
+		startBlock_ptr--;
+	}
+	return size;
+}
+
+static BaseSize_t getNextBlockSize(byte_ptr startSize_ptr) {
+	BaseSize_t size = 0;
+	for(u08 i=0;;i++) {
+		size |= (*startSize_ptr & 0x1F) << (5*i);
+		if( !(*startSize_ptr & (1<<5)) ) break; // Если бит следующего размерного блока не выставлен выходим
+		startSize_ptr++;
+	}
+	return size;
+}
+
+BaseSize_t getAllocateMemmorySize(const byte_ptr data) {
+	if(data > heap &&
+       data < heap + HEAP_SIZE) {  // Если мы передали валидный указатель
+		if(!(*(data-1) & (1<<7))) return 0;
+		return getCurrentBlockSize(data);
+    }
+	return 0;
+}
+
+static u08 calculateSize(BaseSize_t blockSize) {
+	u08 sz = 0;
+	while(blockSize) {
+		sz++;
+		blockSize>>=5;
+	}
+	return sz;
+}
+
+void clearAllMemmory(void){
+	BaseSize_t i = 0;
+    unlock_t unlock = lock(heap);
+    while(i < HEAP_SIZE) {
+    	BaseSize_t blockSize = getNextBlockSize(&heap[i]);
+    	if(!blockSize) break;
+    	BaseSize_t temp = blockSize;
+    	while(temp) {
+    		heap[i] &= ~(1<<7);
+    		i++;
+    		temp >>= 5;
+    	}
+    	i += blockSize;
+    }
+    unlock(heap);
+}
+
+static byte_ptr alloc(byte_ptr startSize, BaseSize_t size) {
+	u08 i = 0;
+	if(size < 0x1F) {
+		*startSize = 1<<7;
+		*startSize |= size;
+		return (startSize+1);
+	}
+	while(size > 0) {
+		if(!i) startSize[i] = 5<<5;
+		else startSize[i] = 7<<5;
+		startSize[i] |= size & 0x1F;
+		size >>= 5;
+		i++;
+	}
+	startSize[i-1] &= ~(1<<5);
+	return (startSize+i);
+}
+
+static void free(byte_ptr startBlock) {
+	while(*(--startBlock) & (1<<7)) {
+		*startBlock &= ~(1<<7);
+		if(!(*startBlock & (1<<6))) break;
+	}
+}
+
+byte_ptr allocMem(const BaseSize_t size) {
+	if(size > 0) {
+		BaseSize_t i = 0;
+		unlock_t unlock = lock(heap);
+		while((i+size) < HEAP_SIZE) {
+			BaseSize_t blockSize = getNextBlockSize(&heap[i]);
+			if(!blockSize) {
+				byte_ptr res = alloc(&heap[i],size);
+				unlock(heap);
+				return res;
+			}
+			if((heap[i] >> 7) ||     // Если этот блок занят (последний бит равен 1)
+				blockSize < size) {  // или размер этого блока слишком маленький
+				i += blockSize + calculateSize(blockSize); // Пропускаем этот блок
+				continue;
+			}
+			if((blockSize-size) < 10) { // Для исключения дефрагментации если найденый блок близок к требуемому
+				byte_ptr res = alloc(&heap[i],blockSize);  // Выделяем его
+				unlock(heap);
+				return res;
+			}
+			// Здесь если блок свободен и размер его больше требуемого
+			BaseSize_t restSize = blockSize-size;  // Вычисляем размер оставшегося блока памяти
+			byte_ptr result = alloc(&heap[i],size);
+			i += size+calculateSize(size);
+			free(alloc(&heap[i],restSize));
+			unlock(heap);
+			return result;
+		}
+		unlock(heap);
+	}
+	return NULL;
+}
+
+void freeMem(const byte_ptr data) {
+    if(data > heap &&
+       data < heap + HEAP_SIZE)  // Если мы передали валидный указатель
+    {
+    	unlock_t unlock = lock(heap);
+        free(data);
+        unlock(heap);
+    }
+}
+
+void defragmentation(void){
+	BaseSize_t i = 0;
+	BaseSize_t blockSize = 0;
+    sizeAllFreeMemmory=HEAP_SIZE;
+    while(i < HEAP_SIZE) {   // Пока не закончится куча
+    	BaseSize_t currentBlockSize = getNextBlockSize(&heap[i]);
+    	u08 blkSz = calculateSize(currentBlockSize);
+        if(!currentBlockSize) break;   // Если размер нулевой, значит выделения памяти еще не было
+        if(heap[i] & (1<<7)) {   // Если блок памяти занят
+            blockSize = 0;
+            i += currentBlockSize+blkSz;  // переходим к концу этого блока
+            sizeAllFreeMemmory -= (currentBlockSize + blkSz);
+            continue;
+        }
+        if(blockSize) { //Если блок памяти свободен
+        	u08 prevBlkSz = calculateSize(blockSize);
+        	BaseSize_t SumBlockSize = (BaseSize_t)(blockSize + currentBlockSize + blkSz + prevBlkSz);
+        	SumBlockSize -= calculateSize(SumBlockSize);
+        	byte_ptr startBlock = heap+i-blockSize-prevBlkSz; // Находим стартовую позицию составного блока
+           	unlock_t unlock = lock(heap);
+           	free(alloc(startBlock,SumBlockSize));
+            blockSize = SumBlockSize; // Тперь составной блок это предыдущий блок
+            i += currentBlockSize + blkSz;
+            unlock(heap);
+            continue;
+        }
+        i += currentBlockSize + blkSz;
+        blockSize = currentBlockSize;
+    }
+}
+
+#endif //ALLOC_MEM_LARGE
 #ifdef ALLOC_MEM
 /*
 Функции работы с кучей. Выделение и удаление памяти в куче. Максмально единоразово можно выделить до 127 байт
@@ -27,6 +213,7 @@ static u16 sizeAllFreeMemmory = HEAP_SIZE;
 
 
 void initHeap(void){
+	heap[0] = 0;
 }
 
 u16 getFreeMemmorySize(void){
@@ -97,7 +284,9 @@ void freeMem(const byte_ptr data) {
     if(data > heap &&
        data < heap + HEAP_SIZE)  // Если мы передали валидный указатель
     {
+    	unlock_t unlock = lock(heap);
         *(data-1) &= ~(1<<7); // Очистим флаг занятости данных (не трогая при этом сами данные и их размер)
+        unlock(heap);
     }
 }
 
@@ -131,7 +320,7 @@ void defragmentation(void){
     }
 }
 
-#endif //ALLOC_MEM
+#endif
 
 
 #ifdef __cplusplus

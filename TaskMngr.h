@@ -1,9 +1,10 @@
 #ifndef Task_Manager
 #define Task_Manager
 
-#include "FemtoxTypes.h"
 #include "FemtoxConf.h"
+#include "FemtoxTypes.h"
 
+extern const BaseSize_t _MAX_BASE_SIZE;
 extern const char* const _osVersion;
 
 #define ABS(XX) (((XX) > 0)?(XX):(-(XX)))
@@ -124,6 +125,15 @@ bool_t getFlags(globalFlags_t flagMask);
 globalFlags_t getGlobalFlags(void);
 #endif
 
+#ifdef ALLOC_MEM_LARGE
+byte_ptr allocMem(const BaseSize_t size);  //size - до 127 размер блока выделяемой памяти
+#define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
+void freeMem(const byte_ptr data);  // Освобождение памяти
+void defragmentation(void);         // Дефрагментация памяти
+BaseSize_t getFreeMemmorySize(void);
+BaseSize_t getAllocateMemmorySize(const byte_ptr data);
+void clearAllMemmory(void); // Аварийное освобождение памяти
+#endif //ALLOC_MEM_LARGE
 #ifdef ALLOC_MEM
 byte_ptr allocMem(const u08 size);  //size - до 127 размер блока выделяемой памяти
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
