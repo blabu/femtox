@@ -10,8 +10,8 @@ extern "C" {
 инициализируется таймер счетчик, и включает прерывание по переполнению Т/С0
  */
 
-const char* const _osVersion = "V1.4.0.0";
-const BaseSize_t _MAX_BASE_SIZE = 1 << (sizeof(BaseSize_t)>>3);
+const char* const _osVersion = "V1.4.1.0";
+const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
 
 #ifdef _PWR_SAVE
 u32 minTimeOut = 1; // Минимальное время таймоута для задач из списка таймеров
@@ -29,6 +29,10 @@ static void TimerService(void);
 #ifdef ALLOC_MEM
 extern void initHeap(void);
 #endif
+#ifdef ALLOC_MEM_LARGE
+extern void initHeap(void);
+#endif
+
 
 #ifdef DATA_STRUCT_MANAGER
 extern void initDataStruct( void );
@@ -144,6 +148,9 @@ void initFemtOS (void) {  // Инициализация менеджера за�
 	IdleTask = NULL;
 	GlobalTick = 0;
 #ifdef ALLOC_MEM
+	initHeap();
+#endif
+#ifdef ALLOC_MEM_LARGE
 	initHeap();
 #endif
 #ifdef DATA_STRUCT_MANAGER
@@ -423,7 +430,19 @@ u08 getFreePositionForTimerTask(void) {
 
 //destination - адрес в памяти КУДА копируем source - адрес в памяти ОТКУДА копируем n - количество БАЙТ копируемых
 void memCpy(void* destination, const void* source, const BaseSize_t num) {
-#if ARCH == 32
+#if ARCH == 64
+		BaseSize_t blocks = num>>4;		// 8-мь байт копируются за один раз
+		u08 last = num & 0x0F; // остаток
+		for(BaseSize_t i = 0; i<blocks; i++) {
+			*((u64*)destination) = *((u64*)source);
+			destination = (void*)((byte_ptr)destination + 8);
+			source = (void*)((byte_ptr)source + 8);
+		}
+		for(u08 i = 0; i<last; i++) {
+			*((byte_ptr)destination) = *((byte_ptr)source);
+			(byte_ptr)destination++; (byte_ptr)source++;
+		}
+#elif ARCH == 32
 	BaseSize_t blocks = num>>2;		// 4-ре байта копируются за один раз
 	u08 last = num & 0x03; // остаток
 	for(BaseSize_t i = 0; i<blocks; i++) {
@@ -452,14 +471,29 @@ void memCpy(void* destination, const void* source, const BaseSize_t num) {
 }
 
 void memSet(void* destination, const BaseSize_t size, const u08 value) {
-#if ARCH == 32
+#if ARCH == 64
+	BaseSize_t blocks = size>>4; // 4-ре байта копируются за один раз
+	u08 last = size & 0x0F;      // остаток
+	if(blocks > 0) {
+		u64 val = (u64)value<<56 | (u64)value<<48 | (u64)value<<40 | (u64)value<<32 |
+				  (u32)value<<24 | (u32)value<<16 | (u16)value<<8 | value;
+		for(BaseSize_t i = 0; i<blocks; i++) {
+			*((u64*)destination) = val;
+			destination = (void*)((byte_ptr)destination + 8);
+		}
+	}
+	for(BaseSize_t i = 0; i<last; i++) {
+		*((byte_ptr)destination) = value;
+		(byte_ptr)destination++;
+	}
+#elif ARCH == 32
 	BaseSize_t blocks = size>>2; // 4-ре байта копируются за один раз
 	u08 last = size & 0x03;      // остаток
 	if(blocks > 0) {
 		u32 val = (u32)value<<24 | (u32)value<<16 | (u16)value<<8 | value;
 		for(BaseSize_t i = 0; i<blocks; i++) {
 			*((u32*)destination) = val;
-			destination+=4;
+			destination = (void*)((byte_ptr)destination + 4)
 		}
 	}
 	for(BaseSize_t i = 0; i<last; i++) {

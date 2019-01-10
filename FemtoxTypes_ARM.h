@@ -10,6 +10,11 @@
 
 #include "FemtoxConf.h"
 
+<<<<<<< HEAD
+=======
+#ifdef ARM_STM32
+
+>>>>>>> 6bd70b4c2d763ec5099876833245c70616553b05
 #ifndef NULL
 #define NULL ((void*)0)
 #endif
@@ -86,4 +91,9 @@ typedef struct {
 }DynamicArray_t;
 #endif
 
+<<<<<<< HEAD
+=======
+#endif //ARM_STM32
+
+>>>>>>> 6bd70b4c2d763ec5099876833245c70616553b05
 #endif /* FEMTOXTYPES_ARM_H_ */

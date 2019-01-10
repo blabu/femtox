@@ -88,6 +88,7 @@ u08 delDataStruct(const void* Data)  // Удаляем из массива аб�
     if(i == ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;  // Если такой не существует в массиве, выдаем ошибку
     unlock_t unlock = lock(Data_Array[i].Data);
     Data_Array[i].Data = NULL;    // Если абстрактная структура данных есть удаляем ее
+    unlock(Data_Array[i].Data);
     return EVERYTHING_IS_OK;
 }
 

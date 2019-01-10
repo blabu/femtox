@@ -596,10 +596,9 @@ const unsigned char tabl_crc_lo[] = {
 u16 CRC16(BaseSize_t size, byte_ptr msg){
 	u08 CRC_H = 0xFF;
 	u08 CRC_L = 0xFF;
-	u16 index = 0;
 	for(u08 i = 0; i<size; i++) {
 		u08 dat = msg[i];
-		index = CRC_H ^ dat;
+		u16 index = CRC_H ^ dat;
 		CRC_H = CRC_L ^ tabl_crc_hi[index];
 		CRC_L = tabl_crc_lo[index];
 	}

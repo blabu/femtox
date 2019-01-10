@@ -7,44 +7,48 @@
  *      Author: Admin
  */
 
-#ifndef FEMTOXCONF_ARM_H_
-#define FEMTOXCONF_ARM_H_
+#ifndef FEMTOXCONF_MSP430_H_
+#define FEMTOXCONF_MSP430_H_
 
-#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
+#include "../PROPERTIES.h"
+
+//#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
 #define DATA_STRUCT_MANAGER   /*Включаем работу с очередями средствами деспетчера*/
-#define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/
-#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
+//#define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/
+//#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
 #define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 #define ALLOC_MEM   /*Включение динамического выделения памяти*/
-<<<<<<< HEAD
-=======
-//#define ALLOC_MEM_LARGE   /*Включение динамического выделения памяти без ограничения размера*/
->>>>>>> 6bd70b4c2d763ec5099876833245c70616553b05
+
+#ifdef G25_TANDEM
 #define EVENT_LOOP_TASKS
-//#define USE_SOFT_UART
+#define USE_SOFT_UART
+#endif
+#ifdef VEGA
+#define EVENT_LOOP_TASKS
+#define USE_SOFT_UART
+#endif
+
 #define CLOCK_SERVICE
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
 //#define SIGNALS_TASK
 //#define _LIST_STRUCT
 //#define _DYNAMIC_ARRAY
-//#define _PWR_SAVE
-#define NEED_CRYPT
-<<<<<<< HEAD
-=======
+#define _PWR_SAVE
+//#define NEED_CRYPT
 //#define ENABLE_LOGGING
->>>>>>> 6bd70b4c2d763ec5099876833245c70616553b05
 
-#define TASK_LIST_LEN 10U /*Длина очереди задач*/
-#define TIME_LINE_LEN 30U /*Максимальне количество системных таймеров*/
+#define USE_TIMER_IF_OVERFLOW_TASK_LIST
+#define TASK_LIST_LEN 4U /*Длина очереди задач*/
+#define TIME_LINE_LEN 9U /*Максимальне количество системных таймеров*/
 #define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
 #ifdef EVENT_LOOP_TASKS
-#define EVENT_LIST_SIZE 10
+#define EVENT_LIST_SIZE 4
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
-#define ArraySize   12 /*Общее количество всех структур данных*/
+#define ArraySize   5 /*Общее количество всех структур данных*/
 #endif
 
 #ifdef MUTEX_ENABLE
@@ -52,21 +56,16 @@
 #endif
 
 #ifdef CYCLE_FUNC
-#define TIMERS_ARRAY_SIZE 15
+#define TIMERS_ARRAY_SIZE 3
 #endif
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 10000UL /*6500*/
+#define HEAP_SIZE 360UL /*6500*/
 #endif
-<<<<<<< HEAD
-=======
-#ifdef ALLOC_MEM_LARGE
-#define HEAP_SIZE 10000UL /*6500*/
-#endif
->>>>>>> 6bd70b4c2d763ec5099876833245c70616553b05
 
 #ifdef CALL_BACK_TASK
-#define CALL_BACK_TASK_LIST_LEN 30
+//#define CHECK_ERRORS_CALLBACK
+#define CALL_BACK_TASK_LIST_LEN 7
 #endif
 
 #ifdef SIGNALS_TASK
@@ -74,7 +73,7 @@
 #endif
 
 #ifdef _PWR_SAVE
-//   #define NATIVE_TIMER_PWR_SAVE /*Реализация динамического изменения частоты таймера нативным способом*/
+  #define NATIVE_TIMER_PWR_SAVE /*Реализация динамического изменения частоты таймера нативным способом*/
 #endif
 
 #ifdef USE_SOFT_UART
@@ -86,8 +85,9 @@
   #define BAUD_2400  16
   #define BAUD_4800  8
   #define BAUD_9600  4
+  #define BAUD_19200 2
   #define DATA_BITS  8   /*Количество бит данных в посылке*/
   #define STOP_BITS  1   /*Колличество СТОП битов*/
 #endif
 
-#endif /* FEMTOXCONF_ARM_H_ */
+#endif /* FEMTOXCONF_MSP430_H_ */

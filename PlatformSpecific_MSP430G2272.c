@@ -7,14 +7,19 @@
 *********************************************************************************************************************
 *********************************************************************************************************************/
 
+
+#define INTERRUPT_ENABLE  __enable_interrupt()
+#define INTERRUPT_DISABLE __disable_interrupt()
+#define INTERRUPT_STATUS  (__get_interrupt_state() & GIE)
+
 #ifdef MAXIMIZE_OVERFLOW_ERROR
-    void MaximizeErrorHandler(string_t str){
+    void MaximizeErrorHandler(const string_t str){
         initWatchDog();
         if(!INTERRUPT_STATUS) INTERRUPT_ENABLE;
         while(1);
     }
 #else
-    void MaximizeErrorHandler(string_t str){
+    void MaximizeErrorHandler(const string_t str){
     }
 #endif
 
@@ -73,6 +78,21 @@ unsigned int _setTickTime(unsigned int timerTicks) {
   return i;
 }
 #endif
+
+static void unlock(const void*const resourceId) {
+    INTERRUPT_ENABLE;
+}
+
+static void empty(const void*const resourceId) {}
+
+unlock_t lock(const void*const resourceId){
+    if(INTERRUPT_STATUS) {
+        INTERRUPT_DISABLE;
+        return unlock;
+    }
+    return empty;
+}
+
 
 #ifdef USE_SOFT_UART
 /*
