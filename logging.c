@@ -50,11 +50,6 @@ static void sendUART2_buf(u08 c) {
 	printf("%c",c);
 	fflush(stdout);
 }
-#elif ARM_STM32
-#include "UART3.h"
-#endif
-#ifndef NULL
-#define NULL ((void*)0)
 #endif
 
 #ifdef ARM_STM32
@@ -145,7 +140,7 @@ void writeSymb(char symb) {
 	sendUART2_buf((u08)symb);
 }
 
-#ifdef ALLOC_MEM
+#if ALLOC_MEM || ALLOC_MEM_LARGE
 void writeLogByteArray(u08 sizeBytes, byte_ptr array){
 	static string_t str = NULL;
 	u08 totalSize = sizeBytes*2 + sizeBytes + 1;
