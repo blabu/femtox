@@ -15,14 +15,14 @@
 #define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/
 #define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
 #define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
-#define ALLOC_MEM   /*Включение динамического выделения памяти*/
-//#define ALLOC_MEM_LARGE   /*Включение динамического выделения памяти без ограничения размера*/
+//#define ALLOC_MEM   /*Включение динамического выделения памяти*/
+#define ALLOC_MEM_LARGE   /*Включение динамического выделения памяти без ограничения размера*/
 #define EVENT_LOOP_TASKS
 //#define USE_SOFT_UART
 #define CLOCK_SERVICE
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
-//#define SIGNALS_TASK
+#define SIGNALS_TASK
 //#define _LIST_STRUCT
 //#define _DYNAMIC_ARRAY
 //#define _PWR_SAVE
@@ -34,7 +34,7 @@
 #define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
 #ifdef EVENT_LOOP_TASKS
-#define EVENT_LIST_SIZE 10
+#define EVENT_LIST_SIZE 8
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
@@ -61,7 +61,7 @@
 #endif
 
 #ifdef SIGNALS_TASK
-#define SIGNAL_LIST_LEN 10
+#define SIGNAL_LIST_LEN 3
 #endif
 
 #ifdef _PWR_SAVE
