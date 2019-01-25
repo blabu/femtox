@@ -8,6 +8,9 @@ u32 RandomSimple();
 u32 RandomMultiply();
 u16 CRC16(BaseSize_t size, byte_ptr msg);
 
+BaseSize_t base64Encode(BaseSize_t len, byte_ptr input, string_t output);
+BaseSize_t base64Decode(const string_t input, byte_ptr output);
+
 // #define the macros below to 1/0 to enable/disable the mode of operation.
 // CBC enables AES encryption in CBC-mode of operation.
 // ECB enables the basic ECB 16-byte block algorithm. Both can be enabled simultaneously.

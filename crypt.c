@@ -42,7 +42,6 @@ extern "C" {
 #include "crypt.h"
 
 #ifdef NEED_CRYPT
-
 /*****************************************************************************/
 /* Defines:                                                                  */
 /*****************************************************************************/
@@ -506,6 +505,9 @@ void AesCbcDecrypt_buffer(byte_ptr buf, u32 length, const byte_ptr key, const by
 
 #endif // #if defined(CBC) && (CBC == 1)
 
+#endif // NEED_CRYPT
+
+#ifdef NEED_RANDOM
 static u32 s1, s2, s3, s4;
 static u32 taus88 () {
     u32 b = (((s1 << 13) ^ s1) >> 19);
@@ -552,8 +554,9 @@ u32 RandomMultiply() {
 	seed = (A*seed)%M;
 	return seed;
 }
+#endif //NEED_RANDOM
 
-
+#ifdef NEED_CRC16
 /* Table of CRC values for high–order byte */
 const unsigned char tabl_crc_hi[] = {
 0x00,0xC1,0x81,0x40,0x01,0xC0,0x80,0x41,0x01,0xC0,0x80,0x41,0x00,0xC1,0x81,0x40,
@@ -604,7 +607,80 @@ u16 CRC16(BaseSize_t size, byte_ptr msg){
 	}
 	return ((CRC_H << 8) | CRC_L);
 }
-#endif // NEED_CRYPT
+#endif //NEED_CRC16
+
+#ifdef NEED_BASE64
+static const string_t base64Chars ="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+static inline bool_t isBase64(const char c) {
+  return (isAsciiOrNumb(c) || (c == '+') || (c == '/'));
+}
+
+BaseSize_t base64Encode(BaseSize_t len, byte_ptr input, string_t output) {
+	  u08 i = 0;
+	  u08 j = 0;
+	  BaseSize_t nOut = 0;
+	  u08 char_array_3[3], char_array_4[4];
+
+	  while(len--) {
+	    char_array_3[i++] = *(input++);
+	    if(i == 3) {
+
+	      char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+	      char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+	      char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+	      char_array_4[3] = char_array_3[2] & 0x3f;
+
+	      for(i=0;i<4;i++) output[nOut++] = base64Chars[char_array_4[i]];
+	      i = 0;
+	    }
+	  }
+	  if(i){
+	    for(j=i;j<3;j++) char_array_3[j] = '\0';
+
+	    char_array_4[0] = ( char_array_3[0] & 0xfc) >> 2;
+	    char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+	    char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+
+	    for(j=0;j<(i+1);j++) output[nOut++]=base64Chars[char_array_4[j]];
+	    while((i++ < 3)) output[nOut++]='=';
+	  }
+	  output[nOut]=END_STRING;
+	  return nOut;
+}
+
+BaseSize_t base64Decode(const string_t input, byte_ptr output) {
+	  BaseSize_t in_len = strSize(input);
+	  u08 i = 0;
+	  u08 j = 0;
+	  BaseSize_t in_ = 0;
+	  BaseSize_t nOut = 0;
+	  u08 char_array_4[4], char_array_3[3];
+
+	  while (in_len-- && ( input[in_] != '=') && isBase64(input[in_])) {
+	    char_array_4[i++]=input[in_++];
+	    if (i ==4) {
+	      for (i = 0; i <4; i++) char_array_4[i] = findSymb(char_array_4[i], base64Chars);
+
+	      char_array_3[0] = ( char_array_4[0] << 2       ) + ((char_array_4[1] & 0x30) >> 4);
+	      char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+	      char_array_3[2] = ((char_array_4[2] & 0x3) << 6) +   char_array_4[3];
+
+	      for (i=0;i<3;i++) output[nOut++]=char_array_3[i];
+	      i = 0;
+	    }
+	  }
+	  if (i) {
+	    for (j = 0; j < i; j++) char_array_4[j] = findSymb(char_array_4[j], base64Chars);
+
+	    char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
+	    char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
+
+	    for (j = 0; (j < i - 1); j++) output[nOut++]=char_array_3[j];
+	  }
+	  return nOut;
+}
+#endif // NEED_BASE64
 #ifdef __cplusplus
 }
 #endif

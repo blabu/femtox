@@ -290,7 +290,6 @@ void freeMem(const byte_ptr data) {
     }
 }
 
-
 void defragmentation(void){
     u16 i = 0;
     u08 blockSize = 0;

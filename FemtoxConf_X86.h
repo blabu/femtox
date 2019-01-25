@@ -27,6 +27,9 @@
 //#define _DYNAMIC_ARRAY
 #define _PWR_SAVE
 #define NEED_CRYPT
+#define NEED_RANDOM
+#define NEED_CRC16
+#define NEED_BASE64
 #define ENABLE_LOGGING
 
 #define TASK_LIST_LEN 200U /*Длина очереди задач*/
