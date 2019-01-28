@@ -646,7 +646,7 @@ BaseSize_t base64Encode(BaseSize_t len, byte_ptr input, string_t output) {
 	    while((i++ < 3)) output[nOut++]='=';
 	  }
 	  output[nOut]=END_STRING;
-	  return nOut;
+	  return nOut+1;
 }
 
 BaseSize_t base64Decode(const string_t input, byte_ptr output) {

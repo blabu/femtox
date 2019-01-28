@@ -29,7 +29,7 @@
 //#define NEED_CRYPT
 #define NEED_BASE64
 //#define NEED_RANDOM
-//#define NEED_CRC16
+#define NEED_CRC16
 #define ENABLE_LOGGING
 
 #define TASK_LIST_LEN 10U /*Длина очереди задач*/
@@ -56,7 +56,7 @@
 #define HEAP_SIZE 10000UL /*6500*/
 #endif
 #ifdef ALLOC_MEM_LARGE
-#define HEAP_SIZE 20000UL /*6500*/
+#define HEAP_SIZE 5000UL /*6500*/
 #endif
 
 #ifdef CALL_BACK_TASK
