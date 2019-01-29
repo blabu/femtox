@@ -62,7 +62,6 @@ void enableLogging(void) {
 	}
 	countEnableLogging = 1;
 #ifndef _X86
-
 //	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,GPIO_PIN_SET);
 #endif// _X86
 	enableUART2(57600);
@@ -140,7 +139,7 @@ void writeSymb(char symb) {
 	sendUART2_buf((u08)symb);
 }
 
-#if ALLOC_MEM || ALLOC_MEM_LARGE
+#ifdef ALLOC_MEM
 void writeLogByteArray(u08 sizeBytes, byte_ptr array){
 	static string_t str = NULL;
 	u08 totalSize = sizeBytes*2 + sizeBytes + 1;
@@ -163,4 +162,28 @@ void writeLogByteArray(u08 sizeBytes, byte_ptr array){
 	writeLogStr(str);
 }
 #endif // ALLOC_MEM
+#ifdef ALLOC_MEM_LARGE
+void writeLogByteArray(BaseSize_t sizeBytes, byte_ptr array){
+	static string_t str = NULL;
+	BaseSize_t totalSize = sizeBytes*2 + sizeBytes + 1;
+	if(totalSize > getAllocateMemmorySize((byte_ptr)(str))) {
+		freeMem((byte_ptr)str);
+		str = (string_t)allocMem(totalSize); // Выделяем память под строку + под пробелы между символами + байт конца
+	}
+	if(str == NULL){
+		writeLogStr("mem err in logging");
+		return;
+	}
+	u08 poz = 0;
+	for(u08 i = 0; i<sizeBytes; i++) {
+		toString(1,array[i],&str[poz]);
+		poz=strSize(str);
+		str[poz] = ' ';
+		poz++;
+	}
+	str[poz] = '\0';
+	writeLogStr(str);
+}
+#endif // ALLOC_MEM_LARGE
+
 #endif // ENABLE_LOGGING

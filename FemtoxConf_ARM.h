@@ -25,8 +25,11 @@
 #define SIGNALS_TASK
 //#define _LIST_STRUCT
 //#define _DYNAMIC_ARRAY
-//#define _PWR_SAVE
-#define NEED_CRYPT
+#define _PWR_SAVE
+//#define NEED_CRYPT
+#define NEED_BASE64
+//#define NEED_RANDOM
+#define NEED_CRC16
 #define ENABLE_LOGGING
 
 #define TASK_LIST_LEN 10U /*Длина очереди задач*/
@@ -34,7 +37,7 @@
 #define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
 #ifdef EVENT_LOOP_TASKS
-#define EVENT_LIST_SIZE 8
+#define EVENT_LIST_SIZE 5
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
@@ -46,7 +49,7 @@
 #endif
 
 #ifdef CYCLE_FUNC
-#define TIMERS_ARRAY_SIZE 15
+#define TIMERS_ARRAY_SIZE 10
 #endif
 
 #ifdef ALLOC_MEM

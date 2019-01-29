@@ -2,6 +2,8 @@
 #define MY_STRING_H
 #include "FemtoxTypes.h"
 
+#define END_STRING '\0'
+
 // command - строка, которую ищут
 // answer  - строка, в которой ищут
 // Функция возвращает TRUE если найдено
@@ -10,8 +12,8 @@ bool_t str1_str2(const string_t small, const string_t big);
 
 bool_t strCompare(const string_t str1, const string_t str2);
 
-// command - строка, которую ищут
-// answer  - строка, в которой ищут
+// small - строка, которую ищут
+// big  - строка, в которой ищут
 // Функция возвращает адресс начала входа подстроки в строку
 // Если не нашли вернем отрицательное число
 s16 findStr(const string_t small, const string_t big);
@@ -63,6 +65,8 @@ void toStringUnsign(u08 capacity, u64 data, string_t c_str);
 void toStringDec(s64 data, string_t c_str);
 
 bool_t isDigit(const char symb);
+bool_t isAsciiOrNumb(const char symb);
+#define isalnum(cczz) isAsciiOrNumb((const char)cczz)
 
 void toStringUnsignDec(u64 data, string_t c_str);
 

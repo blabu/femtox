@@ -108,9 +108,10 @@ static volatile TaskList_t MainTimer[TIME_LINE_LEN]; // Указатель за�
 volatile static Time_t GlobalTick;
 u32 getTick(void) {
 	u32 time_res = 0;
-	while(time_res != GlobalTick) time_res = (u32)GlobalTick;      // Так как переменная у нас двухбайтная
+	while(time_res != GlobalTick) time_res = (u32)GlobalTick;
 #ifdef CLOCK_SERVICE
-	time_res += __systemSeconds*TICK_PER_SECOND;
+	Time_t sec = getAllSeconds();
+	time_res += sec*TICK_PER_SECOND;
 #endif
 	return time_res;
 }

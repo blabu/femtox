@@ -19,6 +19,10 @@ void writeLogStr(string_t c_str);
 void writeLogFloat(float data);
 void writeLogU32(u32 data);
 void writeSymb(char symb);
+#ifdef ALLOC_MEM
 void writeLogByteArray(u08 sizeBytes, byte_ptr array);
-
+#endif
+#ifdef ALLOC_MEM_LARGE
+void writeLogByteArray(BaseSize_t sizeBytes, byte_ptr array);
+#endif
 #endif /* LOGGING_H_ */

@@ -37,7 +37,13 @@ void initEventList(void) {
 void EventManager( void ) {
     for(u08 i = 0; i<EVENT_LIST_SIZE; i++) {
         if(EventList[i].Predicat == NULL) break;        // При первом
-        if(EventList[i].Predicat()) SetTask((TaskMng)EventList[i].CallBack,0,0);
+        if(EventList[i].Predicat()) {
+		#ifdef SET_FRONT_TASK_ENABLE
+        	SetFrontTask((TaskMng)EventList[i].CallBack,0,0);
+		#else
+        	SetTask((TaskMng)EventList[i].CallBack,0,0);
+		#endif
+        }
     }
 }
 
