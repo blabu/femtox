@@ -193,9 +193,7 @@ void toString(u08 capacity, s64 data, string_t c_str){
 		 c_str[0] = '-';
 		 data=-data;
 		 toStringUnsign(capacity,data,c_str+1);
-		 return;
-	}
-	toStringUnsign(capacity,data,c_str);
+	}else toStringUnsign(capacity,data,c_str);
 }
 
 static s64 toInt(s08 razryad, const string_t c_str){
