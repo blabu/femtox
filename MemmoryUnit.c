@@ -46,9 +46,9 @@ BaseSize_t getFreeMemmorySize(void){
 static BaseSize_t getCurrentBlockSize(byte_ptr startBlock_ptr) {
 	BaseSize_t size = 0;
 	for(;;) {
+		startBlock_ptr--;
 		size = (size << 5) | (*startBlock_ptr & 0x1F);
 		if( !(*startBlock_ptr & (1<<6)) ) break; // Если бит следующего размерного блока не выставлен выходим
-		startBlock_ptr--;
 	}
 	return size;
 }
@@ -66,7 +66,9 @@ static BaseSize_t getNextBlockSize(byte_ptr startSize_ptr) {
 BaseSize_t getAllocateMemmorySize(const byte_ptr data) {
 	if(data > heap &&
        data < heap + HEAP_SIZE) {  // Если мы передали валидный указатель
-		if(!(*(data-1) & (1<<7))) return 0;
+		if( !(*(data-1) & (1<<7)) ) {
+			return 0;
+		}
 		return getCurrentBlockSize(data);
     }
 	return 0;
