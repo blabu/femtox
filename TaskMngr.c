@@ -22,7 +22,7 @@ extern "C" {
  * V1.3.4.5 - Fix some bugs
  * V1.4.0.0 - Add lock and unlock function instead INTERRUPT_ENABLE, INTERRUPT_DISABLE (for x86 perfomance upgrade)
  * V1.4.1.0 - Add macros ENABLE_LOGGING if logging not need
- * 1.4.2    - Add large memory manager
+ * V1.4.2    - Add large memory manager
  * */
 const char* const _osVersion = "V1.4.2";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
