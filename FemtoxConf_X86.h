@@ -27,6 +27,9 @@
 //#define _DYNAMIC_ARRAY
 #define _PWR_SAVE
 #define NEED_CRYPT
+#define NEED_RANDOM
+#define NEED_CRC16
+#define NEED_BASE64
 #define ENABLE_LOGGING
 
 #define TASK_LIST_LEN 200U /*Длина очереди задач*/
@@ -53,7 +56,7 @@
 #define HEAP_SIZE 10000UL /*6500*/
 #endif
 #ifdef ALLOC_MEM_LARGE
-#define HEAP_SIZE 1000000UL /*6500*/
+#define HEAP_SIZE 10000UL /*6500*/
 #endif
 
 #ifdef CALL_BACK_TASK

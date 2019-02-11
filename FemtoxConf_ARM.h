@@ -10,31 +10,34 @@
 #ifndef FEMTOXCONF_ARM_H_
 #define FEMTOXCONF_ARM_H_
 
-#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
+//#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
 #define DATA_STRUCT_MANAGER   /*Включаем работу с очередями средствами деспетчера*/
 #define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/
-#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
+//#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
 #define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
-#define ALLOC_MEM   /*Включение динамического выделения памяти*/
-//#define ALLOC_MEM_LARGE   /*Включение динамического выделения памяти без ограничения размера*/
+//#define ALLOC_MEM   /*Включение динамического выделения памяти*/
+#define ALLOC_MEM_LARGE 1   /*Включение динамического выделения памяти без ограничения размера*/
 #define EVENT_LOOP_TASKS
 //#define USE_SOFT_UART
 #define CLOCK_SERVICE
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
-//#define SIGNALS_TASK
+#define SIGNALS_TASK
 //#define _LIST_STRUCT
 //#define _DYNAMIC_ARRAY
 //#define _PWR_SAVE
-#define NEED_CRYPT
-//#define ENABLE_LOGGING
+//#define NEED_CRYPT
+#define NEED_BASE64
+//#define NEED_RANDOM
+#define NEED_CRC16
+#define ENABLE_LOGGING
 
 #define TASK_LIST_LEN 10U /*Длина очереди задач*/
 #define TIME_LINE_LEN 30U /*Максимальне количество системных таймеров*/
 #define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
 #ifdef EVENT_LOOP_TASKS
-#define EVENT_LIST_SIZE 10
+#define EVENT_LIST_SIZE 5
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
@@ -46,11 +49,11 @@
 #endif
 
 #ifdef CYCLE_FUNC
-#define TIMERS_ARRAY_SIZE 15
+#define TIMERS_ARRAY_SIZE 10
 #endif
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 10000UL /*6500*/
+#define HEAP_SIZE 7500UL /*6500*/
 #endif
 #ifdef ALLOC_MEM_LARGE
 #define HEAP_SIZE 10000UL /*6500*/
@@ -61,7 +64,7 @@
 #endif
 
 #ifdef SIGNALS_TASK
-#define SIGNAL_LIST_LEN 10
+#define SIGNAL_LIST_LEN 2
 #endif
 
 #ifdef _PWR_SAVE

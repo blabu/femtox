@@ -6,7 +6,6 @@
 extern "C" {
 #endif
 
-#define END_STRING '\0'
 /*
 command - строка, которую ищут
 answer  - строка, в которой ищут
@@ -194,9 +193,7 @@ void toString(u08 capacity, s64 data, string_t c_str){
 		 c_str[0] = '-';
 		 data=-data;
 		 toStringUnsign(capacity,data,c_str+1);
-		 return;
-	}
-	toStringUnsign(capacity,data,c_str);
+	}else toStringUnsign(capacity,data,c_str);
 }
 
 static s64 toInt(s08 razryad, const string_t c_str){
@@ -299,6 +296,13 @@ bool_t isDigit(const char symb) {
 	if(symb > '9' && symb < 'A') return FALSE;
 	if(symb > 'F') return FALSE;
 	return TRUE;
+}
+
+bool_t isAsciiOrNumb(const char symb) {
+	if(symb >= '0' && symb <= '9') return TRUE;
+	if(symb >= 'A' && symb <= 'Z') return TRUE;
+	if(symb >= 'a' && symb <= 'z') return TRUE;
+	return FALSE;
 }
 
 void shiftStringLeft(BaseSize_t poz, string_t c_str){

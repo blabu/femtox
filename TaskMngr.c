@@ -108,9 +108,10 @@ static volatile TaskList_t MainTimer[TIME_LINE_LEN]; // Указатель за�
 volatile static Time_t GlobalTick;
 u32 getTick(void) {
 	u32 time_res = 0;
-	while(time_res != GlobalTick) time_res = (u32)GlobalTick;      // Так как переменная у нас двухбайтная
+	while(time_res != GlobalTick) time_res = (u32)GlobalTick;
 #ifdef CLOCK_SERVICE
-	time_res += __systemSeconds*TICK_PER_SECOND;
+	Time_t sec = getAllSeconds();
+	time_res += sec*TICK_PER_SECOND;
 #endif
 	return time_res;
 }
@@ -466,7 +467,7 @@ void memCpy(void* destination, const void* source, const BaseSize_t num) {
 	}
 	for(u08 i = 0; i<last; i++) {
 		*((byte_ptr)destination) = *((byte_ptr)source);
-		(byte_ptr)destination++; (byte_ptr)source++;
+		destination = (void*)((byte_ptr)destination+1); source = (void*)((byte_ptr)source+1);
 	}
 #elif ARCH == 16
 	BaseSize_t blocks = num>>1;		// 2 байта копируются за один раз

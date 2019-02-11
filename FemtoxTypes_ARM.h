@@ -30,7 +30,7 @@ typedef unsigned int   Time_t;
 typedef enum {FALSE=0, TRUE = !FALSE} bool_t;
 
 typedef unsigned char* byte_ptr;
-typedef unsigned short  BaseSize_t; // Первый аргумент для задачи в диспетчере
+typedef unsigned int  BaseSize_t; // Первый аргумент для задачи в диспетчере
 typedef void* BaseParam_t;  // Второй аргумент для задачи в диспетчере
 extern const BaseSize_t _MAX_BASE_SIZE;
 
