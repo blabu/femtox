@@ -18,6 +18,7 @@
 //#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
 #define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 #define ALLOC_MEM   /*Включение динамического выделения памяти*/
+//#define ALLOC_MEM_LARGE 1   /*Включение динамического выделения памяти без ограничения размера*/
 
 #ifdef G25_TANDEM
 #define EVENT_LOOP_TASKS
@@ -36,6 +37,9 @@
 //#define _DYNAMIC_ARRAY
 #define _PWR_SAVE
 //#define NEED_CRYPT
+//#define NEED_BASE64
+//#define NEED_RANDOM
+//#define NEED_CRC16
 //#define ENABLE_LOGGING
 
 #define USE_TIMER_IF_OVERFLOW_TASK_LIST

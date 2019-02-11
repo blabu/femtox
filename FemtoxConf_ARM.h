@@ -32,6 +32,7 @@
 #define NEED_CRC16
 #define ENABLE_LOGGING
 
+#define USE_TIMER_IF_OVERFLOW_TASK_LIST
 #define TASK_LIST_LEN 10U /*Длина очереди задач*/
 #define TIME_LINE_LEN 30U /*Максимальне количество системных таймеров*/
 #define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
@@ -60,6 +61,7 @@
 #endif
 
 #ifdef CALL_BACK_TASK
+//#define CHECK_ERRORS_CALLBACK
 #define CALL_BACK_TASK_LIST_LEN 30
 #endif
 

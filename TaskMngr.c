@@ -24,7 +24,6 @@ extern "C" {
  * V1.4.1.0 - Add macros ENABLE_LOGGING if logging not need
  * 1.4.2    - Add large memory manager
  * 1.4.3    - Small changes in datastruct manager
->>>>>>> 1a1c7ccbdc228a273cd019ba6b94a85d9a55a379
  * */
 const char* const _osVersion = "V1.4.3";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
