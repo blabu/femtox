@@ -31,6 +31,7 @@
 //#define NEED_RANDOM
 #define NEED_CRC16
 #define ENABLE_LOGGING
+//#define NEED_MATRIX
 
 #define USE_TIMER_IF_OVERFLOW_TASK_LIST
 #define TASK_LIST_LEN 10U /*Длина очереди задач*/

@@ -24,12 +24,13 @@ extern "C" {
  * V1.4.1.0 - Add macros ENABLE_LOGGING if logging not need
  * 1.4.2    - Add large memory manager
  * 1.4.3    - Small changes in datastruct manager
+ * 1.4.4    - Small add volatile qualificators in all global data
  * */
-const char* const _osVersion = "V1.4.3";
+const char* const _osVersion = "V1.4.4";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
 
 #ifdef _PWR_SAVE
-u32 minTimeOut = 1; // Минимальное время таймоута для задач из списка таймеров
+volatile u32 minTimeOut = 1; // Минимальное время таймоута для задач из списка таймеров используется в таймерах и в циклических задачах
 extern unsigned int _setTickTime(unsigned int timerTicks); // В качестве аргумента передается кол-во стандартных тиков таймера
 //(Таймер начинает тикать значительно реже что значительно увеличивает энергоэффективность)
 // Вернет занчение на которое реально смог изменить частоту прерываний

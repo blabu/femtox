@@ -12,8 +12,8 @@
 #error "SIGNAL MUST BE LESS 0xFF"
 #endif
 
-static TaskMng taskList[SIGNAL_LIST_LEN];
-static void* signalList[SIGNAL_LIST_LEN];
+volatile static TaskMng taskList[SIGNAL_LIST_LEN];
+volatile static void* signalList[SIGNAL_LIST_LEN];
 
 // Прочесываем очередь, находим задачи подписанные на этот сигнал и вызываем их. При этом задачи из списка не удаляются
 void emitSignal(const void*const signal, BaseSize_t arg_n, BaseParam_t arg_p) {

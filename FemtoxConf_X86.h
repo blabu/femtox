@@ -31,6 +31,7 @@
 #define NEED_CRC16
 #define NEED_BASE64
 #define ENABLE_LOGGING
+//#define NEED_MATRIX
 
 #define TASK_LIST_LEN 200U /*Длина очереди задач*/
 #define TIME_LINE_LEN 230U /*Максимальне количество системных таймеров*/

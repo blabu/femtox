@@ -13,7 +13,7 @@ extern "C" {
 #endif
 
 #ifdef GLOBAL_FLAGS
-static globalFlags_t GlobalFlags = 0;
+volatile static globalFlags_t GlobalFlags = 0;
 
 void setFlags(globalFlags_t flagMask) {
 	unlock_t unlock = lock(&GlobalFlags);

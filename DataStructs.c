@@ -31,12 +31,11 @@ typedef struct
     BaseSize_t sizeElement;   // Размер одного элемента абстрактной структуры данных в байтах
     BaseSize_t sizeAllElements;// Общий размер в количествах элементов в абстрактной структуре данных
 } AbstractDataType;
-static AbstractDataType Data_Array[ArraySize];   // Собственно сам массив абстрактных структур данных
+volatile static AbstractDataType Data_Array[ArraySize];   // Собственно сам массив абстрактных структур данных
 
 /***************************/
 /***************************/
-void showAllDataStruct(void)
-{
+void showAllDataStruct(void) {
 }
 
 static inline u08 findNumberDataStruct(const void* const Data) {

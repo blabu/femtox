@@ -73,7 +73,7 @@ void delCycleTask(BaseSize_t arg_n, CycleFuncPtr_t CallBack) {
 }
 
 #ifdef _PWR_SAVE
-extern u32 minTimeOut;
+extern volatile u32 minTimeOut;
 u32 CycleService(void) {
 	unlock_t unlock = lock((void*)Timers_Array);
     register u08 i = 0;
