@@ -73,15 +73,15 @@ void delCycleTask(BaseSize_t arg_n, CycleFuncPtr_t CallBack) {
 }
 
 #ifdef _PWR_SAVE
-extern volatile u32 minTimeOut;
+extern volatile u32 _minTimeOut;
 u32 CycleService(void) {
 	unlock_t unlock = lock((void*)Timers_Array);
     register u08 i = 0;
     u32 tempMinTickCount = 0;
     while(Timers_Array[i].value) // Перебираем массив таймеров пока не встретили пустышку
     {
-    	if(Timers_Array[i].time > minTimeOut) {
-    		Timers_Array[i].time -= minTimeOut;// Если нашли не путой таймер тикаем
+    	if(Timers_Array[i].time > _minTimeOut) {
+    		Timers_Array[i].time -= _minTimeOut;// Если нашли не путой таймер тикаем
     		if(Timers_Array[i].time < tempMinTickCount || !tempMinTickCount) tempMinTickCount = Timers_Array[i].time;
     	}
     	else { // Если таймер дотикал

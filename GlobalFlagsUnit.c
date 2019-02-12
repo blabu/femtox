@@ -16,15 +16,15 @@ extern "C" {
 volatile static globalFlags_t GlobalFlags = 0;
 
 void setFlags(globalFlags_t flagMask) {
-	unlock_t unlock = lock(&GlobalFlags);
+	unlock_t unlock = lock((void*)(&GlobalFlags));
 	GlobalFlags |= flagMask;
-	unlock(&GlobalFlags);
+	unlock((void*)(&GlobalFlags));
 }
 
 void clearFlags(globalFlags_t flagMask) {
-	unlock_t unlock = lock(&GlobalFlags);
+	unlock_t unlock = lock((void*)(&GlobalFlags));
 	GlobalFlags &= ~flagMask;
-	unlock(&GlobalFlags);
+	unlock((void*)(&GlobalFlags));
 }
 
 bool_t getFlags(globalFlags_t flagMask){

@@ -57,26 +57,56 @@ static unsigned int TimerDelay = TIMER_CONST;
 //Обработчик прерывания по совпадению теущего значения таймера и счетчика.
 #pragma vector=TIMERB0_VECTOR
 __interrupt void TCB_ISR(void){
-     TBCCR0 = TBR + TimerDelay;
+     TBCCR0 = (u16)(TBR + TimerDelay);
      TimerISR();
      LPM3_EXIT; // Выход из режима пониженного энергопотребления (Здесь в любом случае лишним не будет)
 } 	//Отработка прерывания по переполнению TCNT0
 
 #ifdef NATIVE_TIMER_PWR_SAVE
+//// Выполняется при запрещенных прервыниях
+//u32 _setTickTime(u32 timerTicks) {
+//  u32 oldTimer = TimerDelay;
+//  TimerDelay = TIMER_CONST;
+//  u32 i = 1;
+//  for(; i<timerTicks; i++) {
+//    TimerDelay += TIMER_CONST;
+//    if(TimerDelay > (0xFFFF - (TIMER_CONST<<1))) break; // Следующая итерация может переполнить 16-ти битній счетчик MSP
+//  }
+//  if(TimerDelay != oldTimer) {
+//    TBCTL &= ~MC1; // STOP TIMER
+//    TBCCR0 = (u16)(TBR + TimerDelay);
+//    TBCTL |= MC1; //START TIMER
+//  }
+//  return i;
+//}
+
 // Выполняется при запрещенных прервыниях
-unsigned int _setTickTime(unsigned int timerTicks) {
-  unsigned int oldTimer = TimerDelay;
-  TimerDelay = TIMER_CONST;
-  unsigned int i = 1;
-  for(; i<timerTicks; i++) {
-    TimerDelay += TIMER_CONST;
-    if(TimerDelay > (0xFFFF - (TIMER_CONST<<1))) break; // Следующая итерация может переполнить 16-ти битній счетчик MSP
-  }
-  if(TimerDelay != oldTimer) {
-    TBCCR0 = TBR + TimerDelay;
-  }
-  return i;
+u32 _setTickTime(u32 timerTicks) {
+    u32 oldTimer = TimerDelay;
+    if(!timerTicks) timerTicks = 1;
+    TimerDelay = timerTicks * TIMER_CONST;
+    if(TimerDelay != oldTimer) {
+        if(TimerDelay > (0xFFFF - (TIMER_CONST))) {
+            const u32 maxTicks = 0xFFFF/TIMER_CONST;
+            TimerDelay = maxTicks*TIMER_CONST;
+            TBCTL &= ~MC1; // STOP TIMER
+            TBCCR0 = (u16)(TBR + TimerDelay);
+            TBCTL |= MC1; //START TIMER
+            return maxTicks;
+        }
+        TBCTL &= ~MC1; // STOP TIMER
+        TBCCR0 = (u16)(TBR + TimerDelay);
+        TBCTL |= MC1; //START TIMER
+    }
+    return timerTicks;
 }
+
+u32 _getTickTime() {
+    u32 res = 0;
+    if(TBCCR0 > TBR) res = TimerDelay - (TBCCR0 - TBR);
+    else res = TimerDelay - ((0xFFFF-TBR)+TBCCR0);
+    return res;
+} // Сколько времени прошло с момента начала отсета до сейчас в стандартных тиках ОС
 #endif
 
 static void unlock(const void*const resourceId) {

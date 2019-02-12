@@ -86,28 +86,28 @@ u08 delDataStruct(const void* Data) { // Удаляем из массива аб
     return EVERYTHING_IS_OK;
 }
 
-static BaseSize_t incLast(AbstractDataType* d) {
+static BaseSize_t incLast(volatile AbstractDataType* d) {
 	BaseSize_t last = 0;
 	while(last != d->lastCount) last=d->lastCount;
 	if(!last) last = d->sizeAllElements;
 	return last-1;
 }
 
-static BaseSize_t incFirst(AbstractDataType* d) {
+static BaseSize_t incFirst(volatile AbstractDataType* d) {
 	BaseSize_t first = 0;
 	while(first != d->firstCount) first = d->firstCount;
 	if(first >= d->sizeAllElements-1) return 0;
 	return first+1;
 }
 
-static BaseSize_t decLast(AbstractDataType* d) {
+static BaseSize_t decLast(volatile AbstractDataType* d) {
 	BaseSize_t last = 0;
 	while(last != d->lastCount) last=d->lastCount;
 	if(last >= d->sizeAllElements-1) return 0;
 	return last+1;
 }
 
-static BaseSize_t decFirst(AbstractDataType* d) {
+static BaseSize_t decFirst(volatile AbstractDataType* d) {
 	BaseSize_t first = 0;
 	while(first != d->firstCount) first = d->firstCount;
 	if(!first) first = d->sizeAllElements;
