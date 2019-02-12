@@ -7,6 +7,7 @@
 #include "logging.h"
 	void MaximizeErrorHandler(string_t str){
 		writeLogStr(str);
+		for(u16 i = 0; i<0xFFFF; i++);
 		initWatchDog();
 		while(1);
 	}
