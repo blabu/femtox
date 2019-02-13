@@ -450,6 +450,7 @@ u08 getFreePositionForTimerTask(void) {
 	return TIME_LINE_LEN - _lastTimerIndex;
 }
 
+#ifndef STANDART_MEMCPY_MEMSET
 //destination - адрес в памяти КУДА копируем source - адрес в памяти ОТКУДА копируем n - количество БАЙТ копируемых
 void memCpy(void* destination, const void* source, const BaseSize_t num) {
 #if ARCH == 64
@@ -541,6 +542,16 @@ void memSet(void* destination, const BaseSize_t size, const u08 value) {
 	}
 #endif // ARCH
 }
+#else
+#include <string.h>
+void memSet(void* destination, const BaseSize_t size, const u08 value) {
+    memset(destination, value, size);
+}
+
+void memCpy(void* destination, const void* source, const BaseSize_t num) {
+    memcpy(destination,source,num);
+}
+#endif
 
 void shiftLeftArray(BaseParam_t source, BaseSize_t sourceSize, BaseSize_t shiftSize) {
 	BaseSize_t i = 0, j = shiftSize;

@@ -22,7 +22,7 @@ static void* labelPointer[CALL_BACK_TASK_LIST_LEN]; // Массив указат
 static TaskList_t callBackList[CALL_BACK_TASK_LIST_LEN];	// Указатель на функцию которая будет вызвана
 
 void initCallBackTask(void){
-	for(u08 index = 0;index<CALL_BACK_TASK_LIST_LEN; index++){
+	for(u08 index=0;index<CALL_BACK_TASK_LIST_LEN; index++){
 		labelPointer[index] = NULL;
 	}
 }
