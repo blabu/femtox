@@ -14,7 +14,7 @@ void initWatchDog(void);
 void resetWatchDog(void);
 
 #define WATCH_DOG_ON  initWatchDog() /*Генерируем Reset*/
-#define TICK_PER_SECOND 100UL /*Колличество тиков в секунду*/
+#define TICK_PER_SECOND 102UL /*Колличество тиков в секунду*/
 
 unlock_t lock(const void*const resourceId);
 

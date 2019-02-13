@@ -24,19 +24,19 @@
 
 
 
-#define INTERRUPT_ENABLE  __enable_irq()   //{asm("nop"); __asm__ __volatile__("eint");}
-#define INTERRUPT_DISABLE __disable_irq()  //{__asm__ __volatile__("dint nop"); asm("nop");}
-#define INTERRUPT_STATUS  (__get_CONTROL() & (uint32_t)(1<<7))
+//#define INTERRUPT_ENABLE  __enable_irq()   //{asm("nop"); __asm__ __volatile__("eint");}
+//#define INTERRUPT_DISABLE __disable_irq()  //{__asm__ __volatile__("dint nop"); asm("nop");}
+//#define INTERRUPT_STATUS  (__get_CONTROL() & (uint32_t)(1<<7))
 
 static void unlock(const void*const resourceId) {
-	INTERRUPT_ENABLE;
+    __enable_irq();
 }
 
 static void empty(const void*const resourceId) {}
 
 unlock_t lock(const void*const resourceId){
-	if(INTERRUPT_STATUS) {
-		INTERRUPT_DISABLE;
+	if((__get_CONTROL() & (uint32_t)(1<<7))) {
+	    __disable_irq();
 		return unlock;
 	}
 	return empty;

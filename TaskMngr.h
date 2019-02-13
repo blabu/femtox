@@ -68,22 +68,22 @@ void delEvent(Predicat_t condition); //Удаляем обработку соб�
 #define NULL_PTR_ERROR              4
 #define NO_MEMORY_ERROR             5
 #define EVERYTHING_IS_OK            0
-u08 CreateDataStruct(const void * const D, const BaseSize_t sizeElement, const BaseSize_t sizeAll);
-u08 delDataStruct(const void * const Data);                                    // Удаляем структуру из списка структур
+u08 CreateDataStruct(const void* D, const BaseSize_t sizeElement, const BaseSize_t sizeAll);
+u08 delDataStruct(const void* Data);                                    // Удаляем структуру из списка структур
 BaseSize_t getCurrentSizeDataStruct(const void* const Data);
 u08 PutToCycleDataStruct(const void* Elem, const void* Array);
 u08 GetFromCycleDataStruct(void* returnValue, const void* Array);
-u08 PutToFrontDataStruct(const void * const Elem, const void * const Array);   // Кладем элемент в начало
-u08 PutToEndDataStruct(const void * const Elem, const void * const Array);     // Кладем элемент в конец
-u08 GetFromFrontDataStruct(void * const returnValue, const void * const Array);// Достаем элемент с начала структуры
-u08 GetFromEndDataStruct(void * const returnValue, const void * const Array); // Достаем элемент с конца структуры данных
+u08 PutToFrontDataStruct(const void * Elem, const void* Array);   // Кладем элемент в начало
+u08 PutToEndDataStruct(const void* Elem, const void* Array);     // Кладем элемент в конец
+u08 GetFromFrontDataStruct(void* returnValue, const void* Array);// Достаем элемент с начала структуры
+u08 GetFromEndDataStruct(void* returnValue, const void* Array); // Достаем элемент с конца структуры данных
 u08 delFromFrontDataStruct(const void* const Data); // Удаляет один элемент из структуры данных Data с начала
 u08 delFromEndDataStruct(const void* const Data); // Удаляет один элемент из структуры данных Data с конца
 u08 peekFromFrontData(void* returnValue, const void* Array); // Посмотреть первый элемент очереди не удаляя его
 u08 peekFromEndData(void* returnValue, const void* Array);  // Посмотреть последний элемент очереди не удаляя его
-bool_t isEmptyDataStruct(const void * const Data); // Проверяет пустая ли структура данных
-void for_each(const void * const Array, TaskMng tsk);
-void clearDataStruct(const void * const Data); // Очистить структуру данных с указателем Data
+bool_t isEmptyDataStruct(const void* const Data); // Проверяет пустая ли структура данных
+void for_each(const void* const Array, TaskMng tsk);
+void clearDataStruct(const void* const Data); // Очистить структуру данных с указателем Data
 void showAllDataStruct(void); // передает в ЮАРТ данные о всех структурах данных
 /*---------------ОЧЕРЕДЬ-------------------*/
 // Создание очереди вернет ноль если очередь успешно создана

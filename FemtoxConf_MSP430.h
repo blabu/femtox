@@ -41,8 +41,9 @@
 //#define NEED_RANDOM
 //#define NEED_CRC16
 //#define ENABLE_LOGGING
+//#define NEED_MATRIX
+#define STANDART_MEMCPY_MEMSET
 
-#define USE_TIMER_IF_OVERFLOW_TASK_LIST
 #define TASK_LIST_LEN 4U /*Длина очереди задач*/
 #define TIME_LINE_LEN 9U /*Максимальне количество системных таймеров*/
 #define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/

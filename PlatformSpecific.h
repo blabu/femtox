@@ -16,6 +16,8 @@
 #include "PlatformSpecificARM.h"
 #elif _X86
 #include "PlatformSpecificX86.h"
+#elif
+#include "PlatformSpecificSceleton.h"
 #else
 #error "Undefined platform"
 #endif

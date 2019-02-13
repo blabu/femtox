@@ -191,7 +191,7 @@ Date_t getDateFromSeconds(Time_t sec, bool_t toLocalTimeZone){
 			break;
 		}
 	}
-	res.sec = (u08)sec;   res.min = (u08)minutes; res.hour = (u08)hours;
+	res.sec = (u08)sec; res.min = (u08)minutes; res.hour = (u08)hours;
 	res.day = (u08)days+1;  res.mon = (u08)month+1;   res.year = (u16)year;
 	if(toLocalTimeZone) {
 #if TIME_INDEX!=0

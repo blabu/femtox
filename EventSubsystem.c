@@ -26,7 +26,7 @@ typedef struct {
     Predicat_t      Predicat;   // Указатель на функцию условия
     CycleFuncPtr_t  CallBack;
 } EventsType;
-EventsType EventList[EVENT_LIST_SIZE];
+volatile static EventsType EventList[EVENT_LIST_SIZE];
 
 void initEventList(void) {
     for(u08 i = 0; i<EVENT_LIST_SIZE; i++) {

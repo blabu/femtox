@@ -24,23 +24,29 @@ extern "C" {
  * V1.4.1.0 - Add macros ENABLE_LOGGING if logging not need
  * 1.4.2    - Add large memory manager
  * 1.4.3    - Small changes in datastruct manager
+ * 1.4.3.1  - Small add volatile qualificators in all global data
+ * 1.4.4    - Fix power save bugs
  * */
-const char* const _osVersion = "V1.4.3";
+const char* const _osVersion = "V1.4.4";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
-
-#ifdef _PWR_SAVE
-u32 minTimeOut = 1; // Минимальное время таймоута для задач из списка таймеров
-extern unsigned int _setTickTime(unsigned int timerTicks); // В качестве аргумента передается кол-во стандартных тиков таймера
-//(Таймер начинает тикать значительно реже что значительно увеличивает энергоэффективность)
-// Вернет занчение на которое реально смог изменить частоту прерываний
-#endif
 
 static void TaskManager(void);
 #ifdef _PWR_SAVE
+volatile u32 _minTimeOut = 1; // Минимальное время таймоута для задач из списка таймеров используется в таймерах и в циклических задачах
 static u32 TimerService(void);
 #else
 static void TimerService(void);
 #endif
+
+#ifdef CYCLE_FUNC
+extern void initCycleTask( void );
+#ifdef _PWR_SAVE
+extern u32 CycleService( void );
+#else
+extern void CycleService( void );
+#endif
+#endif
+
 #ifdef ALLOC_MEM
 extern void initHeap(void);
 #endif
@@ -51,15 +57,6 @@ extern void initHeap(void);
 
 #ifdef DATA_STRUCT_MANAGER
 extern void initDataStruct( void );
-#endif
-
-#ifdef CYCLE_FUNC
-extern void initCycleTask( void );
-#ifdef _PWR_SAVE
-extern u32 CycleService( void );
-#else
-extern void CycleService( void );
-#endif
 #endif
 
 #ifdef EVENT_LOOP_TASKS
@@ -120,7 +117,7 @@ u32 getTick(void) {
 
 static void ClockService(void){
 #ifdef _PWR_SAVE
-	GlobalTick += minTimeOut;
+	GlobalTick += _minTimeOut;
 #else
 	GlobalTick++;
 #endif
@@ -200,9 +197,18 @@ void ResetFemtOS(void){
 }
 
 #ifdef _PWR_SAVE
+extern u32 _setTickTime(u32 timerTicks); // В качестве аргумента передается кол-во стандартных тиков таймера
+//(Таймер начинает тикать значительно реже что значительно увеличивает энергоэффективность)
+// Вернет занчение на которое реально смог изменить частоту прерываний
+u32 _getTickTime(); // Сколько времени прошло с момента начала отсета до сейчас
+// Необходимо для осущществление коррекции в случае если внезапно появился таймер меньше ранее установленного времени
 #ifndef NATIVE_TIMER_PWR_SAVE
-unsigned int _setTickTime(unsigned int timerTicks) {
+static u32 isrCounter = 0;
+u32 _setTickTime(u32 timerTicks) {
 	return timerTicks;
+}
+u32 _getTickTime(){ // Сколько времени осталось с момента начала отсета до сейчас в стандартных тиках ОС
+    return isrCounter; // Вернем счетчик прерываний таймера
 }
 #endif
 #endif
@@ -210,8 +216,7 @@ unsigned int _setTickTime(unsigned int timerTicks) {
 void TimerISR(void) {
 #ifdef _PWR_SAVE
 #ifndef NATIVE_TIMER_PWR_SAVE
-	static BaseSize_t isrCounter = 0;
-	if(++isrCounter < minTimeOut) return;
+	if(++isrCounter < _minTimeOut) return;
 	isrCounter = 0;
 #endif
 	ClockService();
@@ -219,17 +224,17 @@ void TimerISR(void) {
 #ifdef CYCLE_FUNC
 	u32 minCycleService = CycleService(); // Вернет минимальное время из циклических задач
 	if(minTimerService && minCycleService) {
-		if(minTimerService < minCycleService) minTimeOut = minTimerService;
-		else if(minCycleService != 0) minTimeOut = minCycleService;
+		if(minTimerService < minCycleService) _minTimeOut = minTimerService;
+		else if(minCycleService != 0) _minTimeOut = minCycleService;
 	}
-	else if(minTimerService) minTimeOut = minTimerService;
-	else if(minCycleService) minTimeOut = minCycleService;
-	else minTimeOut = 1;
-	minTimeOut = _setTickTime(minTimeOut);
+	else if(minTimerService) _minTimeOut = minTimerService;
+	else if(minCycleService) _minTimeOut = minCycleService;
+	else _minTimeOut = 1;
+	_minTimeOut = _setTickTime(_minTimeOut);
 #else  //NOT CYCLE_FUNC
-	if(minTimerService) minTimeOut = minTimerService;
-	else minTimeOut = 1;
-	minTimeOut = _setTickTime(minTimerService);
+	if(minTimerService) _minTimeOut = minTimerService;
+	else _minTimeOut = 1;
+	_minTimeOut = _setTickTime(minTimerService);
 #endif
 #else //NOT _PWR_SAVE
 	ClockService();
@@ -276,13 +281,8 @@ void SetTask(const TaskMng New_Task, const BaseSize_t n, const BaseParam_t data)
 		unlock((void*)TaskList);
 		return;
 	}// Здесь мы окажемся в редких случаях когда oчередь переполнена
-    #ifndef USE_TIMER_IF_OVERFLOW_TASK_LIST
     MaximizeErrorHandler("ERROR: task queue overflow");
     unlock((void*)TaskList);
-    #else
-	SetTimerTask(New_Task, n, data, TIME_DELAY_IF_BUSY);  //Ставим задачу в очередь(попытаемся записать ее позже)
-	unlock((void*)TaskList);
-    #endif
 }
 
 bool_t isEmptyTaskList( void ){
@@ -329,15 +329,15 @@ void delAllTask(void) {
  *********************************************************************************************************************
  *********************************************************************************************************************
 ---------------------------------------------------------------------------------------------------------------------*/
-static u08 lastTimerIndex = 0; // Указывает на индекс следующего СВОБОДНОГО таймера
+static u08 _lastTimerIndex = 0; // Указывает на индекс следующего СВОБОДНОГО таймера
 #ifdef _PWR_SAVE
 static u32 TimerService (void) {
 	unlock_t unlock = lock((void*)MainTime);
 	u08 index = 0;
 	u32 tempMinTime = 0;
-	while(index < lastTimerIndex) {  // Перебираем всю очередь таймеров
-		if(MainTime[index] > minTimeOut) {    // Если таймер еще не дотикал (наиболее вероятно)
-			MainTime[index] -= minTimeOut;      // Тикаем им
+	while(index < _lastTimerIndex) {  // Перебираем всю очередь таймеров
+		if(MainTime[index] > _minTimeOut) {    // Если таймер еще не дотикал (наиболее вероятно)
+			MainTime[index] -= _minTimeOut;      // Тикаем им
 			if( MainTime[index] < tempMinTime || !tempMinTime) tempMinTime = MainTime[index]; // Сохраняем новое значения минимального
 			index++;                			// И переходим на следующую итерацию цикла
 			continue;
@@ -345,11 +345,11 @@ static u32 TimerService (void) {
 		SetTask (MainTimer[index].Task,  // Ставим нашу задачу в конец очередь
 				MainTimer[index].arg_n,
 				MainTimer[index].arg_p);
-		lastTimerIndex--;
-		MainTimer[index].Task  = MainTimer[lastTimerIndex].Task;    // На место этого таймера перемещаем последний
-		MainTimer[index].arg_n = MainTimer[lastTimerIndex].arg_n;
-		MainTimer[index].arg_p = MainTimer[lastTimerIndex].arg_p;
-		MainTime[index] = MainTime[lastTimerIndex];
+		_lastTimerIndex--;
+		MainTimer[index].Task  = MainTimer[_lastTimerIndex].Task;    // На место этого таймера перемещаем последний
+		MainTimer[index].arg_n = MainTimer[_lastTimerIndex].arg_n;
+		MainTimer[index].arg_p = MainTimer[_lastTimerIndex].arg_p;
+		MainTime[index] = MainTime[_lastTimerIndex];
 	}
 	unlock((void*)MainTime);
 	return tempMinTime;
@@ -358,7 +358,7 @@ static u32 TimerService (void) {
 static void TimerService (void) {
 	unlock_t unlock = lock((void*)MainTime);
 	u08 index = 0;
-	while(index < lastTimerIndex) {  // Перебираем всю очередь таймеров
+	while(index < _lastTimerIndex) {  // Перебираем всю очередь таймеров
 		if(MainTime[index] > 1) {  // Если таймер еще не дотикал (наиболее вероятно)
 			MainTime[index]--;      // Тикаем им
 			index++;                // И переходим на следующую итерацию цикла
@@ -368,11 +368,11 @@ static void TimerService (void) {
 				MainTimer[index].arg_n,
 				MainTimer[index].arg_p);
 
-		lastTimerIndex--;
-		MainTimer[index].Task  = MainTimer[lastTimerIndex].Task;    // На место этого таймера перемещаем последний
-		MainTimer[index].arg_n = MainTimer[lastTimerIndex].arg_n;
-		MainTimer[index].arg_p = MainTimer[lastTimerIndex].arg_p;
-		MainTime[index] = MainTime[lastTimerIndex];
+		_lastTimerIndex--;
+		MainTimer[index].Task  = MainTimer[_lastTimerIndex].Task;    // На место этого таймера перемещаем последний
+		MainTimer[index].arg_n = MainTimer[_lastTimerIndex].arg_n;
+		MainTimer[index].arg_p = MainTimer[_lastTimerIndex].arg_p;
+		MainTime[index] = MainTime[_lastTimerIndex];
 	}
 	unlock((void*)MainTime);
 }
@@ -381,14 +381,20 @@ static void TimerService (void) {
 void SetTimerTask(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data, const Time_t New_Time){
 	if(New_Time == 0) {SetTask(TPTR, n, data); return;}
 	unlock_t unlock = lock((void*)MainTime);
-	if(lastTimerIndex < TIME_LINE_LEN){ // Если очередь не переполнена
-		MainTimer[lastTimerIndex].Task = TPTR;
-		MainTimer[lastTimerIndex].arg_n = n;
-		MainTimer[lastTimerIndex].arg_p = data;
-		MainTime[lastTimerIndex] = New_Time;
-		lastTimerIndex++;
+	if(_lastTimerIndex < TIME_LINE_LEN){ // Если очередь не переполнена
+		MainTimer[_lastTimerIndex].Task = TPTR;
+		MainTimer[_lastTimerIndex].arg_n = n;
+		MainTimer[_lastTimerIndex].arg_p = data;
+		MainTime[_lastTimerIndex] = New_Time;
+		_lastTimerIndex++;
 #ifdef _PWR_SAVE
-		if(New_Time < minTimeOut) minTimeOut = _setTickTime(New_Time);
+		if(New_Time < _minTimeOut) { // Если новое время меньше установленного сейчас
+		    _minTimeOut = _getTickTime(); // Получаем сколько времени уже успело дотикать
+		    TimerISR(); // Вызываем апдейт всех часов всех задач
+		    if(New_Time < _minTimeOut) { // Если новое время все еще меньше
+		        _minTimeOut = _setTickTime(New_Time); // Обновляем время
+		    }
+		}
 #endif
 		unlock((void*)MainTime);
 	} else {
@@ -399,7 +405,7 @@ void SetTimerTask(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data
 
 static u08 findTimer(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data) {
 	register u08 index = 0;
-	for(;index<lastTimerIndex; index++)	{
+	for(;index<_lastTimerIndex; index++)	{
 		if((MainTimer[index].Task  == TPTR)&& /* Если уже есть запись с таким же адресом*/
 		   (MainTimer[index].arg_p == data)&&
 		   (MainTimer[index].arg_n == n))     /* и с таким же списком параметров*/
@@ -412,7 +418,7 @@ static u08 findTimer(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t d
 
 bool_t updateTimer(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data, const Time_t New_Time) {
 	u08 index = findTimer(TPTR,n,data);
-	if(index < lastTimerIndex) {
+	if(index < _lastTimerIndex) {
 		unlock_t unlock = lock((void*)MainTime);
 		MainTime[index] = New_Time;
 		unlock((void*)MainTime);
@@ -423,27 +429,28 @@ bool_t updateTimer(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t dat
 
 void delTimerTask(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data) {
 	u08 index = findTimer(TPTR,n,data);
-	if(index < lastTimerIndex){
+	if(index < _lastTimerIndex){
 		unlock_t unlock = lock((void*)MainTime);
-		lastTimerIndex--;
-		MainTimer[index].Task  = MainTimer[lastTimerIndex].Task;    // На место этого таймера перемещаем последний
-		MainTimer[index].arg_n = MainTimer[lastTimerIndex].arg_n;
-		MainTimer[index].arg_p = MainTimer[lastTimerIndex].arg_p;
-		MainTime[index] = MainTime[lastTimerIndex];
+		_lastTimerIndex--;
+		MainTimer[index].Task  = MainTimer[_lastTimerIndex].Task;    // На место этого таймера перемещаем последний
+		MainTimer[index].arg_n = MainTimer[_lastTimerIndex].arg_n;
+		MainTimer[index].arg_p = MainTimer[_lastTimerIndex].arg_p;
+		MainTime[index] = MainTime[_lastTimerIndex];
 		unlock((void*)MainTime);
 	}
 }
 
 void delAllTimerTask(){
 	unlock_t unlock = lock((void*)MainTime);
-    lastTimerIndex = 0;
+    _lastTimerIndex = 0;
     unlock((void*)MainTime);
 }
 
 u08 getFreePositionForTimerTask(void) {
-	return TIME_LINE_LEN - lastTimerIndex;
+	return TIME_LINE_LEN - _lastTimerIndex;
 }
 
+#ifndef STANDART_MEMCPY_MEMSET
 //destination - адрес в памяти КУДА копируем source - адрес в памяти ОТКУДА копируем n - количество БАЙТ копируемых
 void memCpy(void* destination, const void* source, const BaseSize_t num) {
 #if ARCH == 64
@@ -535,6 +542,16 @@ void memSet(void* destination, const BaseSize_t size, const u08 value) {
 	}
 #endif // ARCH
 }
+#else
+#include <string.h>
+void memSet(void* destination, const BaseSize_t size, const u08 value) {
+    memset(destination, value, size);
+}
+
+void memCpy(void* destination, const void* source, const BaseSize_t num) {
+    memcpy(destination,source,num);
+}
+#endif
 
 void shiftLeftArray(BaseParam_t source, BaseSize_t sourceSize, BaseSize_t shiftSize) {
 	BaseSize_t i = 0, j = shiftSize;

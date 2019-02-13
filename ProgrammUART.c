@@ -15,8 +15,8 @@ typedef struct {
     u08* buffer;      /*Буфер приема-передачи*/
 } SoftUART_t;
 
-static SoftUART_t UART_TX_DATA[UART_NUMB];
-static SoftUART_t UART_RX_DATA[UART_NUMB];
+volatile static SoftUART_t UART_TX_DATA[UART_NUMB];
+volatile static SoftUART_t UART_RX_DATA[UART_NUMB];
 
 #define UART_TRANS_FINISH(numberUART)(UART_TX_DATA[numberUART].curentCount  = -2)                        /*Закончена передача*/
 #define UART_TRANS_DISABLE(numberUART)(UART_TX_DATA[numberUART].curentCount  = -1)                       /*Выключить передачу*/
