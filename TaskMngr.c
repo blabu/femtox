@@ -26,8 +26,9 @@ extern "C" {
  * 1.4.3    - Small changes in datastruct manager
  * 1.4.3.1  - Small add volatile qualificators in all global data
  * 1.4.4    - Fix power save bugs
+ * 1.4.4.1  - Technical version
  * */
-const char* const _osVersion = "V1.4.4";
+const char* const _osVersion = "V1.4.4.1";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
 
 static void TaskManager(void);
@@ -382,20 +383,21 @@ void SetTimerTask(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data
 	if(New_Time == 0) {SetTask(TPTR, n, data); return;}
 	unlock_t unlock = lock((void*)MainTime);
 	if(_lastTimerIndex < TIME_LINE_LEN){ // Если очередь не переполнена
+#ifdef _PWR_SAVE
+	    /*Вначале производим апдейт всех уже существующих таймеров*/
+        if(New_Time < _minTimeOut) { // Если новое время меньше установленного сейчас
+            _minTimeOut = _getTickTime(); // Получаем сколько времени уже успело дотикать
+            TimerISR(); // Вызываем апдейт всех часов всех задач
+            if(New_Time < _minTimeOut) { // Если новое время все еще меньше
+                _minTimeOut = _setTickTime(New_Time); // Обновляем время
+            }
+        }
+#endif
 		MainTimer[_lastTimerIndex].Task = TPTR;
 		MainTimer[_lastTimerIndex].arg_n = n;
 		MainTimer[_lastTimerIndex].arg_p = data;
 		MainTime[_lastTimerIndex] = New_Time;
 		_lastTimerIndex++;
-#ifdef _PWR_SAVE
-		if(New_Time < _minTimeOut) { // Если новое время меньше установленного сейчас
-		    _minTimeOut = _getTickTime(); // Получаем сколько времени уже успело дотикать
-		    TimerISR(); // Вызываем апдейт всех часов всех задач
-		    if(New_Time < _minTimeOut) { // Если новое время все еще меньше
-		        _minTimeOut = _setTickTime(New_Time); // Обновляем время
-		    }
-		}
-#endif
 		unlock((void*)MainTime);
 	} else {
 		MaximizeErrorHandler("PANIC: HAVE NOT MORE TIMERS");
