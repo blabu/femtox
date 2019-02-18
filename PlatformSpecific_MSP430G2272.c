@@ -84,12 +84,14 @@ u32 _setTickTime(u32 timerTicks) {
     if(TimerDelay != oldTimer) {
         if(TimerDelay > (0xFFFF - (TIMER_CONST))) { // Если такая итерация вызовет переполнение таймера
             #define maxTicks (0xFFFF/TIMER_CONST) // TODO check it in debugger
-            TimerDelay = maxTicks*TIMER_CONST;      // Выставляем TimerDelay максимально возможной величины
+            #define TIME_TICKS maxTicks * TIMER_CONST
+            TimerDelay = TIME_TICKS;      // Выставляем TimerDelay максимально возможной величины
             TBCTL &= ~MC1; // STOP TIMER
             TBCCR0 = (u16)(TBR + TimerDelay);
             TBCTL |= MC1; //START TIMER
             return maxTicks;
             #undef maxTicks
+            #undef TIMER_TICKS
         }
         TBCTL &= ~MC1; // STOP TIMER
         TBCCR0 = (u16)(TBR + TimerDelay);
