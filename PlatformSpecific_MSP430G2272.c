@@ -8,14 +8,11 @@
 *********************************************************************************************************************/
 
 
-#define INTERRUPT_ENABLE  __enable_interrupt()
-#define INTERRUPT_DISABLE __disable_interrupt()
-#define INTERRUPT_STATUS  (__get_interrupt_state() & GIE)
-
 #ifdef MAXIMIZE_OVERFLOW_ERROR
     void MaximizeErrorHandler(const string_t str){
         initWatchDog();
-        if(!INTERRUPT_STATUS) INTERRUPT_ENABLE;
+        resetWatchDog();
+        _enable_interrupt();
         while(1);
     }
 #else
@@ -32,9 +29,8 @@ void resetWatchDog(void) {
 
 // Функции void _init_Timer() - устанавливают начальное значения Т/С0. настраивает частоту тактирования и включает таймер
 //Включение таймеров происходит после установки битов CSn0-CSn2 (рекомендуется в функции main)
-#define TIMER_CONST 5
-void _init_Timer()  // Настроим таймер на прерывания каждые 10 мс
-{
+#define TIMER_CONST 5  /*4096/8=512 тиков в секунду => 5/512=9.76 мс*/
+void _init_Timer() { // Настроим таймер на прерывания каждые 10 мс
   TBCTL = 0;
   TBCTL |= TBCLR;         // Очистка таймера В
   TBCTL &= ~(CNTL0+CNTL1); // разрядность счетчика - 16 бит (считает до 0xFFFF)
@@ -52,7 +48,7 @@ void _init_Timer()  // Настроим таймер на прерывания �
   TBCTL |= MC1;  // Выбираем режим продолжительного счета (таймер считает до максимума 0xFFFF сбрасівается и сново считает)
 }
 
-static unsigned int TimerDelay = TIMER_CONST;
+static u32 TimerDelay = TIMER_CONST; // Во избежания переполнения TimerDelay - побольше
 
 //Обработчик прерывания по совпадению теущего значения таймера и счетчика.
 #pragma vector=TIMERB0_VECTOR
@@ -86,13 +82,14 @@ u32 _setTickTime(u32 timerTicks) {
     if(!timerTicks) timerTicks = 1;
     TimerDelay = timerTicks * TIMER_CONST;
     if(TimerDelay != oldTimer) {
-        if(TimerDelay > (0xFFFF - (TIMER_CONST))) {
-            const u32 maxTicks = 0xFFFF/TIMER_CONST;
-            TimerDelay = maxTicks*TIMER_CONST;
+        if(TimerDelay > (0xFFFF - (TIMER_CONST))) { // Если такая итерация вызовет переполнение таймера
+            #define maxTicks (0xFFFF/TIMER_CONST) // TODO check it in debugger
+            TimerDelay = maxTicks*TIMER_CONST;      // Выставляем TimerDelay максимально возможной величины
             TBCTL &= ~MC1; // STOP TIMER
             TBCCR0 = (u16)(TBR + TimerDelay);
             TBCTL |= MC1; //START TIMER
             return maxTicks;
+            #undef maxTicks
         }
         TBCTL &= ~MC1; // STOP TIMER
         TBCCR0 = (u16)(TBR + TimerDelay);
@@ -101,23 +98,25 @@ u32 _setTickTime(u32 timerTicks) {
     return timerTicks;
 }
 
-u32 _getTickTime() {
-    u32 res = 0;
+u32 _getTickTime() { // Сколько времени прошло с момента начала отсета до сейчас в стандартных тиках ОС
+    u16 res = 0;
+    TBCTL &= ~MC1; // STOP TIMER
     if(TBCCR0 > TBR) res = TimerDelay - (TBCCR0 - TBR);
     else res = TimerDelay - ((0xFFFF-TBR)+TBCCR0);
+    TBCTL |= MC1; //START TIMER
     return res;
-} // Сколько времени прошло с момента начала отсета до сейчас в стандартных тиках ОС
+}
 #endif
 
 static void unlock(const void*const resourceId) {
-    INTERRUPT_ENABLE;
+    __enable_interrupt();
 }
 
 static void empty(const void*const resourceId) {}
 
 unlock_t lock(const void*const resourceId){
-    if(INTERRUPT_STATUS) {
-        INTERRUPT_DISABLE;
+    if((__get_interrupt_state() & GIE)) {
+        __disable_interrupt();
         return unlock;
     }
     return empty;
