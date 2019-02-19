@@ -24,7 +24,7 @@ void initWatchDog(void) {
     WDTCTL = WDT_ARST_1000;
 }
 void resetWatchDog(void) {
-    WDTCTL = WDT_ARST_1000;
+    WDTCTL = WDT_ARST_1000; // При 32768Гц = 1секунда У нас 4096Гц => 8секунд
 }
 
 // Функции void _init_Timer() - устанавливают начальное значения Т/С0. настраивает частоту тактирования и включает таймер
