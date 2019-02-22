@@ -45,6 +45,10 @@ EXAMPLE
 */
 BaseSize_t strSplit(char delim, string_t c_str);
 
+void toUpperCase(string_t str);
+
+void toLowerCase(string_t str);
+
 // razryad - количество знаков, например для чисел от 10 до 99 razryad = 2.
 s64 toIntDec(const string_t c_str);
 

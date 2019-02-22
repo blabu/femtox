@@ -188,6 +188,28 @@ void toStringUnsign(u08 capacity, u64 data, string_t c_str){
     c_str[j]=END_STRING;
 }
 
+void toUpperCase(string_t str) {
+	if(str == NULL) return;
+	BaseSize_t i = 0;
+	while(str[i] != END_STRING) {
+		if(str[i] >= 'a' &&
+		   str[i] <= 'z') {
+			str[i] = str[i]-'a'+'A';
+		}
+	}
+}
+
+void toLowerCase(string_t str) {
+	if(str == NULL) return;
+	BaseSize_t i = 0;
+	while(str[i] != END_STRING) {
+		if(str[i] >= 'A' &&
+		   str[i] <= 'Z') {
+			str[i] = str[i]-'A'+'a';
+		}
+	}
+}
+
 void toString(u08 capacity, s64 data, string_t c_str){
 	if(data<0) {
 		 c_str[0] = '-';
