@@ -196,6 +196,7 @@ void toUpperCase(string_t str) {
 		   str[i] <= 'z') {
 			str[i] = str[i]-'a'+'A';
 		}
+		i++;
 	}
 }
 
@@ -207,6 +208,7 @@ void toLowerCase(string_t str) {
 		   str[i] <= 'Z') {
 			str[i] = str[i]-'A'+'a';
 		}
+		i++;
 	}
 }
 
