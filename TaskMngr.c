@@ -27,8 +27,9 @@ extern "C" {
  * 1.4.3.1  - Small add volatile qualificators in all global data
  * 1.4.4    - Fix power save bugs
  * 1.4.4.1  - Technical version (fix bug in MSP430 powersave mode with NATIVE_TIMER_PWR_SAVE)
+ * 1.4.4.2  - Techinical commit
  * */
-const char* const _osVersion = "V1.4.4.1";
+const char* const _osVersion = "V1.4.4.2";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
 
 static void TaskManager(void);

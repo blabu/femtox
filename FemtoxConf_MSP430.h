@@ -19,16 +19,8 @@
 #define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 #define ALLOC_MEM   /*Включение динамического выделения памяти*/
 //#define ALLOC_MEM_LARGE 1   /*Включение динамического выделения памяти без ограничения размера*/
-
-#ifdef G25_TANDEM
-#define EVENT_LOOP_TASKS
-#define USE_SOFT_UART
-#endif
-#ifdef VEGA
-#define EVENT_LOOP_TASKS
-#define USE_SOFT_UART
-#endif
-
+//#define EVENT_LOOP_TASKS
+//#define USE_SOFT_UART
 #define CLOCK_SERVICE
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
@@ -53,7 +45,7 @@
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
-#define ArraySize   5 /*Общее количество всех структур данных*/
+#define ArraySize   3 /*Общее количество всех структур данных*/
 #endif
 
 #ifdef MUTEX_ENABLE
