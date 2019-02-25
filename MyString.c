@@ -109,18 +109,31 @@ void strClear(string_t str){
 	str[0]='\0';
 }
 
+// Вернет кол-во замен (в строке c_str, но не больше размера size, если size==0 тогда до конца строки)
+BaseSize_t replaceAllSymbols(string_t c_str,const char origin, const char replaced, BaseSize_t size) {
+	if(c_str != NULL) {
+		BaseSize_t i = 0;
+		BaseSize_t numb = 0;
+	    while(c_str[i] != END_STRING) {
+	    	size--;
+	        if(c_str[i] == origin) {
+	                c_str[i] = replaced;
+	                numb++;
+	        }
+	        i++;
+	        if(!i) return 0; // Произошло переполнения (строка слишком длинная)
+	        if(!size) break;
+	    }
+	    return numb;
+	}
+	return 0;
+}
+
 // Разбивает строку на подстроки. Заменяет символ delim концом ситроки. Вернет кол-во подстрок в строке
 BaseSize_t strSplit(char delim, string_t c_str) {
     BaseSize_t i = 0;
     if(c_str == NULL) return 0;
-    BaseSize_t numb = 1;
-    while(c_str[i] != END_STRING) {
-        if(c_str[i] == delim) {
-                c_str[i] = END_STRING;
-                numb++;
-        }
-        i++;
-    }
+    BaseSize_t numb = replaceAllSymbols(c_str,delim,END_STRING,0) + 1;
     return numb;
 }
 
@@ -188,20 +201,26 @@ void toStringUnsign(u08 capacity, u64 data, string_t c_str){
     c_str[j]=END_STRING;
 }
 
-void toUpperCase(string_t str) {
-	if(str == NULL) return;
-	BaseSize_t i = 0;
-	while(str[i] != END_STRING) {
-		if(str[i] >= 'a' &&
-		   str[i] <= 'z') {
-			str[i] = str[i]-'a'+'A';
+//Вернет размер строки
+BaseSize_t toUpperCase(string_t str) {
+	if(str != NULL) {
+		BaseSize_t i = 0;
+		while(str[i] != END_STRING) {
+			if(str[i] >= 'a' &&
+					str[i] <= 'z') {
+				str[i] = str[i]-'a'+'A';
+			}
+			i++;
+			if(!i) break;  // Строка слишком большая
 		}
-		i++;
+		return i;
 	}
+	return 0;
 }
 
-void toLowerCase(string_t str) {
-	if(str == NULL) return;
+//Вернет размер строки
+BaseSize_t toLowerCase(string_t str) {
+	if(str != NULL) {
 	BaseSize_t i = 0;
 	while(str[i] != END_STRING) {
 		if(str[i] >= 'A' &&
@@ -209,7 +228,11 @@ void toLowerCase(string_t str) {
 			str[i] = str[i]-'A'+'a';
 		}
 		i++;
+		if(!i) break; // Строка слишком большая
 	}
+	return i;
+	}
+	return 0;
 }
 
 void toString(u08 capacity, s64 data, string_t c_str){
@@ -370,16 +393,6 @@ void doubleToString(double data, string_t c_str, u08 precision) {
 		*endString = END_STRING;
 	}
 }
-
-void replaceAllSymbols(string_t c_str, const char symbolOrigin, const char symbolReplacement, BaseSize_t size) {
-	if(c_str == NULL) return;
-	if(!size) size = strSize(c_str);
-	for(BaseSize_t i = 0; i<size; i++) {
-		if(c_str[i] == symbolOrigin) c_str[i] = symbolReplacement;
-	}
-	c_str[size] = END_STRING;
-}
-
 
 // Заполняет строку одним символом справа
 // Например: исходная строка "113" после выполнения этой функции строка может быть "00113"

@@ -31,6 +31,9 @@ void strCopy(string_t result, const string_t c_str, BaseSize_t numb, BaseSize_t 
 char* strcpy (string_t destination, const string_t source);
 void strClear(string_t str);
 
+// Вернет кол-во замен (в строке c_str, но не больше размера size, если size==0 тогда до конца строки)
+BaseSize_t replaceAllSymbols(string_t c_str,const char origin, const char replaced, BaseSize_t size);
+
 /*
 Разбивает строку на подстроки. Заменяет символ delim концом ситроки. Вернет кол-во подстрок в строке
 EXAMPLE
@@ -45,9 +48,11 @@ EXAMPLE
 */
 BaseSize_t strSplit(char delim, string_t c_str);
 
-void toUpperCase(string_t str);
+//Вернет размер строки
+BaseSize_t toUpperCase(string_t str);
 
-void toLowerCase(string_t str);
+//Вернет размер строки
+BaseSize_t toLowerCase(string_t str);
 
 // razryad - количество знаков, например для чисел от 10 до 99 razryad = 2.
 s64 toIntDec(const string_t c_str);
@@ -78,9 +83,6 @@ void doubleToString(double data, string_t c_str, u08 precision);
 
 void shiftStringLeft(BaseSize_t poz, string_t c_str);
 void shiftStringRight(BaseSize_t poz, string_t c_str);
-
-// Заменяет все символы в строке длиной size (если size==0 определит длину сама)
-void replaceAllSymbols(string_t c_str, const char symbolOrigin, const char symbolReplacement, BaseSize_t size);
 
 void fillRightStr(u16 size, string_t str, char symb);
 
