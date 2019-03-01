@@ -31,7 +31,9 @@ void writeLogU32(u32 data){}
 
 void writeSymb(char symb) {}
 #endif
+
 #ifdef ENABLE_LOGGING
+
 #ifdef _X86
 #include <stdio.h>
 void enableUART2(u32 baud) {}

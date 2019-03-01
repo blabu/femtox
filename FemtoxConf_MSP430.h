@@ -14,7 +14,7 @@
 
 //#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
 #define DATA_STRUCT_MANAGER   /*Включаем работу с очередями средствами деспетчера*/
-//#define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/
+#define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/  /*NEED IT FOR INCOMING PHONE CALL*/
 //#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
 #define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 #define ALLOC_MEM   /*Включение динамического выделения памяти*/
@@ -24,7 +24,7 @@
 #define CLOCK_SERVICE
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
-//#define SIGNALS_TASK
+#define SIGNALS_TASK /*NEED IT FOR INCOMING PHONE CALL*/
 //#define _LIST_STRUCT
 //#define _DYNAMIC_ARRAY
 #define _PWR_SAVE
@@ -53,7 +53,7 @@
 #endif
 
 #ifdef CYCLE_FUNC
-#define TIMERS_ARRAY_SIZE 3
+#define TIMERS_ARRAY_SIZE 2
 #endif
 
 #ifdef ALLOC_MEM
@@ -66,7 +66,7 @@
 #endif
 
 #ifdef SIGNALS_TASK
-#define SIGNAL_LIST_LEN 10
+#define SIGNAL_LIST_LEN 3
 #endif
 
 #ifdef _PWR_SAVE

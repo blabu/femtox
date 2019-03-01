@@ -323,6 +323,9 @@ void defragmentation(void){
 
 #endif
 
+void freeMemTask(BaseSize_t count, BaseParam_t pointer) {
+	freeMem((byte_ptr)pointer);
+}
 
 #ifdef __cplusplus
 }

@@ -130,6 +130,7 @@ byte_ptr allocMem(const BaseSize_t size);  //size - до 127 размер бло
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
 void freeMem(const byte_ptr data);  // Освобождение памяти
 void defragmentation(void);         // Дефрагментация памяти
+void freeMemTask(BaseSize_t count, BaseParam_t pointer);
 BaseSize_t getFreeMemmorySize(void);
 BaseSize_t getAllocateMemmorySize(const byte_ptr data);
 void clearAllMemmory(void); // Аварийное освобождение памяти
@@ -138,6 +139,7 @@ void clearAllMemmory(void); // Аварийное освобождение па�
 byte_ptr allocMem(const u08 size);  //size - до 127 размер блока выделяемой памяти
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
 void freeMem(const byte_ptr data);  // Освобождение памяти
+void freeMemTask(BaseSize_t count, BaseParam_t pointer);
 void defragmentation(void);         // Дефрагментация памяти
 u16 getFreeMemmorySize(void);
 u16 getAllocateMemmorySize(const byte_ptr data);
