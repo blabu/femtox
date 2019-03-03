@@ -12,20 +12,16 @@ answer  - строка, в которой ищут
 */
 s16 findStr(const string_t small, const string_t big){
 	if(small != NULL && big != NULL) {
-		BaseSize_t small_len = strSize(small);
-		BaseSize_t len = strSize(big);
-		if(small_len>len) return -1;   // Если подстрока длинее строки возвращаем -1
 		register BaseSize_t i = 0, j=0;
-		for(; i<len; i++) // перебираем строку в которой ишем
-		{
+		while(small[j] != END_STRING && big[i] != END_STRING) { // перебираем строки в которых ишем
 			if(big[i] == small[j]){   // Если текущий символ исходной строки совпал с первым символом сравниваемой строки
-				if(j == small_len-1) return (i-j);    // Если все символы совпали и шли друг за другом
+				if(small[j+1] == END_STRING) return (i-j);    // Если все символы совпали и шли друг за другом
 				j++;                      // Увеличиваем счетчик совпавших символов
 			}
-			else if(j){
-				j=0; i--;
-			}
+			else if(j){	j=0; continue; }
+			i++;
 		}
+		return -1;
 	}
     return -1;
 }
@@ -36,13 +32,14 @@ bool_t str1_str2(const string_t small, const string_t big){ // Функция в
 }
 
 bool_t strCompare(const string_t str1, const string_t str2){
-	u08 size1 = strSize(str1);
-	u08 size2 = strSize(str2);
-	if(size1 != size2) return FALSE;
-	for(u08 i = 0; i< size1; i++) {
+	if(str1 == NULL || str2 == NULL) return FALSE;
+	BaseSize_t i=0;
+	while(str1[i] != END_STRING && str2[i] != END_STRING) {
 		if(str1[i] != str2[i]) return FALSE;
+		i++;
 	}
-	return TRUE;
+	if(str1[i] == str2[i]) return TRUE;
+	return FALSE;
 }
 
 // Ищет символ symb в строке c_str (вернет позицию этого символа в строке) Если не нашло вернет отрицательный результат
