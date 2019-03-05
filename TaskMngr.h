@@ -157,6 +157,7 @@ Date_t getDateFromSeconds(Time_t sec, bool_t toLocalTimeZone);
 Time_t getSecondsFromDate(const Date_t*const date);
 void setSeconds(const u32 sec);
 void setDate(string_t date); //YY.MM.DD hh:mm:ss
+//Form YY.MM.DD hh:mm:ss
 void dateToString(string_t out, Date_t* date);
 s08 compareDates(const Date_t*const date1, const Date_t*const date2); /* * return >0 if date1 > date2  * return 0 if date = date2  * return <0 if date1 < date2  */
 void addOneSecondToDate(Date_t* date);
