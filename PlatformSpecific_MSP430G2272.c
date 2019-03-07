@@ -112,7 +112,7 @@ u32 _getTickTime() { // Сколько времени прошло с момен
 }
 #endif
 
-static void unlock(const void*const resourceId) {
+static volatile void unlock(const void*const resourceId) {
     __enable_interrupt();
 }
 
@@ -121,7 +121,7 @@ static void empty(const void*const resourceId) {}
 unlock_t lock(const void*const resourceId){
     if((__get_interrupt_state() & GIE)) {
         __disable_interrupt();
-        return unlock;
+        return (unlock_t)unlock;
     }
     return empty;
 }

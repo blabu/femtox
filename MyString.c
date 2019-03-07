@@ -403,6 +403,7 @@ void fillRightStr(u16 size, string_t str, char symb) {
 
 /* Печать в строку
  * Пока поддерживаются
+ * %'digit'SYMB fixed size (digit must be one symb) 0-F
  * %B, unsigned u08
  * %I, unsigned u16
  * %D, unsigned u32
@@ -430,6 +431,7 @@ void Sprintf(string_t result, const string_t paternStr, void** params) {
 	char tempBuf[TEMP_BUF_SIZE];
 	u08 currentPozTempBuf = 0;
 	u08 i = 0;
+	u08 fixedSize = 0;
 	while(paternStr[i] != END_STRING) {
 		if(paternStr[i] == '%') {
 			if(currentPozTempBuf > 0) {
@@ -438,45 +440,116 @@ void Sprintf(string_t result, const string_t paternStr, void** params) {
 				currentPozTempBuf = 0;
 			}
 			i++;
+			if(isDigit(paternStr[i])) { tempBuf[0]=paternStr[i]; tempBuf[1]=END_STRING; fixedSize=(u08)toInt08(tempBuf); i++; }
 			switch(paternStr[i]) {
 			case 'B':
 				toStringDec(**((u08**)params), tempBuf);
+				if(fixedSize) {
+				    s08 k = fixedSize-strSize(tempBuf);
+				    if(k > 0) {
+				        shiftStringRight(k, tempBuf);
+				        for(s08 j=0; j<k; j++) tempBuf[j]='0';
+				    }
+				}
 				strCat(result, tempBuf);
 				break;
 			case 'I':
 				toStringDec(**((u16**)params), tempBuf);
+                if(fixedSize) {
+                    s08 k = fixedSize-strSize(tempBuf);
+                    if(k > 0) {
+                        shiftStringRight(k, tempBuf);
+                        for(s08 j=0; j<k; j++) tempBuf[j]='0';
+                    }
+                }
 				strCat(result, tempBuf);
 				break;
 			case 'D':
 				toStringDec(**((u32**)params), tempBuf);
+                if(fixedSize) {
+                    s08 k = fixedSize-strSize(tempBuf);
+                    if(k > 0) {
+                        shiftStringRight(k, tempBuf);
+                        for(s08 j=0; j<k; j++) tempBuf[j]='0';
+                    }
+                }
 				strCat(result, tempBuf);
 				break;
 			case 'L':
 				toStringDec(**((u64**)params), tempBuf);
+                if(fixedSize) {
+                    s08 k = fixedSize-strSize(tempBuf);
+                    if(k > 0) {
+                        shiftStringRight(k, tempBuf);
+                        for(s08 j=0; j<k; j++) tempBuf[j]='0';
+                    }
+                }
 				strCat(result, tempBuf);
 				break;
 			case 'b':
 				toStringDec(**((s08**)params), tempBuf);
+                if(fixedSize) {
+                    s08 k = fixedSize-strSize(tempBuf);
+                    if(k > 0) {
+                        shiftStringRight(k, tempBuf+1);
+                        for(s08 j=1; j<k; j++) tempBuf[j]='0';
+                    }
+                }
 				strCat(result, tempBuf);
 				break;
 			case 'i':
 				toStringDec(**((s16**)params), tempBuf);
-				strCat(result, tempBuf);
+                if(fixedSize) {
+                    s08 k = fixedSize-strSize(tempBuf);
+                    if(k > 0) {
+                        shiftStringRight(k, tempBuf+1);
+                        for(s08 j=1; j<k; j++) tempBuf[j]='0';
+                    }
+                }
+                strCat(result, tempBuf);
 				break;
 			case 'd':
 				toStringDec(**((s32**)params), tempBuf);
+                if(fixedSize) {
+                    s08 k = fixedSize-strSize(tempBuf);
+                    if(k > 0) {
+                        shiftStringRight(k, tempBuf+1);
+                        for(s08 j=1; j<k; j++) tempBuf[j]='0';
+                    }
+                }
 				strCat(result, tempBuf);
 				break;
 			case 'l':
 				toStringDec(**((s64**)params), tempBuf);
+                if(fixedSize) {
+                    s08 k = fixedSize-strSize(tempBuf);
+                    if(k > 0) {
+                        shiftStringRight(k, tempBuf+1);
+                        for(s08 j=1; j<k; j++) tempBuf[j]='0';
+                    }
+                }
 				strCat(result, tempBuf);
 				break;
 			case 'x':
 				toString(4, **((u08**)params), tempBuf);
+                if(fixedSize) {
+                    s08 k = fixedSize-strSize(tempBuf);
+                    if(k > 0) {
+                        shiftStringRight(k, tempBuf);
+                        for(s08 j=0; j<k; j++) tempBuf[j]='0';
+                    }
+                }
 				strCat(result, tempBuf);
 				break;
 			case 'X':
 				toString(4, **((u32**)params), tempBuf);
+                if(fixedSize) {
+                    s08 k = fixedSize-strSize(tempBuf);
+                    if(k > 0) {
+                        shiftStringRight(k, tempBuf);
+                        for(s08 j=0; j<k; j++) tempBuf[j]='0';
+                    }
+                }
 				strCat(result, tempBuf);
 				break;
 			case 's':
@@ -490,6 +563,8 @@ void Sprintf(string_t result, const string_t paternStr, void** params) {
 			    doubleToString(**((float**)params), tempBuf, 2);
 			    strCat(result, tempBuf);
 			    break;
+			case '%':
+			    strCat(result, "%");
 			default:
 				strCat(result," !unsupported! ");
 			}
