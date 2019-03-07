@@ -14,7 +14,7 @@ s16 findStr(const string_t small, const string_t big){
 	if(small != NULL && big != NULL) {
 		BaseSize_t small_len = strSize(small);
 		BaseSize_t len = strSize(big);
-		if(small_len>len) return -1;   // Если подстрока длинее строки возвращаем 0
+		if(small_len>len) return -1;   // Если подстрока длинее строки возвращаем -1
 		register BaseSize_t i = 0, j=0;
 		for(; i<len; i++) // перебираем строку в которой ишем
 		{
