@@ -131,7 +131,6 @@ BaseSize_t replaceAllSymbols(string_t c_str,const char origin, const char replac
 
 // Разбивает строку на подстроки. Заменяет символ delim концом ситроки. Вернет кол-во подстрок в строке
 BaseSize_t strSplit(char delim, string_t c_str) {
-    BaseSize_t i = 0;
     if(c_str == NULL) return 0;
     BaseSize_t numb = replaceAllSymbols(c_str,delim,END_STRING,0) + 1;
     return numb;
