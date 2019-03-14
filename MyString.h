@@ -73,6 +73,7 @@ void toStringUnsign(u08 capacity, u64 data, string_t c_str);
 
 void toStringDec(s64 data, string_t c_str);
 
+bool_t isDigitDec(const char symb);
 bool_t isDigit(const char symb);
 bool_t isAsciiOrNumb(const char symb);
 #define isalnum(cczz) isAsciiOrNumb((const char)cczz)
