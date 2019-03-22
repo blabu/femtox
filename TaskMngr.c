@@ -30,8 +30,9 @@ extern "C" {
  * 1.4.4.2  - Techinical commit
  * 1.4.4.3  - Small fixes timer interrupt (add clean interrupt flag instrution) + small optimiztion with strings
  * 1.4.4.4  - Fix Sprintf in MyString for print float
+ * 1.4.5.0  - Add loadAverage in OS (not tested yet)
  * */
-const char* const _osVersion = "V1.4.4.4";
+const char* const _osVersion = "V1.4.5.0";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
 
 static void TaskManager(void);
@@ -70,6 +71,17 @@ extern void initEventList( void );
 
 #ifdef CLOCK_SERVICE
 extern volatile Time_t __systemSeconds;
+#endif
+
+#ifdef LOAD_STATISTIC
+static u32 idleTicks = 0;					 // Кол-во времени в Idle процессе
+u32 getLoadAvarage() {
+	u32 workTicks = getTick();
+	u32 t = idleTicks;
+	while(t != idleTicks) t=idleTicks;
+	if(workTicks > t) return (u32)((workTicks - t)*1000u/workTicks);
+	return 0;
+}
 #endif
 
 static void ClockService( void );
@@ -118,12 +130,15 @@ u32 getTick(void) {
 	return time_res;
 }
 
-
 static void ClockService(void){
+	unlock_t unlock = lock((const void* const)&GlobalTick);
 #ifdef _PWR_SAVE
 	GlobalTick += _minTimeOut;
 #else
 	GlobalTick++;
+#endif
+#ifdef LOAD_STATISTIC
+	if(GlobalTick < idleTicks) idleTicks = 0; // Если глобальный счетчик тиков ОС переполнился чистим и счетчик времени в idle процессе
 #endif
 #ifdef CLOCK_SERVICE
 	while(GlobalTick >= TICK_PER_SECOND) {
@@ -131,6 +146,7 @@ static void ClockService(void){
 		GlobalTick -= TICK_PER_SECOND;
 	}
 #endif
+	unlock((const void* const)&GlobalTick);
 }
 
 void SetIdleTask(const IdleTask_t Task){
@@ -140,7 +156,18 @@ void SetIdleTask(const IdleTask_t Task){
 }
 
 static void Idle(void) { // Функция включает режим пониженного электропотребления микроконтроллера. При этом перестает работать ядро.
+#ifdef LOAD_STATISTIC
+	 u32 startTick = getTick();
+#endif
 	if(IdleTask != NULL) IdleTask();
+#ifdef LOAD_STATISTIC
+	u32 stopTick = getTick();
+	if(stopTick > startTick) {
+		unlock_t unlock = lock(&idleTicks);
+		idleTicks += stopTick-startTick;
+		unlock(&idleTicks);
+	}
+#endif
 }
 /********************************************************************************************************************
  *********************************************************************************************************************

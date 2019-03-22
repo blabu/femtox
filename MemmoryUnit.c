@@ -40,6 +40,9 @@ void initHeap(void){
 }
 
 BaseSize_t getFreeMemmorySize(void){
+	if(sizeAllFreeMemmory == HEAP_SIZE) {
+		defragmentation();
+	}
     return sizeAllFreeMemmory;
 }
 
@@ -219,6 +222,9 @@ void initHeap(void){
 }
 
 u16 getFreeMemmorySize(void){
+	if(sizeAllFreeMemmory == HEAP_SIZE) {
+		defragmentation();
+	}
     return sizeAllFreeMemmory;
 }
 
