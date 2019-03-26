@@ -15,6 +15,31 @@ void resetWatchDog();
                                             ПЛАТФОРМО-ЗАВИСИМЫЕ ФУНКЦИИ														|
 *********************************************************************************************************************
 *********************************************************************************************************************/
+
+#ifdef THREADS_SUPPORT
+
+#define CORTEX_MODEL            3
+#define CORTEX_HAS_FPU          0
+#define CORTEX_PRIORITY_BITS    4
+#define SVCall_IRQn SVC_IRQn
+
+#if !defined(CH_DBG_ENABLE_STACK_CHECK)
+#define PORT_ENABLE_GUARD_PAGES FALSE
+#define CH_DBG_ENABLE_STACK_CHECK  FALSE
+#endif
+
+#if !defined(CH_CUSTOMER_LIC_PORT_CM3)
+#define CH_CUSTOMER_LIC_PORT_CM3 TRUE
+#endif
+
+typedef struct {
+  struct port_context   ctx;        /**< @brief Processor context.          */
+  TaskMng taskPtr;
+}thread_t;
+
+#endif
+
+
 unlock_t lock(const void*const resourceId);
 
 #define WATCH_DOG_ON  initWatchDog()/*Генерируем Reset*/
