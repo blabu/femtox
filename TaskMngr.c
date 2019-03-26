@@ -225,7 +225,7 @@ CC_NO_RETURN void runFemtOS( void ) {
 }
 
 CC_NO_RETURN void ResetFemtOS(void){
-	WATCH_DOG_ON;
+	initWatchDog();
 	while(1);
 }
 
@@ -287,7 +287,7 @@ static volatile u08 countEnd = 0;      // Указатель на КОНЕЦ о�
 Берем количество параметров из глобального стека и передаем взятой функции, которая берет свои параметры из глобального стека.
  */
 static void TaskManager(void) {
-	unlock_t unlock = lock((void*)TaskList);
+	unlock_t unlock = lock((const void* const)TaskList);
 	if(countBegin != countEnd) { // Если очередь не пустая
 	// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
 		TaskMng Func_point = TaskList[countBegin].Task; // countBegin - указывает на начало очереди на рабочую задачу
@@ -297,7 +297,7 @@ static void TaskManager(void) {
 		unlock((void*)TaskList);
 		Func_point(n,a);
 	} else {
-		unlock((void*)TaskList); // Если очередь пустая включаем прерывания
+		unlock((const void* const)TaskList); // Если очередь пустая включаем прерывания
 		Idle();           // И выполняем функция простоя
 	}
 }
@@ -334,7 +334,7 @@ u08 getFreePositionForTask(void){
 
 #ifdef SET_FRONT_TASK_ENABLE
 void SetFrontTask (const TaskMng New_Task, const BaseSize_t n, const BaseParam_t data){ // Функция помещает в НАЧАЛО очереди задачу New_Task
-	unlock_t unlock = lock(TaskList);
+	unlock_t unlock = lock((const void* const)TaskList);
 	register u08 count = (countBegin)? countBegin-1:TASK_LIST_LEN-1; // Определяем указатель начала очереди куда должны вставить новую задачку
 	if(count != countEnd) {   // Если очередь еще не переполнена
 	// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
@@ -342,7 +342,7 @@ void SetFrontTask (const TaskMng New_Task, const BaseSize_t n, const BaseParam_t
 		TaskList[countBegin].Task = New_Task;
 		TaskList[countBegin].arg_n = n;
 		TaskList[countBegin].arg_p = data;
-		unlock(TaskList);
+		unlock((const void* const)TaskList);
 		return;
 	}
 	// Здесь мы окажемся если все таки очередь переполнена (мало вероятный случай)
