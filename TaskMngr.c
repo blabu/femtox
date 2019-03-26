@@ -22,15 +22,16 @@ extern "C" {
  * V1.3.4.5 - Fix some bugs
  * V1.4.0.0 - Add lock and unlock function instead INTERRUPT_ENABLE, INTERRUPT_DISABLE (for x86 perfomance upgrade)
  * V1.4.1.0 - Add macros ENABLE_LOGGING if logging not need
- * 1.4.2    - Add large memory manager
- * 1.4.3    - Small changes in datastruct manager
- * 1.4.3.1  - Small add volatile qualificators in all global data
- * 1.4.4    - Fix power save bugs
- * 1.4.4.1  - Technical version (fix bug in MSP430 powersave mode with NATIVE_TIMER_PWR_SAVE)
- * 1.4.4.2  - Techinical commit
- * 1.4.4.3  - Small fixes timer interrupt (add clean interrupt flag instrution) + small optimiztion with strings
- * 1.4.4.4  - Fix Sprintf in MyString for print float
- * 1.4.5.0  - Add loadAverage in OS (not tested yet)
+ * V1.4.2    - Add large memory manager
+ * V1.4.3    - Small changes in datastruct manager
+ * V1.4.3.1  - Small add volatile qualificators in all global data
+ * V1.4.4    - Fix power save bugs
+ * V1.4.4.1  - Technical version (fix bug in MSP430 powersave mode with NATIVE_TIMER_PWR_SAVE)
+ * V1.4.4.2  - Techinical commit
+ * V1.4.4.3  - Small fixes timer interrupt (add clean interrupt flag instrution) + small optimiztion with strings
+ * V1.4.4.4  - Fix Sprintf in MyString for print float
+ * V1.4.5.0  - Add loadAverage in OS (not tested yet)
+ * V1.4.5.1  - Add compiler specific attributes
  * */
 const char* const _osVersion = "V1.4.5.0";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
@@ -214,7 +215,7 @@ void initFemtOS (void) {  // Инициализация менеджера за�
 	//INTERRUPT_ENABLE;
 }
 
-void runFemtOS( void ) {
+CC_NO_RETURN void runFemtOS( void ) {
 	while(TRUE) {
 #ifdef EVENT_LOOP_TASKS
 		EventManager();
@@ -223,7 +224,7 @@ void runFemtOS( void ) {
 	}
 }
 
-void ResetFemtOS(void){
+CC_NO_RETURN void ResetFemtOS(void){
 	WATCH_DOG_ON;
 	while(1);
 }

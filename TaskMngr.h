@@ -3,6 +3,7 @@
 
 #include "FemtoxConf.h"
 #include "FemtoxTypes.h"
+#include "compilerSpecific.h"
 
 extern const BaseSize_t _MAX_BASE_SIZE;
 extern const char* const _osVersion;
@@ -36,8 +37,8 @@ extern const char* const _osVersion;
 
 
 void initFemtOS(void);    /* Инициализация менеджера задач. Здесь весь список задач (масив TaskLine) иницмализируется функцией Idle*/
-void ResetFemtOS(void);  // Програмный сброс микроконтроллера
-void runFemtOS( void ); // Запуск операционной системы
+CC_NO_RETURN void ResetFemtOS(void);  // Програмный сброс микроконтроллера
+CC_NO_RETURN void runFemtOS( void ); // Запуск операционной системы
 void SetTask (const TaskMng New_Task, const BaseSize_t n, const BaseParam_t data); /* Функция помещает в конец очереди задачу New_Task с количеством параметров n. И параметрами data[n]
 Прочесываем всю очередь задач в поисках пустой функции (Idle). Когда нашли засовываем вместо нее новую задачу
 и выходим из функции. Если не нашли пустой функции и засовывать задачу некуда просто выходим из функции. Можно также возвращать
