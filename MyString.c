@@ -334,6 +334,12 @@ double toDouble(const string_t c_str) {
 	return (double)(whole+fract);
 }
 
+bool_t isDigitDec(const char symb) {
+    if(symb < '0') return FALSE;
+    if(symb > '9') return FALSE;
+    return TRUE;
+}
+
 bool_t isDigit(const char symb) {
 	if(symb < '0') return FALSE;
 	if(symb > '9' && symb < 'A') return FALSE;
@@ -440,7 +446,7 @@ void Sprintf(string_t result, const string_t paternStr, void** params) {
 				currentPozTempBuf = 0;
 			}
 			i++;
-			if(isDigit(paternStr[i])) { tempBuf[0]=paternStr[i]; tempBuf[1]=END_STRING; fixedSize=(u08)toInt08(tempBuf); i++; }
+			if(isDigitDec(paternStr[i])) { tempBuf[0]=paternStr[i]; tempBuf[1]=END_STRING; fixedSize=(u08)toInt08(tempBuf); i++; }
 			switch(paternStr[i]) {
 			case 'B':
 				toStringDec(**((u08**)params), tempBuf);
@@ -560,17 +566,20 @@ void Sprintf(string_t result, const string_t paternStr, void** params) {
 				currentPozTempBuf++;
 				break;
 			case 'F':
-			    doubleToString(**((float**)params), tempBuf, 2);
+			    if(!fixedSize) fixedSize=2;
+			    doubleToString(**((float**)params), tempBuf, fixedSize);
 			    strCat(result, tempBuf);
 			    break;
 			case '%':
 			    strCat(result, "%");
+			    break;
 			default:
-				strCat(result," !unsupported! ");
+			    tempBuf[0] = '%'; tempBuf[1] = paternStr[i];  tempBuf[2] = END_STRING;
+				strCat(result, tempBuf);
 			}
 			params++;
-		} else
-		{
+			fixedSize=0;
+		} else {
 			if(currentPozTempBuf < TEMP_BUF_SIZE-2) {
 				tempBuf[currentPozTempBuf] = paternStr[i];
 				currentPozTempBuf++;
