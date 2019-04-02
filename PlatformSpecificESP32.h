@@ -1,12 +1,12 @@
 /*
- * PlatformSpecificSceleton.h
+ * PlatformSpecificESP32.h
  *
- *  Created on: 11 февр. 2019 г.
+ *  Created on: 26 мар. 2019 г.
  *      Author: blabu
  */
 
-#ifndef FEMTOX_PLATFORMSPECIFICSCELETON_H_
-#define FEMTOX_PLATFORMSPECIFICSCELETON_H_
+#ifndef FEMTOX_PLATFORMSPECIFICESP32_H_
+#define FEMTOX_PLATFORMSPECIFICESP32_H_
 
 #include "FemtoxTypes.h"
 
@@ -25,4 +25,4 @@ void _deInitTimerSoftUart();
 void deInitProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK);
 
 
-#endif /* FEMTOX_PLATFORMSPECIFICSCELETON_H_ */
+#endif /* FEMTOX_PLATFORMSPECIFICESP32_H_ */

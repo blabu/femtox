@@ -16,9 +16,11 @@
 #include "PlatformSpecificARM.h"
 #elif _X86
 #include "PlatformSpecificX86.h"
-#elif
-#include "PlatformSpecificSceleton.h"
+#elif ESP32
+#include "PlatformSpecificESP32.h"
 #else
 #error "Undefined platform"
+#include "PlatformSpecificSceleton.h"
 #endif
+
 #endif /* PLATFORMSPECIFIC_H_ */

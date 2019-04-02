@@ -3,15 +3,42 @@
 
 #include "FemtoxConf.h"
 #include "FemtoxTypes.h"
+#include "compilerSpecific.h"
 
 extern const BaseSize_t _MAX_BASE_SIZE;
 extern const char* const _osVersion;
 
 #define ABS(XX) (((XX) > 0)?(XX):(-(XX)))
+#define BitsSet(Register, Bits)                    (Register) |= (Bits)
+#define BitsClear(Register, Bits)                  (Register) &= ~(Bits)
+#define BitSet(Register, Bit)                      (Register) |= (1 << (Bit))
+#define BitClear(Register, Bit)                    (Register) &= (~(1<< (Bit)))
+#define BitRead(Register,Bit)                      ((qFalse == ((Register)& (1<<(Bit))))? qFalse : qTrue)
+#define BitToggle(Register,Bit)                    ((Register)^= (1<<(Bit)))
+#define BitWrite(Register, Bit, Value)             ((Value) ? qBitSet(Register,Bit) : qBitClear(Register,Bit))
+#define BitMakeByte(b7,b6,b5,b4,b3,b2,b1,b0)       (uint8_t)( ((b7)<<7) + ((b6)<<6) + ((b5)<<5) + ((b4)<<4) + ((b3)<<3) + ((b2)<<2) + ((b1)<<1) + ((b0)<<0) )
+#define ByteMakeFromBits(b7,b6,b5,b4,b3,b2,b1,b0)  qBitMakeByte(b7,b6,b5,b4,b3,b2,b1,b0)
+#define ByteHighNibble(Register)                   ((uint8_t)((Register)>>4))
+#define ByteLowNibble(Register)                    ((uint8_t)((Register)&0x0F))
+#define ByteMergeNibbles(H,L)                      ((uint8_t)(((H)<<4)|(0x0F&(L))))
+#define WordHighByte(Register)                     ((uint8_t)((Register)>>8))
+#define WordLowByte(Register)                      ((uint8_t)((Register)&0x00FF))
+#define WordMergeBytes(H,L)                        ((uint16_t)(((H)<<8)|(L)))
+#define DWordHighWord(Register)                    ((uint16_t)((Register) >> 16))
+#define DWordLowWord(Register)                     ((uint16_t)((Register) & 0xFFFF))
+#define DWordMergeWords(H,L)                       ((uint32_t)(((uint32_t)(H) << 16 ) | (L) ) )
+
+#define CLIP(X, Max, Min)                          (((X) < (Min)) ? (Min) : (((X) > (Max)) ? (Max) : (X)))
+#define CLIPUpper(X, Max)                          (((X) > (Max)) ? (Max) : (X))
+#define CLIPLower(X, Min)                          (((X) < (Min)) ? (Min) : (X))
+#define IsBetween(X, Low, High)                    ((qBool_t)((X) >= (Low) && (X) <= (High)))
+#define MIN(a,b)                                   (((a)<(b))?(a):(b))
+#define MAX(a,b) 								   (((a)>(b))?(a):(b))
+
 
 void initFemtOS(void);    /* Инициализация менеджера задач. Здесь весь список задач (масив TaskLine) иницмализируется функцией Idle*/
-void ResetFemtOS(void);  // Програмный сброс микроконтроллера
-void runFemtOS( void ); // Запуск операционной системы
+CC_NO_RETURN void ResetFemtOS(void);  // Програмный сброс микроконтроллера
+CC_NO_RETURN void runFemtOS( void ); // Запуск операционной системы
 void SetTask (const TaskMng New_Task, const BaseSize_t n, const BaseParam_t data); /* Функция помещает в конец очереди задачу New_Task с количеством параметров n. И параметрами data[n]
 Прочесываем всю очередь задач в поисках пустой функции (Idle). Когда нашли засовываем вместо нее новую задачу
 и выходим из функции. Если не нашли пустой функции и засовывать задачу некуда просто выходим из функции. Можно также возвращать
@@ -48,13 +75,16 @@ void SetIdleTask(const IdleTask_t Task);
 // Можно задать IDLE задачку, которая выполняется когда есть свободное время у процессора
 //Задача должна иметь сигнатуру void Task(void)
 
-
 u32 getTick(void);
 
 void MaximizeErrorHandler(const string_t str);
 
 void memCpy(void * destination, const void * source, const BaseSize_t num);
 void memSet(void* destination, const BaseSize_t size, const u08 value);
+
+#ifdef LOAD_STATISTIC
+u32 getLoadAvarage();
+#endif
 
 #ifdef EVENT_LOOP_TASKS
 bool_t CreateEvent(Predicat_t condition, CycleFuncPtr_t effect); // Регистрирует новое событие в списке событий
@@ -217,5 +247,11 @@ void UARTTimerISR(); // Само прерывание
 #define init_Mng()	initFemtOS()
 #define CreateTask(New_Task, n, data)  SetTask((TaskMng)New_Task, (BaseSize_t)n, (BaseParam_t)data)
 #define CreatePriorityTask(New_Task, n, data) SetFrontTask((TaskMng)New_Task, (BaseSize_t)n, (BaseParam_t)data)
+
+#define everyTimeRunInCoroutine if(TRUE)
+#define startCoroutine(_variable)   switch(_variable){ case 0:
+#define yieldCoroutine(_constParam) do{break; case (_constParam):;}while(0)
+#define finishCoroutine(_variable)  do{_variable = 0xFF; break; default:;}while(0)
+#define stopCoroutine() }
 
 #endif/*Task_Manager*/

@@ -49,7 +49,7 @@ void EventManager( void ) {
 
 bool_t CreateEvent(Predicat_t condition, CycleFuncPtr_t effect) {// Регистрирует новое событие в списке событий
     u08 i = 0;
-    unlock_t unlock = lock(EventList);
+    unlock_t unlock = lock((const void*const)EventList);
     for(;i < EVENT_LIST_SIZE; i++)
     {
         if(EventList[i].Predicat == NULL) break; // find empty event task
@@ -57,17 +57,17 @@ bool_t CreateEvent(Predicat_t condition, CycleFuncPtr_t effect) {// Регист
     if(i < EVENT_LIST_SIZE) {
     	EventList[i].Predicat = condition;
     	EventList[i].CallBack = effect;
-    	unlock(EventList); //Далее востанавливаем прерывания (если необходимо)
+    	unlock((const void*const)EventList); //Далее востанавливаем прерывания (если необходимо)
     	return TRUE;
     }
-    unlock(EventList);
+    unlock((const void*const)EventList);
     return FALSE; // Событие невозможно создать т.к. очередь событий переполнена
 }
 
 void delEvent(Predicat_t condition){
     u08 i = 0;
     u08 countDeletedEvent = 0;
-    unlock_t unlock = lock(EventList);
+    unlock_t unlock = lock((const void*const)EventList);
     for(;i<EVENT_LIST_SIZE;i++)     // Выполняем поиск нашего события
     {
         if(EventList[i].Predicat == NULL) break;    // Если дошли до пустого, а значит последнего выходим из цикла
@@ -84,7 +84,7 @@ void delEvent(Predicat_t condition){
             EventList[i].Predicat = NULL;   // А текущее место освобождаем
         }
     }
-    unlock(EventList);
+    unlock((const void*const)EventList);
 }
 #endif //EVENT_LOOP_TASKS
 

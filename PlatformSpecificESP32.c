@@ -1,7 +1,13 @@
-#include "PlatformSpecific.h"
-#include "TaskMngr.h"
+/*
+ * PlatformSpecificESP32.c
+ *
+ *  Created on: 26 мар. 2019 г.
+ *      Author: blabu
+ */
 
-#ifdef SCELETON
+#include "driver/timer.h"
+#include "TaskMngr.h"
+#include "PlatformSpecific.h"
 
 #ifdef MAXIMIZE_OVERFLOW_ERROR
 #include "logging.h"
@@ -28,10 +34,12 @@
 //#define INTERRUPT_DISABLE __disable_irq()  //{__asm__ __volatile__("dint nop"); asm("nop");}
 //#define INTERRUPT_STATUS  (__get_CONTROL() & (uint32_t)(1<<7))
 
-static void unlock(const void*const resourceId){}
-
 static void empty(const void*const resourceId) {}
 
+static void unlock(const void*const resourceId){}
+
+
+//TODO Реализовать эти функции
 unlock_t lock(const void*const resourceId){
 	if(resourceId != NULL) return unlock;
 	else return empty;
@@ -58,4 +66,3 @@ void deInitProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK){}
 #error "Can not compile whith it. Not implemented yet"
 #endif
 
-#endif

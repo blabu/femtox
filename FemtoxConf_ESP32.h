@@ -1,36 +1,34 @@
 /*
- * FemtoxConf.h
+ * FemtoxConf_ESP32.h
  *
- *	Конфигурация всей системы
- *
- *  Created on: 18 лип. 2018 р.
- *      Author: Admin
+ *  Created on: 26 мар. 2019 г.
+ *      Author: blabu
  */
 
-#ifndef FEMTOXCONF_ARM_H_
-#define FEMTOXCONF_ARM_H_
+#ifndef FEMTOX_FEMTOXCONF_ESP32_H_
+#define FEMTOX_FEMTOXCONF_ESP32_H_
 
-//#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
+#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
 #define DATA_STRUCT_MANAGER   /*Включаем работу с очередями средствами деспетчера*/
 #define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/
-//#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
+#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
 #define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
-#define ALLOC_MEM   /*Включение динамического выделения памяти*/
-//#define ALLOC_MEM_LARGE 1   /*Включение динамического выделения памяти без ограничения размера*/
+//#define ALLOC_MEM   /*Включение динамического выделения памяти*/
+#define ALLOC_MEM_LARGE  /*Включение динамического выделения памяти без ограничения размера*/
 #define EVENT_LOOP_TASKS
 //#define USE_SOFT_UART
 #define CLOCK_SERVICE
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
 #define SIGNALS_TASK
-//#define _LIST_STRUCT
-//#define _DYNAMIC_ARRAY
-//#define _PWR_SAVE
-//#define NEED_CRYPT
-//#define NEED_BASE64
-//#define NEED_RANDOM
+#define _LIST_STRUCT
+#define _DYNAMIC_ARRAY
+#define _PWR_SAVE
+#define NEED_CRYPT
+#define NEED_BASE64
+#define NEED_RANDOM
 #define NEED_CRC16
-#define ENABLE_LOGGING
+//#define ENABLE_LOGGING
 #define NEED_MATRIX
 //#define STANDART_MEMCPY_MEMSET
 #define LOAD_STATISTIC /*Сколько времени мы находимся в IDLE процессе в сравнении с полным рабочим временем в секундах*/
@@ -88,4 +86,4 @@
   #define STOP_BITS  1   /*Колличество СТОП битов*/
 #endif
 
-#endif /* FEMTOXCONF_ARM_H_ */
+#endif /* FEMTOX_FEMTOXCONF_ESP32_H_ */
