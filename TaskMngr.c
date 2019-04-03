@@ -33,7 +33,7 @@ extern "C" {
  * V1.4.5.0  - Add loadAverage in OS (not tested yet)
  * V1.4.5.1  - Add compiler specific attributes
  * */
-const char* const _osVersion = "V1.4.5.0";
+const char* const _osVersion = "V1.4.5.1";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
 
 static void TaskManager(void);
