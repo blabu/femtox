@@ -32,8 +32,9 @@ extern "C" {
  * V1.4.4.4  - Fix Sprintf in MyString for print float
  * V1.4.5.0  - Add loadAverage in OS (not tested yet)
  * V1.4.5.1  - Add compiler specific attributes
+ * V1.4.5.2  - Change load avarage coefficient
  * */
-const char* const _osVersion = "V1.4.5.1";
+const char* const _osVersion = "V1.4.5.2";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
 
 static void TaskManager(void);
@@ -80,7 +81,7 @@ u32 getLoadAvarage() {
 	u32 workTicks = getTick();
 	u32 t = idleTicks;
 	while(t != idleTicks) t=idleTicks;
-	if(workTicks > t) return (u32)((workTicks - t)*1000u/workTicks);
+	if(workTicks > t) return (u32)((workTicks - t)*10000u/workTicks);
 	return 0;
 }
 #endif
