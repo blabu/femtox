@@ -81,7 +81,7 @@ u32 getLoadAvarage() {
 	u32 workTicks = getTick();
 	u32 t = idleTicks;
 	while(t != idleTicks) t=idleTicks;
-	if(workTicks > t) return (u32)((workTicks - t)*10000u/workTicks);
+	if(workTicks > t) return (u32)((u64)((workTicks - t)*10000UL)/workTicks);
 	return 0;
 }
 #endif
