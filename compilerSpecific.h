@@ -182,6 +182,9 @@
 
 #endif /* CWSPECIFIC*/
 
+#ifndef CC_NO_RETURN
+#define CC_NO_RETURN
+#endif
 
 #ifdef __cplusplus
 extern "C" {
