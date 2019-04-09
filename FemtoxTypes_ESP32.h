@@ -8,6 +8,8 @@
 #ifndef FEMTOX_FEMTOXTYPES_ESP32_H_
 #define FEMTOX_FEMTOXTYPES_ESP32_H_
 
+#ifdef ESP32
+
 #ifndef NULL
 #define NULL ((void*)0)
 #endif
@@ -82,6 +84,8 @@ typedef struct {
 	u08 capasity; 	// Текуший размер выделенной области
 	u08* data;		// Указатель на начало области
 }DynamicArray_t;
+#endif
+
 #endif
 
 

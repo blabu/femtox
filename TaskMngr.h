@@ -121,7 +121,7 @@ void showAllDataStruct(void); // передает в ЮАРТ данные о в
 // Положить элемент по указателю Elem в очередь Queue
 #define PutToBackQ(Elem, Queue) PutToEndDataStruct((void*)(Elem), (void*)(Queue))
 // Достать єлемент из очереди и записать его по указателю returnValue
-#define GetFromQ(returnValue, Queue)   GetFromFrontDataStruct((void*)(returnValue), (void*)(Queue))
+#define GetFromQ(returnValue, Queue)   GetFromFrontDataStruct((void*)(returnValue), (const void*)(Queue))
 // Удаляем из массива очередей очередь с заданным идентивикатором
 #define DeleteQ(Queue)  delDataStruct((void*)(Queue))
 

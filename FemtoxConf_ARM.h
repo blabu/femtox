@@ -30,10 +30,10 @@
 //#define NEED_BASE64
 //#define NEED_RANDOM
 #define NEED_CRC16
-#define ENABLE_LOGGING
+//#define ENABLE_LOGGING
 #define NEED_MATRIX
 //#define STANDART_MEMCPY_MEMSET
-#define LOAD_STATISTIC /*Сколько времени мы находимся в IDLE процессе в сравнении с полным рабочим временем в секундах*/
+//#define LOAD_STATISTIC /*Сколько времени мы находимся в IDLE процессе в сравнении с полным рабочим временем в секундах*/
 
 #define TASK_LIST_LEN 10U /*Длина очереди задач*/
 #define TIME_LINE_LEN 30U /*Максимальне количество системных таймеров*/
