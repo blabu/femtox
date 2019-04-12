@@ -57,9 +57,11 @@
 
 #ifdef ALLOC_MEM
 #define HEAP_SIZE 7500UL /*6500*/
+//#define CHECK_ERRORS_FREE_MEMMORY
 #endif
 #ifdef ALLOC_MEM_LARGE
 #define HEAP_SIZE 10000UL /*6500*/
+//#define CHECK_ERRORS_FREE_MEMMORY
 #endif
 
 #ifdef CALL_BACK_TASK
