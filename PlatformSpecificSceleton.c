@@ -3,53 +3,59 @@
 
 #ifdef SCELETON
 
-/********************************************************************************************************************
-*********************************************************************************************************************
-                                            ПЛАТФОРМО-ЗАВИСИМЫЕ ФУНКЦИИ                                                     |
-*********************************************************************************************************************
-*********************************************************************************************************************/
 #ifdef MAXIMIZE_OVERFLOW_ERROR
-	void MaximizeErrorHandler(const string_t str){
+#include "logging.h"
+	void MaximizeErrorHandler(string_t str){
+		writeLogStr(str);
+		for(u16 i = 0; i<0xFFFF; i++);
 		initWatchDog();
 		while(1);
 	}
 #else
-	void MaximizeErrorHandler(const string_t str){
+#include "logging.h"
+	void MaximizeErrorHandler(string_t str){
+		writeLogStr(str);
 	}
 #endif
+/********************************************************************************************************************
+*********************************************************************************************************************
+                                            ПЛАТФОРМО-ЗАВИСИМЫЕ ФУНКЦИИ														|
+*********************************************************************************************************************
+*********************************************************************************************************************/
 
-static void unlock(const void*const resourceId){} // Освобождение ресурса
-unlock_t lock(const void*const resourceId) { // Захват ресурса по его уникальному идентификатору
-    return unlock;
+
+//#define INTERRUPT_ENABLE  __enable_irq()   //{asm("nop"); __asm__ __volatile__("eint");}
+//#define INTERRUPT_DISABLE __disable_irq()  //{__asm__ __volatile__("dint nop"); asm("nop");}
+//#define INTERRUPT_STATUS  (__get_CONTROL() & (uint32_t)(1<<7))
+
+static void unlock(const void*const resourceId){}
+
+static void empty(const void*const resourceId) {}
+
+unlock_t lock(const void*const resourceId){
+	if(resourceId != NULL) return unlock;
+	else return empty;
 }
 
-#ifdef NATIVE_TIMER_PWR_SAVE
-u32 _setTickTime(u32 timerTicks){} // В качестве аргумента передается кол-во стандартных тиков таймера
-//(Таймер начинает тикать значительно реже что значительно увеличивает энергоэффективность)
-// Вернет занчение на которое реально смог изменить частоту прерываний
+void initWatchDog(void){}
 
-u32 _getTickTime(){return 0;} // Сколько времени прошло с момента начала отсета до сейчас
-// Необходимо для осущществление коррекции в случае если внезапно появился таймер меньше ранее установленного времени
+void resetWatchDog(void){}
 
-#endif
-
-void initWatchDog(){} // Инициализация сторожевого таймера
-void resetWatchDog(void){} // Сборос хардверного ватчдога
+void _init_Timer(void){}
 
 void MainTimerISRHandler(void){TimerISR();}
-void _init_Timer(){} // Инициализация таймера операционной системы
 
-#ifdef USE_SOFT_UART
-/*
-****************************************
-\\\\   Платформозависимые функции   ////
-\\\\         и настройки            ////
-****************************************
-*/
-#include "ProgrammUART.h"
-void _initTimerSoftUart(void){} // Инициализация высокоскоростного таймера
-void UARTTimerISRHandler(void) {UARTTimerISR();}
+#ifndef USE_SOFT_UART
+void _initTimerSoftUart() {}
+void initProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK){}
+void _deInitTimerSoftUart(){}
+void deInitProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK){}
+#else
+#error "Not implemented yet soft UART"
+#endif
 
+#ifdef NATIVE_TIMER_PWR_SAVE
+#error "Can not compile whith it. Not implemented yet"
 #endif
 
 #endif

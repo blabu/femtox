@@ -20,5 +20,8 @@
 #ifdef MSP430
 #include "FemtoxConf_MSP430.h"
 #endif
+#ifdef ESP32
+#include "FemtoxConf_ESP32.h"
+#endif
 
 #endif /* FEMTOXCONF_H_ */

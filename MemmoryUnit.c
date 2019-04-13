@@ -40,6 +40,9 @@ void initHeap(void){
 }
 
 BaseSize_t getFreeMemmorySize(void){
+	if(sizeAllFreeMemmory == HEAP_SIZE) {
+		defragmentation();
+	}
     return sizeAllFreeMemmory;
 }
 
@@ -159,6 +162,32 @@ byte_ptr allocMem(const BaseSize_t size) {
 	return NULL;
 }
 
+#ifdef CHECK_ERRORS_FREE_MEMMORY
+// TODO Test it
+void freeMem(const byte_ptr data) {
+	if(data > heap &&
+	   data < heap + HEAP_SIZE)  // Если мы передали валидный указатель
+	{
+	    BaseSize i = 0;
+		while(i<HEAP_SIZE) {
+			BaseSize_t blockSize = getNextBlockSize(heap[i]);
+			u08 length = calculateSize(blockSize);
+			if((i+length) < HEAP_SIZE-1) {
+				if(heap+i+length == data) {
+					unlock_t unlock = lock(heap);
+					free(data);
+					unlock(heap);
+					return;
+				}
+				i+=(blockSize+length);
+			}
+		}
+		MaximizeErrorHandler("Try free memmory with incorrect pointer");
+	} else {
+		MaximizeErrorHandler("Out of bounds when try free memmory");
+	}
+}
+#else
 void freeMem(const byte_ptr data) {
     if(data > heap &&
        data < heap + HEAP_SIZE)  // Если мы передали валидный указатель
@@ -168,6 +197,7 @@ void freeMem(const byte_ptr data) {
         unlock(heap);
     }
 }
+#endif
 
 void defragmentation(void){
 	BaseSize_t i = 0;
@@ -213,12 +243,17 @@ void defragmentation(void){
 static u08 heap[HEAP_SIZE];  // Сама куча
 static u16 sizeAllFreeMemmory = HEAP_SIZE;
 
-
 void initHeap(void){
 	heap[0] = 0;
+#if REGISTRY_ALLOCATE_MEMMORY_SIZE > 0
+	clearAllRegister();
+#endif
 }
 
 u16 getFreeMemmorySize(void){
+	if(sizeAllFreeMemmory == HEAP_SIZE) {
+		defragmentation();
+	}
     return sizeAllFreeMemmory;
 }
 
@@ -243,7 +278,11 @@ void clearAllMemmory(void){
     	i+=blockSize+1;
     }
     unlock(heap);
+#if REGISTRY_ALLOCATE_MEMMORY_SIZE > 0
+    clearAllRegister();
+#endif
 }
+
 
 byte_ptr allocMem(const u08 size) { //size - до 127 размер блока выделяемой памяти
 	if(size < 128 && size) {
@@ -282,6 +321,31 @@ byte_ptr allocMem(const u08 size) { //size - до 127 размер блока в
     return NULL;
 }
 
+#ifdef CHECK_ERRORS_FREE_MEMMORY
+// TODO Test it
+void freeMem(const byte_ptr data) {
+	if(data > heap &&
+	   data < heap + HEAP_SIZE)  // Если мы передали валидный указатель
+	{
+	    u16 i=0;
+		while(i<HEAP_SIZE) {
+		    if(heap+i+1 > data) break;
+			if(heap+i+1 == data) {
+				unlock_t unlock = lock(heap);
+				*(data-1) &= ~(1<<7); // Очистим флаг занятости данных (не трогая при этом сами данные и их размер)
+				unlock(heap);
+				return;
+			}
+			u08 blockSize = heap[i] & 0x7F;
+			i+=(blockSize+1);
+		}
+		MaximizeErrorHandler("Try free memmory with incorrect pointer");
+	} else {
+		MaximizeErrorHandler("Out of bounds when try free memmory");
+	}
+}
+
+#else
 void freeMem(const byte_ptr data) {
     if(data > heap &&
        data < heap + HEAP_SIZE)  // Если мы передали валидный указатель
@@ -291,6 +355,7 @@ void freeMem(const byte_ptr data) {
         unlock(heap);
     }
 }
+#endif
 
 void defragmentation(void){
     u16 i = 0;
@@ -307,13 +372,21 @@ void defragmentation(void){
         }
         if(blockSize) { //Если блок памяти свободен
             u08 SumBlock = (u08)(blockSize + currentBlockSize + 1);
-            if(SumBlock < 127) {
+            if(SumBlock <= 127) { // TODO Если SumBlock == 127 нет смысла его перезаписывать
             	unlock_t unlock = lock(heap);
             	heap[i - (blockSize+1)] = SumBlock;
-                blockSize = SumBlock;
-                i += currentBlockSize + 1;
-                unlock(heap);
+            	unlock(heap);
+            	blockSize = SumBlock;
+            	i += currentBlockSize + 1;
                 continue;
+            } else {
+                unlock_t unlock = lock(heap);
+                i -= blockSize+1;
+                heap[i] = 127;
+                i += (127+1);
+                currentBlockSize = SumBlock - (127+1);
+                heap[i] = currentBlockSize;
+                unlock(heap);
             }
         }
         blockSize = currentBlockSize;

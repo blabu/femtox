@@ -14,9 +14,9 @@
 #define DATA_STRUCT_MANAGER   /*Включаем работу с очередями средствами деспетчера*/
 #define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/
 #define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
-#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
-//#define ALLOC_MEM   /*Включение динамического выделения памяти*/
-#define ALLOC_MEM_LARGE   /*Включение динамического выделения памяти без ограничения размера*/
+//#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
+#define ALLOC_MEM   /*Включение динамического выделения памяти*/
+//#define ALLOC_MEM_LARGE   /*Включение динамического выделения памяти без ограничения размера*/
 #define EVENT_LOOP_TASKS
 //#define USE_SOFT_UART
 #define CLOCK_SERVICE
@@ -55,7 +55,8 @@
 #endif
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 10000UL /*6500*/
+#define HEAP_SIZE 550UL /*6500*/
+#define CHECK_ERRORS_FREE_MEMMORY
 #endif
 #ifdef ALLOC_MEM_LARGE
 #define HEAP_SIZE 10000UL /*6500*/

@@ -21,7 +21,7 @@ void disableLogLevel(string_t level) {}
 
 void writeLogWhithStr(const string_t c_str, u32 n){}
 
-void writeLogStr(const string_t c_str){}
+void writeLogStr(const string_t c_str){_no_operation();}
 
 void writeLogTempString(string_t tempStr){}
 
@@ -108,7 +108,7 @@ void writeLogWhithStr(const string_t c_str, u32 n) {
 	}
 	strClear(str); strCat(str,c_str);
 	strCat(str," ");
-	toStringDec(n,str+size+1);
+	toStringDec((s64)n,(str+size+1));
 	writeLogTempString(str);
 }
 
@@ -118,7 +118,7 @@ void writeLogStr(const string_t c_str){
 	sendCOM2_buf(0,(byte_ptr)"\r\n");
 }
 
-void writeLogTempString(string_t tempStr){
+void writeLogTempString(const string_t tempStr){
 	if(str1_str2(disableLavel,tempStr)) return;
 	u08 size =  strSize(tempStr);
 	for(u08 i = 0; i<size; i++) sendUART2_buf(tempStr[i]);

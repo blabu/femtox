@@ -46,13 +46,13 @@ EXAMPLE
         tempStr = &tempStr[sz+1];
     }
 */
-BaseSize_t strSplit(char delim, string_t c_str);
+BaseSize_t strSplit(char delim, const string_t c_str);
 
 //Вернет размер строки
-BaseSize_t toUpperCase(string_t str);
+BaseSize_t toUpperCase(const string_t str);
 
 //Вернет размер строки
-BaseSize_t toLowerCase(string_t str);
+BaseSize_t toLowerCase(const string_t str);
 
 // razryad - количество знаков, например для чисел от 10 до 99 razryad = 2.
 s64 toIntDec(const string_t c_str);
@@ -73,6 +73,7 @@ void toStringUnsign(u08 capacity, u64 data, string_t c_str);
 
 void toStringDec(s64 data, string_t c_str);
 
+bool_t isDigitDec(const char symb);
 bool_t isDigit(const char symb);
 bool_t isAsciiOrNumb(const char symb);
 #define isalnum(cczz) isAsciiOrNumb((const char)cczz)
@@ -81,8 +82,8 @@ void toStringUnsignDec(u64 data, string_t c_str);
 
 void doubleToString(double data, string_t c_str, u08 precision);
 
-void shiftStringLeft(BaseSize_t poz, string_t c_str);
-void shiftStringRight(BaseSize_t poz, string_t c_str);
+void shiftStringLeft(BaseSize_t poz, const string_t c_str);
+void shiftStringRight(BaseSize_t poz, const string_t c_str);
 
 void fillRightStr(u16 size, string_t str, char symb);
 
@@ -105,6 +106,6 @@ BaseSize_t strSize(const string_t c_str);
  * %s, string
  * %F, float,
  * */
-void Sprintf(string_t result, const string_t paternStr, void** params);
+void Sprintf(const string_t result, const string_t paternStr, void** params);
 
 #endif // MY_STRING_H

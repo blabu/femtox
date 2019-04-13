@@ -127,7 +127,7 @@ BaseSize_t replaceAllSymbols(string_t c_str,const char origin, const char replac
 }
 
 // Разбивает строку на подстроки. Заменяет символ delim концом ситроки. Вернет кол-во подстрок в строке
-BaseSize_t strSplit(char delim, string_t c_str) {
+BaseSize_t strSplit(char delim, const string_t c_str) {
     if(c_str == NULL) return 0;
     BaseSize_t numb = replaceAllSymbols(c_str,delim,END_STRING,0) + 1;
     return numb;
@@ -198,7 +198,7 @@ void toStringUnsign(u08 capacity, u64 data, string_t c_str){
 }
 
 //Вернет размер строки
-BaseSize_t toUpperCase(string_t str) {
+BaseSize_t toUpperCase(const string_t str) {
 	if(str != NULL) {
 		BaseSize_t i = 0;
 		while(str[i] != END_STRING) {
@@ -215,7 +215,7 @@ BaseSize_t toUpperCase(string_t str) {
 }
 
 //Вернет размер строки
-BaseSize_t toLowerCase(string_t str) {
+BaseSize_t toLowerCase(const string_t str) {
 	if(str != NULL) {
 	BaseSize_t i = 0;
 	while(str[i] != END_STRING) {
@@ -334,6 +334,12 @@ double toDouble(const string_t c_str) {
 	return (double)(whole+fract);
 }
 
+bool_t isDigitDec(const char symb) {
+    if(symb < '0') return FALSE;
+    if(symb > '9') return FALSE;
+    return TRUE;
+}
+
 bool_t isDigit(const char symb) {
 	if(symb < '0') return FALSE;
 	if(symb > '9' && symb < 'A') return FALSE;
@@ -348,7 +354,7 @@ bool_t isAsciiOrNumb(const char symb) {
 	return FALSE;
 }
 
-void shiftStringLeft(BaseSize_t poz, string_t c_str){
+void shiftStringLeft(BaseSize_t poz, const string_t c_str){
   BaseSize_t size = strSize(c_str);
   BaseSize_t i=0;
   while(poz<size){
@@ -358,7 +364,7 @@ void shiftStringLeft(BaseSize_t poz, string_t c_str){
   c_str[i] = END_STRING;
 }
 
-void shiftStringRight(BaseSize_t poz, string_t c_str) {
+void shiftStringRight(BaseSize_t poz, const string_t c_str) {
 	BaseSize_t size = strSize(c_str)+2; // With END_STRING
 	poz += size;
 	while(size) {
@@ -392,7 +398,7 @@ void doubleToString(double data, string_t c_str, u08 precision) {
 
 // Заполняет строку одним символом справа
 // Например: исходная строка "113" после выполнения этой функции строка может быть "00113"
-void fillRightStr(u16 size, string_t str, char symb) {
+void fillRightStr(u16 size, const string_t str, char symb) {
 	s16 s = size - strSize(str);
 	if(s <= 0) return;
 	shiftStringRight(s,str);
@@ -403,6 +409,7 @@ void fillRightStr(u16 size, string_t str, char symb) {
 
 /* Печать в строку
  * Пока поддерживаются
+ * %'digit'SYMB fixed size (digit must be one symb) 0-F
  * %B, unsigned u08
  * %I, unsigned u16
  * %D, unsigned u32
@@ -417,7 +424,7 @@ void fillRightStr(u16 size, string_t str, char symb) {
  * %c, symb
  * %s, string
  * */
-void Sprintf(string_t result, const string_t paternStr, void** params) {
+void Sprintf(const string_t result, const string_t paternStr, void** params) {
 	if(result == NULL || paternStr == NULL) return;
 	if(params == NULL) {
 		u08 size = strSize(paternStr);
@@ -430,6 +437,7 @@ void Sprintf(string_t result, const string_t paternStr, void** params) {
 	char tempBuf[TEMP_BUF_SIZE];
 	u08 currentPozTempBuf = 0;
 	u08 i = 0;
+	u08 fixedSize = 0;
 	while(paternStr[i] != END_STRING) {
 		if(paternStr[i] == '%') {
 			if(currentPozTempBuf > 0) {
@@ -438,45 +446,116 @@ void Sprintf(string_t result, const string_t paternStr, void** params) {
 				currentPozTempBuf = 0;
 			}
 			i++;
+			if(isDigitDec(paternStr[i])) { tempBuf[0]=paternStr[i]; tempBuf[1]=END_STRING; fixedSize=(u08)toInt08(tempBuf); i++; }
 			switch(paternStr[i]) {
 			case 'B':
 				toStringDec(**((u08**)params), tempBuf);
+				if(fixedSize) {
+				    s08 k = fixedSize-strSize(tempBuf);
+				    if(k > 0) {
+				        shiftStringRight(k, tempBuf);
+				        for(s08 j=0; j<k; j++) tempBuf[j]='0';
+				    }
+				}
 				strCat(result, tempBuf);
 				break;
 			case 'I':
 				toStringDec(**((u16**)params), tempBuf);
+                if(fixedSize) {
+                    s08 k = fixedSize-strSize(tempBuf);
+                    if(k > 0) {
+                        shiftStringRight(k, tempBuf);
+                        for(s08 j=0; j<k; j++) tempBuf[j]='0';
+                    }
+                }
 				strCat(result, tempBuf);
 				break;
 			case 'D':
 				toStringDec(**((u32**)params), tempBuf);
+                if(fixedSize) {
+                    s08 k = fixedSize-strSize(tempBuf);
+                    if(k > 0) {
+                        shiftStringRight(k, tempBuf);
+                        for(s08 j=0; j<k; j++) tempBuf[j]='0';
+                    }
+                }
 				strCat(result, tempBuf);
 				break;
 			case 'L':
 				toStringDec(**((u64**)params), tempBuf);
+                if(fixedSize) {
+                    s08 k = fixedSize-strSize(tempBuf);
+                    if(k > 0) {
+                        shiftStringRight(k, tempBuf);
+                        for(s08 j=0; j<k; j++) tempBuf[j]='0';
+                    }
+                }
 				strCat(result, tempBuf);
 				break;
 			case 'b':
 				toStringDec(**((s08**)params), tempBuf);
+                if(fixedSize) {
+                    s08 k = fixedSize-strSize(tempBuf);
+                    if(k > 0) {
+                        shiftStringRight(k, tempBuf+1);
+                        for(s08 j=1; j<k; j++) tempBuf[j]='0';
+                    }
+                }
 				strCat(result, tempBuf);
 				break;
 			case 'i':
 				toStringDec(**((s16**)params), tempBuf);
-				strCat(result, tempBuf);
+                if(fixedSize) {
+                    s08 k = fixedSize-strSize(tempBuf);
+                    if(k > 0) {
+                        shiftStringRight(k, tempBuf+1);
+                        for(s08 j=1; j<k; j++) tempBuf[j]='0';
+                    }
+                }
+                strCat(result, tempBuf);
 				break;
 			case 'd':
 				toStringDec(**((s32**)params), tempBuf);
+                if(fixedSize) {
+                    s08 k = fixedSize-strSize(tempBuf);
+                    if(k > 0) {
+                        shiftStringRight(k, tempBuf+1);
+                        for(s08 j=1; j<k; j++) tempBuf[j]='0';
+                    }
+                }
 				strCat(result, tempBuf);
 				break;
 			case 'l':
 				toStringDec(**((s64**)params), tempBuf);
+                if(fixedSize) {
+                    s08 k = fixedSize-strSize(tempBuf);
+                    if(k > 0) {
+                        shiftStringRight(k, tempBuf+1);
+                        for(s08 j=1; j<k; j++) tempBuf[j]='0';
+                    }
+                }
 				strCat(result, tempBuf);
 				break;
 			case 'x':
 				toString(4, **((u08**)params), tempBuf);
+                if(fixedSize) {
+                    s08 k = fixedSize-strSize(tempBuf);
+                    if(k > 0) {
+                        shiftStringRight(k, tempBuf);
+                        for(s08 j=0; j<k; j++) tempBuf[j]='0';
+                    }
+                }
 				strCat(result, tempBuf);
 				break;
 			case 'X':
 				toString(4, **((u32**)params), tempBuf);
+                if(fixedSize) {
+                    s08 k = fixedSize-strSize(tempBuf);
+                    if(k > 0) {
+                        shiftStringRight(k, tempBuf);
+                        for(s08 j=0; j<k; j++) tempBuf[j]='0';
+                    }
+                }
 				strCat(result, tempBuf);
 				break;
 			case 's':
@@ -487,15 +566,20 @@ void Sprintf(string_t result, const string_t paternStr, void** params) {
 				currentPozTempBuf++;
 				break;
 			case 'F':
-			    doubleToString(**((float**)params), tempBuf, 2);
+			    if(!fixedSize) fixedSize=2;
+			    doubleToString(**((float**)params), tempBuf, fixedSize);
 			    strCat(result, tempBuf);
 			    break;
+			case '%':
+			    strCat(result, "%");
+			    break;
 			default:
-				strCat(result," !unsupported! ");
+			    tempBuf[0] = '%'; tempBuf[1] = paternStr[i];  tempBuf[2] = END_STRING;
+				strCat(result, tempBuf);
 			}
 			params++;
-		} else
-		{
+			fixedSize=0;
+		} else {
 			if(currentPozTempBuf < TEMP_BUF_SIZE-2) {
 				tempBuf[currentPozTempBuf] = paternStr[i];
 				currentPozTempBuf++;

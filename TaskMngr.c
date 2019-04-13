@@ -22,14 +22,19 @@ extern "C" {
  * V1.3.4.5 - Fix some bugs
  * V1.4.0.0 - Add lock and unlock function instead INTERRUPT_ENABLE, INTERRUPT_DISABLE (for x86 perfomance upgrade)
  * V1.4.1.0 - Add macros ENABLE_LOGGING if logging not need
- * 1.4.2    - Add large memory manager
- * 1.4.3    - Small changes in datastruct manager
- * 1.4.3.1  - Small add volatile qualificators in all global data
- * 1.4.4    - Fix power save bugs
- * 1.4.4.1  - Technical version (fix bug in MSP430 powersave mode with NATIVE_TIMER_PWR_SAVE)
- * 1.4.4.2  - Techinical commit
+ * V1.4.2    - Add large memory manager
+ * V1.4.3    - Small changes in datastruct manager
+ * V1.4.3.1  - Small add volatile qualificators in all global data
+ * V1.4.4    - Fix power save bugs
+ * V1.4.4.1  - Technical version (fix bug in MSP430 powersave mode with NATIVE_TIMER_PWR_SAVE)
+ * V1.4.4.2  - Techinical commit
+ * V1.4.4.3  - Small fixes timer interrupt (add clean interrupt flag instrution) + small optimiztion with strings
+ * V1.4.4.4  - Fix Sprintf in MyString for print float
+ * V1.4.5.0  - Add loadAverage in OS (not tested yet)
+ * V1.4.5.1  - Add compiler specific attributes
+ * V1.4.5.2  - Change load avarage coefficient
  * */
-const char* const _osVersion = "V1.4.4.2";
+const char* const _osVersion = "V1.4.5.2";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
 
 static void TaskManager(void);
@@ -68,6 +73,17 @@ extern void initEventList( void );
 
 #ifdef CLOCK_SERVICE
 extern volatile Time_t __systemSeconds;
+#endif
+
+#ifdef LOAD_STATISTIC
+static u32 idleTicks = 0;					 // Кол-во времени в Idle процессе
+u32 getLoadAvarage() {
+	u32 workTicks = getTick();
+	u32 t = idleTicks;
+	while(t != idleTicks) t=idleTicks;
+	if(workTicks > t) return (u32)((u64)((workTicks - t)*10000UL)/workTicks);
+	return 0;
+}
 #endif
 
 static void ClockService( void );
@@ -116,12 +132,15 @@ u32 getTick(void) {
 	return time_res;
 }
 
-
 static void ClockService(void){
+	unlock_t unlock = lock((const void* const)&GlobalTick);
 #ifdef _PWR_SAVE
 	GlobalTick += _minTimeOut;
 #else
 	GlobalTick++;
+#endif
+#ifdef LOAD_STATISTIC
+	if(GlobalTick < idleTicks) idleTicks = 0; // Если глобальный счетчик тиков ОС переполнился чистим и счетчик времени в idle процессе
 #endif
 #ifdef CLOCK_SERVICE
 	while(GlobalTick >= TICK_PER_SECOND) {
@@ -129,6 +148,7 @@ static void ClockService(void){
 		GlobalTick -= TICK_PER_SECOND;
 	}
 #endif
+	unlock((const void* const)&GlobalTick);
 }
 
 void SetIdleTask(const IdleTask_t Task){
@@ -138,8 +158,20 @@ void SetIdleTask(const IdleTask_t Task){
 }
 
 static void Idle(void) { // Функция включает режим пониженного электропотребления микроконтроллера. При этом перестает работать ядро.
+#ifdef LOAD_STATISTIC
+	 u32 startTick = getTick();
+#endif
 	if(IdleTask != NULL) IdleTask();
+#ifdef LOAD_STATISTIC
+	u32 stopTick = getTick();
+	if(stopTick > startTick) {
+		unlock_t unlock = lock(&idleTicks);
+		idleTicks += stopTick-startTick;
+		unlock(&idleTicks);
+	}
+#endif
 }
+
 /********************************************************************************************************************
  *********************************************************************************************************************
 |					МЕНЕДЖЕР ЗАДАЧ	 														|
@@ -184,7 +216,7 @@ void initFemtOS (void) {  // Инициализация менеджера за�
 	//INTERRUPT_ENABLE;
 }
 
-void runFemtOS( void ) {
+CC_NO_RETURN void runFemtOS( void ) {
 	while(TRUE) {
 #ifdef EVENT_LOOP_TASKS
 		EventManager();
@@ -193,8 +225,8 @@ void runFemtOS( void ) {
 	}
 }
 
-void ResetFemtOS(void){
-	WATCH_DOG_ON;
+CC_NO_RETURN void ResetFemtOS(void){
+	initWatchDog();
 	while(1);
 }
 
@@ -256,7 +288,7 @@ static volatile u08 countEnd = 0;      // Указатель на КОНЕЦ о�
 Берем количество параметров из глобального стека и передаем взятой функции, которая берет свои параметры из глобального стека.
  */
 static void TaskManager(void) {
-	unlock_t unlock = lock((void*)TaskList);
+	unlock_t unlock = lock((const void* const)TaskList);
 	if(countBegin != countEnd) { // Если очередь не пустая
 	// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
 		TaskMng Func_point = TaskList[countBegin].Task; // countBegin - указывает на начало очереди на рабочую задачу
@@ -266,7 +298,7 @@ static void TaskManager(void) {
 		unlock((void*)TaskList);
 		Func_point(n,a);
 	} else {
-		unlock((void*)TaskList); // Если очередь пустая включаем прерывания
+		unlock((const void* const)TaskList); // Если очередь пустая включаем прерывания
 		Idle();           // И выполняем функция простоя
 	}
 }
@@ -303,7 +335,7 @@ u08 getFreePositionForTask(void){
 
 #ifdef SET_FRONT_TASK_ENABLE
 void SetFrontTask (const TaskMng New_Task, const BaseSize_t n, const BaseParam_t data){ // Функция помещает в НАЧАЛО очереди задачу New_Task
-	unlock_t unlock = lock(TaskList);
+	unlock_t unlock = lock((const void* const)TaskList);
 	register u08 count = (countBegin)? countBegin-1:TASK_LIST_LEN-1; // Определяем указатель начала очереди куда должны вставить новую задачку
 	if(count != countEnd) {   // Если очередь еще не переполнена
 	// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
@@ -311,7 +343,7 @@ void SetFrontTask (const TaskMng New_Task, const BaseSize_t n, const BaseParam_t
 		TaskList[countBegin].Task = New_Task;
 		TaskList[countBegin].arg_n = n;
 		TaskList[countBegin].arg_p = data;
-		unlock(TaskList);
+		unlock((const void* const)TaskList);
 		return;
 	}
 	// Здесь мы окажемся если все таки очередь переполнена (мало вероятный случай)

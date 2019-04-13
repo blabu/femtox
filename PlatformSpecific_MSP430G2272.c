@@ -16,7 +16,13 @@
         while(1);
     }
 #else
+#include "MyString.h"
     void MaximizeErrorHandler(const string_t str){
+        _no_operation();
+        if(strCompare(str, "HELLo")) {
+            replaceAllSymbols(str,'A','O',0);
+        }
+        _no_operation();
     }
 #endif
 
@@ -87,6 +93,7 @@ u32 _setTickTime(u32 timerTicks) {
             #define TIME_TICKS maxTicks * TIMER_CONST
             TimerDelay = TIME_TICKS;      // Выставляем TimerDelay максимально возможной величины
             TBCTL &= ~MC1; // STOP TIMER
+            TBCCTL0 &= ~CCIFG; // Очистка флага прерывания на всякий случай (если прерывание уже было сгенерировано до входа сюда)
             TBCCR0 = (u16)(TBR + TimerDelay);
             TBCTL |= MC1; //START TIMER
             return maxTicks;
@@ -94,6 +101,7 @@ u32 _setTickTime(u32 timerTicks) {
             #undef TIMER_TICKS
         }
         TBCTL &= ~MC1; // STOP TIMER
+        TBCCTL0 &= ~CCIFG; // Очистка флага прерывания на всякий случай (если прерывание уже было сгенерировано до входа сюда)
         TBCCR0 = (u16)(TBR + TimerDelay);
         TBCTL |= MC1; //START TIMER
     }
@@ -110,7 +118,7 @@ u32 _getTickTime() { // Сколько времени прошло с момен
 }
 #endif
 
-static void unlock(const void*const resourceId) {
+static volatile void unlock(const void*const resourceId) {
     __enable_interrupt();
 }
 
@@ -119,7 +127,7 @@ static void empty(const void*const resourceId) {}
 unlock_t lock(const void*const resourceId){
     if((__get_interrupt_state() & GIE)) {
         __disable_interrupt();
-        return unlock;
+        return (unlock_t)unlock;
     }
     return empty;
 }

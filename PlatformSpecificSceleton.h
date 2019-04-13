@@ -8,9 +8,21 @@
 #ifndef FEMTOX_PLATFORMSPECIFICSCELETON_H_
 #define FEMTOX_PLATFORMSPECIFICSCELETON_H_
 
-#define TICK_PER_SECOND 1UL
+#include "FemtoxTypes.h"
+
+#define TICK_PER_SECOND 128 /*Колличество тиков в секунду*/
+
 unlock_t lock(const void*const resourceId);
-void initWatchDog();
+
+void initWatchDog(void);
 void resetWatchDog(void);
+
+void _init_Timer(void);
+
+void _initTimerSoftUart();
+void initProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK);
+void _deInitTimerSoftUart();
+void deInitProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK);
+
 
 #endif /* FEMTOX_PLATFORMSPECIFICSCELETON_H_ */

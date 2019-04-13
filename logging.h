@@ -23,6 +23,6 @@ void writeSymb(char symb);
 void writeLogByteArray(u08 sizeBytes, byte_ptr array);
 #endif
 #ifdef ALLOC_MEM_LARGE
-void writeLogByteArray(BaseSize_t sizeBytes, byte_ptr array);
+void writeLogByteArray(u08 sizeBytes, byte_ptr array);
 #endif
 #endif /* LOGGING_H_ */
