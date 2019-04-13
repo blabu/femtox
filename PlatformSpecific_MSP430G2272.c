@@ -16,7 +16,13 @@
         while(1);
     }
 #else
+#include "MyString.h"
     void MaximizeErrorHandler(const string_t str){
+        _no_operation();
+        if(strCompare(str, "HELLo")) {
+            replaceAllSymbols(str,'A','O',0);
+        }
+        _no_operation();
     }
 #endif
 

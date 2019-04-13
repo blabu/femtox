@@ -127,7 +127,7 @@ BaseSize_t replaceAllSymbols(string_t c_str,const char origin, const char replac
 }
 
 // Разбивает строку на подстроки. Заменяет символ delim концом ситроки. Вернет кол-во подстрок в строке
-BaseSize_t strSplit(char delim, string_t c_str) {
+BaseSize_t strSplit(char delim, const string_t c_str) {
     if(c_str == NULL) return 0;
     BaseSize_t numb = replaceAllSymbols(c_str,delim,END_STRING,0) + 1;
     return numb;
@@ -198,7 +198,7 @@ void toStringUnsign(u08 capacity, u64 data, string_t c_str){
 }
 
 //Вернет размер строки
-BaseSize_t toUpperCase(string_t str) {
+BaseSize_t toUpperCase(const string_t str) {
 	if(str != NULL) {
 		BaseSize_t i = 0;
 		while(str[i] != END_STRING) {
@@ -215,7 +215,7 @@ BaseSize_t toUpperCase(string_t str) {
 }
 
 //Вернет размер строки
-BaseSize_t toLowerCase(string_t str) {
+BaseSize_t toLowerCase(const string_t str) {
 	if(str != NULL) {
 	BaseSize_t i = 0;
 	while(str[i] != END_STRING) {
@@ -354,7 +354,7 @@ bool_t isAsciiOrNumb(const char symb) {
 	return FALSE;
 }
 
-void shiftStringLeft(BaseSize_t poz, string_t c_str){
+void shiftStringLeft(BaseSize_t poz, const string_t c_str){
   BaseSize_t size = strSize(c_str);
   BaseSize_t i=0;
   while(poz<size){
@@ -364,7 +364,7 @@ void shiftStringLeft(BaseSize_t poz, string_t c_str){
   c_str[i] = END_STRING;
 }
 
-void shiftStringRight(BaseSize_t poz, string_t c_str) {
+void shiftStringRight(BaseSize_t poz, const string_t c_str) {
 	BaseSize_t size = strSize(c_str)+2; // With END_STRING
 	poz += size;
 	while(size) {
@@ -398,7 +398,7 @@ void doubleToString(double data, string_t c_str, u08 precision) {
 
 // Заполняет строку одним символом справа
 // Например: исходная строка "113" после выполнения этой функции строка может быть "00113"
-void fillRightStr(u16 size, string_t str, char symb) {
+void fillRightStr(u16 size, const string_t str, char symb) {
 	s16 s = size - strSize(str);
 	if(s <= 0) return;
 	shiftStringRight(s,str);
@@ -424,7 +424,7 @@ void fillRightStr(u16 size, string_t str, char symb) {
  * %c, symb
  * %s, string
  * */
-void Sprintf(string_t result, const string_t paternStr, void** params) {
+void Sprintf(const string_t result, const string_t paternStr, void** params) {
 	if(result == NULL || paternStr == NULL) return;
 	if(params == NULL) {
 		u08 size = strSize(paternStr);

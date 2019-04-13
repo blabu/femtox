@@ -21,7 +21,7 @@ void disableLogLevel(string_t level) {}
 
 void writeLogWhithStr(const string_t c_str, u32 n){}
 
-void writeLogStr(const string_t c_str){}
+void writeLogStr(const string_t c_str){_no_operation();}
 
 void writeLogTempString(string_t tempStr){}
 
