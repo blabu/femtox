@@ -18,6 +18,7 @@
 #define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/  /*NEED IT FOR INCOMING PHONE CALL*/
 #define SIGNALS_TASK /*NEED IT FOR INCOMING PHONE CALL*/
 #endif
+//#define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/  /*NEED IT FOR INCOMING PHONE CALL*/
 //#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
 //#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 #define ALLOC_MEM   /*Включение динамического выделения памяти*/
