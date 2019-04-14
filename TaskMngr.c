@@ -33,8 +33,9 @@ extern "C" {
  * V1.4.5.0  - Add loadAverage in OS (not tested yet)
  * V1.4.5.1  - Add compiler specific attributes
  * V1.4.5.2  - Change load avarage coefficient
+ * V1.4.5.3  - Delete double blocking timer queue in power save mode + fix bug in PlatformSpecificMSP in power save mode
  * */
-const char* const _osVersion = "V1.4.5.2";
+const char* const _osVersion = "V1.4.5.3";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
 
 static void TaskManager(void);
@@ -133,7 +134,7 @@ u32 getTick(void) {
 }
 
 static void ClockService(void){
-	unlock_t unlock = lock((const void* const)&GlobalTick);
+	unlock_t unlock = lock((const void* const)(&GlobalTick));
 #ifdef _PWR_SAVE
 	GlobalTick += _minTimeOut;
 #else
@@ -148,7 +149,7 @@ static void ClockService(void){
 		GlobalTick -= TICK_PER_SECOND;
 	}
 #endif
-	unlock((const void* const)&GlobalTick);
+	unlock((const void* const)(&GlobalTick));
 }
 
 void SetIdleTask(const IdleTask_t Task){
@@ -414,7 +415,6 @@ static void TimerService (void) {
 
 void SetTimerTask(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data, const Time_t New_Time){
 	if(New_Time == 0) {SetTask(TPTR, n, data); return;}
-	unlock_t unlock = lock((void*)MainTime);
 	if(_lastTimerIndex < TIME_LINE_LEN){ // Если очередь не переполнена
 #ifdef _PWR_SAVE
 	    /*Вначале производим апдейт всех уже существующих таймеров*/
@@ -426,6 +426,7 @@ void SetTimerTask(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data
             }
         }
 #endif
+        unlock_t unlock = lock((void*)MainTime);
 		MainTimer[_lastTimerIndex].Task = TPTR;
 		MainTimer[_lastTimerIndex].arg_n = n;
 		MainTimer[_lastTimerIndex].arg_p = data;
@@ -434,7 +435,6 @@ void SetTimerTask(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data
 		unlock((void*)MainTime);
 	} else {
 		MaximizeErrorHandler("PANIC: HAVE NOT MORE TIMERS");
-		unlock((void*)MainTime);
 	}
 }
 

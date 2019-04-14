@@ -245,9 +245,6 @@ static u16 sizeAllFreeMemmory = HEAP_SIZE;
 
 void initHeap(void){
 	heap[0] = 0;
-#if REGISTRY_ALLOCATE_MEMMORY_SIZE > 0
-	clearAllRegister();
-#endif
 }
 
 u16 getFreeMemmorySize(void){
@@ -278,9 +275,6 @@ void clearAllMemmory(void){
     	i+=blockSize+1;
     }
     unlock(heap);
-#if REGISTRY_ALLOCATE_MEMMORY_SIZE > 0
-    clearAllRegister();
-#endif
 }
 
 
@@ -322,7 +316,7 @@ byte_ptr allocMem(const u08 size) { //size - до 127 размер блока в
 }
 
 #ifdef CHECK_ERRORS_FREE_MEMMORY
-// TODO Test it
+#include "logging.h"
 void freeMem(const byte_ptr data) {
 	if(data > heap &&
 	   data < heap + HEAP_SIZE)  // Если мы передали валидный указатель
@@ -341,7 +335,7 @@ void freeMem(const byte_ptr data) {
 		}
 		MaximizeErrorHandler("Try free memmory with incorrect pointer");
 	} else {
-		MaximizeErrorHandler("Out of bounds when try free memmory");
+		writeLogStr("Out of bounds when try free memmory");
 	}
 }
 

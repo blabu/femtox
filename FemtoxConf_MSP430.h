@@ -19,12 +19,14 @@
 #define SIGNALS_TASK /*NEED IT FOR INCOMING PHONE CALL*/
 #endif
 //#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
-//#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 #define ALLOC_MEM   /*Включение динамического выделения памяти*/
 //#define ALLOC_MEM_LARGE 1   /*Включение динамического выделения памяти без ограничения размера*/
 //#define EVENT_LOOP_TASKS
 //#define USE_SOFT_UART
+#ifndef REMOTE_CONTROL_BY_PHONE
 #define CLOCK_SERVICE
+#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
+#endif
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
 //#define _LIST_STRUCT
@@ -38,8 +40,8 @@
 //#define NEED_MATRIX
 #define STANDART_MEMCPY_MEMSET
 
-#define TASK_LIST_LEN 4U /*Длина очереди задач*/
-#define TIME_LINE_LEN 7U /*Максимальне количество системных таймеров*/
+#define TASK_LIST_LEN 4U /*4 Длина очереди задач*/
+#define TIME_LINE_LEN 7U /*7 Максимальне количество системных таймеров*/
 #define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
 #ifdef EVENT_LOOP_TASKS
@@ -59,7 +61,7 @@
 #endif
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 360UL /*6500*/
+#define HEAP_SIZE 360UL
 #define CHECK_ERRORS_FREE_MEMMORY
 #endif
 

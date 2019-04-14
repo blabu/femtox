@@ -109,12 +109,12 @@ u32 _setTickTime(u32 timerTicks) {
 }
 
 u32 _getTickTime() { // Сколько времени прошло с момента начала отсета до сейчас в стандартных тиках ОС
-    u16 res = 0;
+    u32 res = 0;
     TBCTL &= ~MC1; // STOP TIMER
     if(TBCCR0 > TBR) res = TimerDelay - (TBCCR0 - TBR);
     else res = TimerDelay - ((0xFFFF-TBR)+TBCCR0);
     TBCTL |= MC1; //START TIMER
-    return res;
+    return (res/TIMER_CONST);
 }
 #endif
 
