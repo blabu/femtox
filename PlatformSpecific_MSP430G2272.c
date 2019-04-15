@@ -16,13 +16,9 @@
         while(1);
     }
 #else
-#include "MyString.h"
+#include "logging.h"
     void MaximizeErrorHandler(const string_t str){
-        _no_operation();
-        if(strCompare(str, "HELLo")) {
-            replaceAllSymbols(str,'A','O',0);
-        }
-        _no_operation();
+        writeLogStr(str);
     }
 #endif
 
@@ -140,9 +136,6 @@ unlock_t lock(const void*const resourceId){
 \\\\         и настройки            ////
 ****************************************
 */
-#define RX_PORT   P1OUT
-#define TX_DIR    P1DIR
-#define RX_DIR    P1DIR
 
 #define TIME_CLK_us 52/*104-52 мкс (16 МГц)  78 - 52 мкс (12 МГц)  52 - SMCLK = 8MHz*/
 void _initTimerSoftUart() {

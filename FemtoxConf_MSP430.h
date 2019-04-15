@@ -21,12 +21,16 @@
 //#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
 #define ALLOC_MEM   /*Включение динамического выделения памяти*/
 //#define ALLOC_MEM_LARGE 1   /*Включение динамического выделения памяти без ограничения размера*/
-//#define EVENT_LOOP_TASKS
-//#define USE_SOFT_UART
+#ifdef INTERNET_CONTROL_APP
+#define EVENT_LOOP_TASKS
+#endif
+#ifdef INTERNET_CONTROL_APP
+#define USE_SOFT_UART
+#endif
 #ifndef REMOTE_CONTROL_BY_PHONE
 #define CLOCK_SERVICE
-#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 #endif
+#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
 //#define _LIST_STRUCT

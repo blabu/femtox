@@ -138,7 +138,46 @@ static void UART_TX2_to_buff(){  // Запись принятого байта �
         ENABLE_UART_TIMER_ISR;
         return;
     }
-    UART_TRANS_DISABLE(1);
+    UART_TRANS_DISABLE(2);
+}
+#endif
+
+#if(UART_NUMB > 3)
+/********************UART_2**********************************/
+static bool_t isStartBit3(){ // Для инициализации события (поиск стартоаого бита)
+  if(UART_RX_DATA[3].curentCount < 0) { // Если таймер выключен
+    if(! READ_RX_PIN(RX_PIN, UART_RX_DATA[3].Mask) ) {  // Проверяем стартовый бит
+      return TRUE;             // Если стартового бита обнаружен
+    }
+  }
+  return FALSE;
+}
+static void StartReceive3(){ // Запуск приема
+  CLEAR_TIMER;
+  UART_RX_DATA[3].curentCount = UART_RX_DATA[3].Baud + (UART_RX_DATA[3].Baud>>2);
+}
+static bool_t UART_RX3_predicate(){  // Если байт принят вернем истину
+    if(UART_RECEIV_IS_READY(3)) return TRUE;
+    return FALSE;
+}
+static void UART_RX3_to_buff(){  // Запись принятого байта в буфер
+    UART_RECEIV_DISABLE(3); // Выключаем UART
+    PutToBackQ(&UART_RX_DATA[3].Data, UART_RX_DATA[3].buffer); // Записывае байт в буфер
+}
+static bool_t UART_TX3_predicate(){  // Если байт принят вернем истину
+    if(UART_TRANS_IS_READY(3)) return TRUE;
+    return FALSE;
+}
+static void UART_TX3_to_buff(){  // Запись принятого байта в буфер
+    unsigned char temp = 0;
+    if(GetFromQ(&temp, UART_TX_DATA[3].buffer) == EVERYTHING_IS_OK) {
+        DISABLE_UART_TIMER_ISR;
+        UART_TX_DATA[3].Data = temp;
+        UART_TX_DATA[3].curentCount = 0;
+        ENABLE_UART_TIMER_ISR;
+        return;
+    }
+    UART_TRANS_DISABLE(3);
 }
 #endif
 
@@ -186,6 +225,15 @@ void enableSoftUART(bool_t txEnable, bool_t rxEnable) {
       if(txEnable) CreateEvent(UART_TX2_predicate, UART_TX2_to_buff);
     }
 #endif
+#if(UART_NUMB > 3)
+    if(i == 3) {
+      if(rxEnable) {
+        CreateEvent(isStartBit3,StartReceive3);  // Регистрируем событие поиска стартового бита
+        CreateEvent(UART_RX3_predicate, UART_RX3_to_buff); // Регистрируем событие сохранения принятого байта в буфер
+      }
+      if(txEnable) CreateEvent(UART_TX3_predicate, UART_TX3_to_buff);
+    }
+#endif
   }
   _initTimerSoftUart();
 }
@@ -213,6 +261,13 @@ void disableSoftUART() {
         delEvent(isStartBit2);  // Регистрируем событие поиска стартового бита
         delEvent(UART_RX2_predicate); // Регистрируем событие сохранения принятого байта в буфер
         delEvent(UART_TX2_predicate);
+    }
+#endif
+#if(UART_NUMB > 3)
+    if(i == 3) {
+        delEvent(isStartBit3);  // Регистрируем событие поиска стартового бита
+        delEvent(UART_RX3_predicate); // Регистрируем событие сохранения принятого байта в буфер
+        delEvent(UART_TX3_predicate);
     }
 #endif
    }

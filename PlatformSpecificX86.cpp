@@ -29,6 +29,8 @@ void MaximizeErrorHandler(string_t str){
 }
 #else
 void MaximizeErrorHandler(string_t str){
+	writeLogStr("ERROR handler");
+	writeLogStr(str);
 }
 #endif
 /********************************************************************************************************************

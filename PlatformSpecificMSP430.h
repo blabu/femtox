@@ -20,22 +20,20 @@ unlock_t lock(const void*const resourceId);
 
 void _init_Timer(void);	// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
 
-#include "../PROPERTIES.h"
 #ifdef USE_SOFT_UART
-#ifdef YAMPOL
-#define TX_PORT   P3OUT
-#define RX_PIN    P3IN
-#endif
-#ifdef G25_TANDEM
-#define TX_PORT   P1OUT
-#define RX_PIN    P1IN
-#endif
 /*
  * Для программного UART
  * Все програмные UART задействует прерывания одного таймера
  * Все програмные UART должны находится на одном порту ввода вывода, который указывается здесь же
  * Если программных UART будет больше двух необходимо добавлять новые функции в ProgramUART.c
 */
+
+#define RX_PORT   P2OUT
+#define TX_PORT   P2OUT
+#define RX_PIN    P2IN
+#define TX_DIR    P2DIR
+#define RX_DIR    P2DIR
+
 void _initTimerSoftUart();
 void _deInitTimerSoftUart();
 void initProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK);

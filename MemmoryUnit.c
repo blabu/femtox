@@ -245,6 +245,9 @@ static u16 sizeAllFreeMemmory = HEAP_SIZE;
 
 void initHeap(void){
 	heap[0] = 0;
+#if REGISTRY_ALLOCATE_MEMMORY_SIZE > 0
+	clearAllRegister();
+#endif
 }
 
 u16 getFreeMemmorySize(void){
@@ -275,6 +278,9 @@ void clearAllMemmory(void){
     	i+=blockSize+1;
     }
     unlock(heap);
+#if REGISTRY_ALLOCATE_MEMMORY_SIZE > 0
+    clearAllRegister();
+#endif
 }
 
 
