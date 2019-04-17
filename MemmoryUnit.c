@@ -339,9 +339,9 @@ void freeMem(const byte_ptr data) {
 			u08 blockSize = heap[i] & 0x7F;
 			i+=(blockSize+1);
 		}
-		MaximizeErrorHandler("Try free memmory with incorrect pointer");
+		MaximizeErrorHandler("Try free memory with incorrect pointer");
 	} else {
-		writeLogStr("Out of bounds when try free memmory");
+		writeLogStr("Out of bounds when try free memory");
 	}
 }
 
