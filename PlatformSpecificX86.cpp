@@ -1,3 +1,6 @@
+#ifdef _MSVC_LANG
+#include "../stdafx.h"
+#endif
 #ifdef _WIN32
 #include <thread>
 #include <mutex>
@@ -23,13 +26,13 @@ extern void TimerISR();
 #ifdef MAXIMIZE_OVERFLOW_ERROR
 void MaximizeErrorHandler(string_t str){
 	initWatchDog();
-	writeLogStr("ERROR handler");
+	writeLogStr((string_t)"ERROR handler");
 	writeLogStr(str);
 	exit(2);
 }
 #else
 void MaximizeErrorHandler(string_t str){
-	writeLogStr("ERROR handler");
+	writeLogStr((string_t)"ERROR handler");
 	writeLogStr(str);
 }
 #endif
@@ -47,21 +50,21 @@ void resetWatchDog() {
 
 }
 
-#if RESOURCE_LIST > 0xFE
-#error "Resource size list must be less"
-#endif
-
-
 static std::recursive_mutex mtx;  // Рекурсивный мьютекс для ограничения доступа ко всем ресурсам сразу.
 // Не эффективный локер, но надежный 100%
 static void unLCK(const void *const resourceId) {mtx.unlock();}
-static unlock_t lock1(void* resourceId) {
+static unlock_t lock1(const void* const resourceId) {
 	mtx.lock();
 	return unLCK;
 }
 
 
-#define RESOURCE_LIST 10
+#define RESOURCE_LIST 25
+
+#if RESOURCE_LIST > 0xFE
+#error "Resource size list must be less"
+#endif
+
 struct {
 	std::mutex mt;  // Мьютекс защищающий определенный ресурс
 	void* resourceId;	// Уникальный идентификатор ресурса
@@ -80,11 +83,11 @@ static void unlock(const void*const resourceId) {
 }
 static void empty(const void* const resourceId) {}
 
-static unlock_t lock3(void* resourceId) {
+static unlock_t lock3(const void*const resourceId) {
 	return empty;
 }
 
-static unlock_t lock2(void* resourceId) {
+static unlock_t lock2(const void*const resourceId) {
 	s16 saveIndex = -1;
 	mt.lock();
 	for(u08 i=0; i<RESOURCE_LIST; i++) {
@@ -99,18 +102,18 @@ static unlock_t lock2(void* resourceId) {
 		if(resourceMutexList[i].resourceId == NULL) saveIndex = i;
 	}
 	if(saveIndex > 0) { // Еще ни разу не залоченный ресурс
-		resourceMutexList[saveIndex].resourceId = resourceId;
+		resourceMutexList[saveIndex].resourceId = (void*)resourceId;
 		resourceMutexList[saveIndex].mt.lock();
 		mt.unlock();
 		return unlock;
 	}
 	mt.unlock();
-	writeLogStr("WARN, Never be here list empty error");
+	writeLogStr((string_t)"WARN, Never be here list empty error");
 	return empty;
 }
 
 
-unlock_t lock(void* resourceId) {
+unlock_t lock(const void*const resourceId) {
 	//Здесь можно сделать выбор какой локер использовать
 	// lock1 - неэффективный по скорости, но надежный и простой на все ресурсы ОДИН примитив синхронизации
 	// lock2 - эффективный по скорости (для каждого ресурса свой мьютекс) Но сложнее, занимает больше места
@@ -131,19 +134,20 @@ static void __timer() {
 			dT = std::chrono::nanoseconds(0);
 		}
 		else {
+			writeSymb('?');
 			dT -= timeBase;
 		}
 	}
 }
 
-void _init_Timer(void){// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
-	writeLogStr("start init timer");
-	timerThread = new std::thread(__timer);
+void _init_Timer(void) {// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
+	writeLogStr((string_t)"start init timer");
 	mt.lock();
 	for(u08 i=0; i<RESOURCE_LIST; i++) {
 		resourceMutexList[i].resourceId = NULL;
 	}
 	mt.unlock();
+	timerThread = new std::thread(__timer);
 }
 
 /*
@@ -159,4 +163,3 @@ void _initTimerSoftUart() {
 void initProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK) {
 
 }
-

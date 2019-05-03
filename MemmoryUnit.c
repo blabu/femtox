@@ -163,8 +163,7 @@ byte_ptr allocMem(const BaseSize_t size) {
 }
 
 #ifdef CHECK_ERRORS_FREE_MEMMORY
-#include "logging.h"
-
+// TODO Test it
 void freeMem(const byte_ptr data) {
 	if(data > heap &&
 	   data < heap + HEAP_SIZE)  // Если мы передали валидный указатель
@@ -185,7 +184,7 @@ void freeMem(const byte_ptr data) {
 		}
 		MaximizeErrorHandler("Try free memmory with incorrect pointer");
 	} else {
-		writeLogStr("Out of bounds when try free memmory");
+		MaximizeErrorHandler("Out of bounds when try free memmory");
 	}
 }
 #else

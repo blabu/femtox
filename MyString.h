@@ -28,7 +28,7 @@ void strCat(string_t c_str1, const string_t c_str2);
 
 //Копирует numb байт строки c_str начиная с позиции pos в строку result.
 void strCopy(string_t result, const string_t c_str, BaseSize_t numb, BaseSize_t pos);
-char* strcpy (string_t destination, const string_t source);
+char* myStrcpy(string_t destination, const string_t source);
 void strClear(string_t str);
 
 // Вернет кол-во замен (в строке c_str, но не больше размера size, если size==0 тогда до конца строки)
@@ -85,7 +85,7 @@ void doubleToString(double data, string_t c_str, u08 precision);
 void shiftStringLeft(BaseSize_t poz, const string_t c_str);
 void shiftStringRight(BaseSize_t poz, const string_t c_str);
 
-void fillRightStr(u16 size, string_t str, char symb);
+void fillRightStr(u16 size, const string_t str, char symb);
 
 //Вернет размер строки
 BaseSize_t strSize(const string_t c_str);

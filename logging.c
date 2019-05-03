@@ -21,7 +21,7 @@ void disableLogLevel(string_t level) {}
 
 void writeLogWhithStr(const string_t c_str, u32 n){}
 
-void writeLogStr(const string_t c_str){}
+void writeLogStr(const string_t c_str){_no_operation();}
 
 void writeLogTempString(string_t tempStr){}
 
@@ -36,21 +36,41 @@ void writeSymb(char symb) {}
 
 #ifdef _X86
 #include <stdio.h>
+#include "TaskMngr.h"
+#define LOCAL_MUTEX 1<<7
+
+//#define TO_FILE
+
 void enableUART2(u32 baud) {}
 void disableUART2() {}
+#ifdef TO_FILE
+FILE* file;
+#define F_OPEN(_file, _filename , _flags)  fopen_s( (FILE**)(_file), (char const*)(_filename), (char const*)(_flags))
+#else
+#define file stdout
+#define F_OPEN(_file, _filename , _flags) ;
+#endif
+void enableLogging() {
+	F_OPEN(&file, (string_t)"log.txt", (string_t)"wt");
+}
+
 static void sendCOM2_buf(u08 size, byte_ptr data) {
-	if(size == 0) printf("%s\n", data);
+	GET_MUTEX(LOCAL_MUTEX, sendCOM2_buf, size, data);
+	if(size == 0) fprintf_s(file,"%s", data);
 	else {
 		for(u08 i = 0; i<size; i++) {
-			printf("%x ",data[i]);
+			fprintf_s(file, "%x ",data[i]);
 		}
 	}
-	fflush(stdout);
+	fflush(file);
+	FREE_MUTEX(LOCAL_MUTEX);
 }
 
 static void sendUART2_buf(u08 c) {
-	printf("%c",c);
-	fflush(stdout);
+	GET_MUTEX(LOCAL_MUTEX, sendUART2_buf, c, NULL);
+	fprintf_s(file, "%c",c);
+	fflush(file);
+	FREE_MUTEX(LOCAL_MUTEX);
 }
 #endif
 
@@ -176,8 +196,8 @@ void writeLogByteArray(BaseSize_t sizeBytes, byte_ptr array){
 		writeLogStr("mem err in logging");
 		return;
 	}
-	u08 poz = 0;
-	for(u08 i = 0; i<sizeBytes; i++) {
+	BaseSize_t poz = 0;
+	for(BaseSize_t i = 0; i<sizeBytes; i++) {
 		toString(1,array[i],&str[poz]);
 		poz=strSize(str);
 		str[poz] = ' ';

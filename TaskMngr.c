@@ -498,7 +498,7 @@ void memCpy(void* destination, const void* source, const BaseSize_t num) {
 		}
 		for(u08 i = 0; i<last; i++) {
 			*((byte_ptr)destination) = *((byte_ptr)source);
-			(byte_ptr)destination++; (byte_ptr)source++;
+			((byte_ptr)destination)++; ((byte_ptr)source)++;
 		}
 #elif ARCH == 32
 	BaseSize_t blocks = num>>2;		// 4-ре байта копируются за один раз
@@ -542,7 +542,7 @@ void memSet(void* destination, const BaseSize_t size, const u08 value) {
 	}
 	for(BaseSize_t i = 0; i<last; i++) {
 		*((byte_ptr)destination) = value;
-		(byte_ptr)destination++;
+		((byte_ptr)destination)++;
 	}
 #elif ARCH == 32
 	BaseSize_t blocks = size>>2; // 4-ре байта копируются за один раз

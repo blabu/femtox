@@ -95,7 +95,7 @@ void strCopy(string_t result, const string_t c_str, BaseSize_t numb, BaseSize_t 
     result[i]=END_STRING;
 }
 
-char* strcpy (string_t destination, const string_t source) {
+char* myStrcpy (string_t destination, const string_t source) {
 	BaseSize_t size = strSize(source) + 1; // End byte too
 	memCpy(destination, source, size);
 	return destination;
@@ -156,11 +156,11 @@ void toStringUnsignDec(u64 data, string_t c_str){
 	u08 i = 0;
 	while(size) {
 		if(size != 1){
-				 c_str[i] = (data/offset) + 0x30;
+				 c_str[i] = (s08)((data/offset)&0x7F) + 0x30;
 				 data %= offset;
 				 offset /= 10;
 		}
-		else c_str[i] = (data+0x30)&0xFF;
+		else c_str[i] = (s08)((data+0x30)&0x7F);
 		size--;
 		i++;
 	}
@@ -302,26 +302,26 @@ s64 toInt64(const string_t c_str){
 s32 toInt32(const string_t c_str){
     s32 res = strSize(c_str);
     if(res<1) return 0;
-    res = toInt(4,c_str);
+    res = (s32)toInt(4,c_str);
     return res;
 }
 
 s16 toInt16(const string_t c_str){
 	s16 res = strSize(c_str);
 	if(res<1) return 0;
-	res = toInt(2,c_str);
+	res = (s16)toInt(2,c_str);
 	return res;
 }
 
 s08 toInt08(const string_t c_str){
 	s08 res = strSize(c_str);
 	if(res<1) return 0;
-	res = toInt(1,c_str);
+	res = (s08)toInt(1,c_str);
 	return res;
 }
 
 double toDouble(const string_t c_str) {
-	s32 whole = toIntDec(c_str);
+	s32 whole = (s32)toIntDec(c_str);
 	s16 poz = findSymb('.',c_str);
 	if(poz < 0) {
 		poz = findSymb(',',c_str);
