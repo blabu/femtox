@@ -31,7 +31,7 @@ typedef struct
 	BaseSize_t sizeElement;   // Размер одного элемента абстрактной структуры данных в байтах
 	BaseSize_t sizeAllElements;// Общий размер в количествах элементов в абстрактной структуре данных
 } AbstractDataType;
-volatile static AbstractDataType Data_Array[FEMTOX_ArraySize];   // Собственно сам массив абстрактных структур данных
+volatile static AbstractDataType Data_Array[DATA_STRUCT_ArraySize];   // Собственно сам массив абстрактных структур данных
 
 /***************************/
 /***************************/
@@ -40,14 +40,14 @@ void showAllDataStruct(void) {
 
 static inline u08 findNumberDataStruct(const void* const Data) {
 	register u08 i = 0;
-	for(; i<FEMTOX_ArraySize; i++) { // находим абстрактную структуру данных
+	for(; i<DATA_STRUCT_ArraySize; i++) { // находим абстрактную структуру данных
 		if(Data_Array[i].Data == Data) break;
 	}
 	return i;
 }
 
 void initDataStruct(void) {  // Инициализация абстрактной структуры данных
-	for(register u08 i = 0; i<FEMTOX_ArraySize; i++){
+	for(register u08 i = 0; i<DATA_STRUCT_ArraySize; i++){
 		Data_Array[i].firstCount = 0;
 		Data_Array[i].lastCount = 0;
 		Data_Array[i].Data = NULL;
@@ -60,12 +60,12 @@ void initDataStruct(void) {  // Инициализация абстрактно�
 // sizeElement - размер одного элемента в БАЙТАХ, sizeAll - размер очереди в ЭЛЕМЕНТАХ
 u08 CreateDataStruct(const void* D, const BaseSize_t sizeElement, const BaseSize_t sizeAll){
 	register u08 i = 0;
-	for(; i<FEMTOX_ArraySize; i++) // Ищем пустое место в списке для новой структуры данных
+	for(; i<DATA_STRUCT_ArraySize; i++) // Ищем пустое место в списке для новой структуры данных
 	{
 		if(Data_Array[i].Data == D) return OTHER_ERROR; // Если такая структура уже есть
 		if(Data_Array[i].Data == NULL) break;
 	}
-	if(i == FEMTOX_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;
+	if(i == DATA_STRUCT_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;
 	unlock_t unlock = lock(Data_Array[i].Data);
 	Data_Array[i].Data = (void*)D; // Адрес начала
 	Data_Array[i].sizeElement = sizeElement; // размер одного элемента в байтах
@@ -79,7 +79,7 @@ u08 CreateDataStruct(const void* D, const BaseSize_t sizeElement, const BaseSize
 // Удаляем абстрактную структуру данных
 u08 delDataStruct(const void* Data) { // Удаляем из массива абстрактную структуру данных с заданным идентификатором
 	u08 i = findNumberDataStruct(Data);
-	if(i == FEMTOX_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;  // Если такой не существует в массиве, выдаем ошибку
+	if(i == DATA_STRUCT_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;  // Если такой не существует в массиве, выдаем ошибку
 	unlock_t unlock = lock(Data_Array[i].Data);
 	Data_Array[i].Data = NULL;    // Если абстрактная структура данных есть удаляем ее
 	unlock(Data_Array[i].Data);
@@ -116,7 +116,7 @@ static BaseSize_t decFirst(volatile AbstractDataType* d) {
 
 u08 PutToCycleDataStruct(const void* Elem, const void* Array) {
 	register u08 i = findNumberDataStruct(Array);
-	if(i == FEMTOX_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если мы не нашли абстрактную структуру данных с указанным идентификтором выходим
+	if(i == DATA_STRUCT_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если мы не нашли абстрактную структуру данных с указанным идентификтором выходим
 	unlock_t unlock = lock(Data_Array[i].Data);
 	unsigned int offset = Data_Array[i].firstCount * Data_Array[i].sizeElement; //вычисляем смещение в байтах
 	void* dst = (void*)((byte_ptr)Data_Array[i].Data + offset);     // Определяем адресс куда копировать
@@ -129,7 +129,7 @@ u08 PutToCycleDataStruct(const void* Elem, const void* Array) {
 
 u08 GetFromCycleDataStruct(void* returnValue, const void* Array){
 	register u08 i = findNumberDataStruct(Array);
-	if(i == FEMTOX_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
+	if(i == DATA_STRUCT_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
 	unlock_t unlock = lock(Data_Array[i].Data);
 	if(Data_Array[i].lastCount > 0) { // Если есть какие либо данные
 		Data_Array[i].firstCount = decFirst(&Data_Array[i]);
@@ -148,7 +148,7 @@ u08 GetFromCycleDataStruct(void* returnValue, const void* Array){
 //Положить элемент Elem в начало структуры данных Array
 u08 PutToFrontDataStruct(const void* Elem, const void* Array){
 	register u08 i = findNumberDataStruct(Array);
-	if(i == FEMTOX_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если мы не нашли абстрактную структуру данных с указанным идентификтором выходим
+	if(i == DATA_STRUCT_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если мы не нашли абстрактную структуру данных с указанным идентификтором выходим
 	unlock_t unlock = lock(Data_Array[i].Data);
 	BaseSize_t frontCount = incFirst(&Data_Array[i]); 		  // Будущий указатель на СВОБОДНЫЙ элемент
 	if(frontCount != Data_Array[i].lastCount) {
@@ -166,7 +166,7 @@ u08 PutToFrontDataStruct(const void* Elem, const void* Array){
 // Положить элемент Elem в конец абстрактной структуры данных Array
 u08 PutToEndDataStruct(const void* Elem, const void* Array){
 	register u08 i = findNumberDataStruct(Array);
-	if(i == FEMTOX_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если мы не нашли абстрактную структуру данных с указанным идентификтором выходим
+	if(i == DATA_STRUCT_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если мы не нашли абстрактную структуру данных с указанным идентификтором выходим
 	unlock_t unlock = lock(Data_Array[i].Data);
 	BaseSize_t endCount = incLast(&Data_Array[i]);
 	if(endCount != Data_Array[i].firstCount){
@@ -183,7 +183,7 @@ u08 PutToEndDataStruct(const void* Elem, const void* Array){
 
 u08 GetFromFrontDataStruct(void* returnValue, const void* Array){ // Достаем элемент с начала структуры данных
 	register u08 i = findNumberDataStruct(Array);
-	if(i == FEMTOX_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
+	if(i == DATA_STRUCT_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
 	unlock_t unlock = lock(Data_Array[i].Data);
 	if(Data_Array[i].firstCount != Data_Array[i].lastCount) {
 		Data_Array[i].firstCount = decFirst(&Data_Array[i]);
@@ -199,7 +199,7 @@ u08 GetFromFrontDataStruct(void* returnValue, const void* Array){ // Доста�
 
 u08 GetFromEndDataStruct(void* returnValue, const void* Array) { // Достаем элемент с конца структуры данных
 	register u08 i = findNumberDataStruct(Array);
-	if(i == FEMTOX_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
+	if(i == DATA_STRUCT_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
 	unlock_t unlock = lock(Data_Array[i].Data);
 	if(Data_Array[i].lastCount != Data_Array[i].firstCount) {
 		unsigned int offset = Data_Array[i].lastCount*Data_Array[i].sizeElement;
@@ -215,7 +215,7 @@ u08 GetFromEndDataStruct(void* returnValue, const void* Array) { // Достае
 
 u08 delFromFrontDataStruct(const void* const Data){
 	register u08 i = findNumberDataStruct(Data);
-	if(i == FEMTOX_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
+	if(i == DATA_STRUCT_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
 	unlock_t unlock = lock(Data_Array[i].Data);
 	if(Data_Array[i].firstCount != Data_Array[i].lastCount) {
 		Data_Array[i].firstCount = decFirst(&Data_Array[i]);
@@ -228,7 +228,7 @@ u08 delFromFrontDataStruct(const void* const Data){
 
 u08 delFromEndDataStruct(const void* const Data) {
 	register u08 i = findNumberDataStruct(Data);
-	if(i == FEMTOX_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
+	if(i == DATA_STRUCT_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
 	unlock_t unlock = lock(Data_Array[i].Data);
 	if(Data_Array[i].lastCount != Data_Array[i].firstCount) {
 		Data_Array[i].lastCount = decLast(&Data_Array[i]);
@@ -241,7 +241,7 @@ u08 delFromEndDataStruct(const void* const Data) {
 
 u08 peekFromFrontData(void* returnValue, const void* Array) {
 	register u08 i = findNumberDataStruct(Array);
-	if(i == FEMTOX_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
+	if(i == DATA_STRUCT_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
 	unlock_t unlock = lock(Data_Array[i].Data);
 	if(Data_Array[i].firstCount != Data_Array[i].lastCount) {
 		u08 count = decFirst(&Data_Array[i]);
@@ -257,7 +257,7 @@ u08 peekFromFrontData(void* returnValue, const void* Array) {
 
 u08 peekFromEndData(void* returnValue, const void* Array) {
 	register u08 i = findNumberDataStruct(Array);
-	if(i == FEMTOX_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
+	if(i == DATA_STRUCT_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если в массиве нет искомой абстрактной структуры данных с заданным идентификатором
 	unlock_t unlock = lock(Data_Array[i].Data);
 	if(Data_Array[i].lastCount != Data_Array[i].firstCount) {
 		unsigned int offset = Data_Array[i].lastCount * Data_Array[i].sizeElement;
@@ -272,7 +272,7 @@ u08 peekFromEndData(void* returnValue, const void* Array) {
 
 void clearDataStruct(const void * const Data){
 	register u08 i = findNumberDataStruct(Data);
-	if(i == FEMTOX_ArraySize) return;
+	if(i == DATA_STRUCT_ArraySize) return;
 	unlock_t unlock = lock(Data_Array[i].Data);
 	Data_Array[i].firstCount = 0; // Очищаем от данных наш массив
 	Data_Array[i].lastCount = 0;
@@ -281,13 +281,13 @@ void clearDataStruct(const void * const Data){
 
 bool_t isEmptyDataStruct(const void* const Data){
 	register u08 i = findNumberDataStruct(Data);
-	if(i == FEMTOX_ArraySize) return TRUE; // Если такой структуры нет она точно пустая
+	if(i == DATA_STRUCT_ArraySize) return TRUE; // Если такой структуры нет она точно пустая
 	return (bool_t)(Data_Array[i].firstCount == Data_Array[i].lastCount); // Если они равны друг другу значит пустая
 }
 
 BaseSize_t getCurrentSizeDataStruct(const void* const Data) {
 	register u08 i = findNumberDataStruct(Data);
-	if(i == FEMTOX_ArraySize) return 0;
+	if(i == DATA_STRUCT_ArraySize) return 0;
 	BaseSize_t first = 0;
 	BaseSize_t last = 0;
 	while(first != Data_Array[i].firstCount) first = Data_Array[i].firstCount;
@@ -299,7 +299,7 @@ BaseSize_t getCurrentSizeDataStruct(const void* const Data) {
 
 void for_each(const void* const Array, TaskMng tsk) {
 	register u08 i = findNumberDataStruct(Array);
-	if(i == FEMTOX_ArraySize) return;
+	if(i == DATA_STRUCT_ArraySize) return;
 	BaseSize_t first = 0;
 	BaseSize_t last = 0;
 	while(first != Data_Array[i].firstCount) first = Data_Array[i].firstCount; // Первый свободный элемент структуры

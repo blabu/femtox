@@ -34,8 +34,9 @@ extern "C" {
  * V1.4.5.1  - Add compiler specific attributes
  * V1.4.5.2  - Change load avarage coefficient
  * V1.4.5.3  - Delete double blocking timer queue in power save mode + fix bug in PlatformSpecificMSP in power save mode
+ * V1.4.5.4  - Add Readme.md, Now compiled in Visual Studio
  * */
-const char* const _osVersion = "V1.4.5.3";
+const char* const _osVersion = "V1.4.5.4";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
 
 static void TaskManager(void);

@@ -53,7 +53,7 @@
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
-#define FEMTOX_ArraySize   3 /*Общее количество всех структур данных*/
+#define DATA_STRUCT_ArraySize   3 /*Общее количество всех структур данных*/
 #endif
 
 #ifdef MUTEX_ENABLE
