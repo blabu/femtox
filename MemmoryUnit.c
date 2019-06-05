@@ -128,7 +128,7 @@ static void free(byte_ptr startBlock) {
 	}
 }
 
-byte_ptr allocMem(const BaseSize_t size) {
+static byte_ptr _allocMem(const BaseSize_t size) {
 	if(size > 0) {
 		BaseSize_t i = 0;
 		unlock_t unlock = lock(heap);
@@ -160,6 +160,15 @@ byte_ptr allocMem(const BaseSize_t size) {
 		unlock(heap);
 	}
 	return NULL;
+}
+
+byte_ptr allocMem(const u08 size) {
+    byte_ptr res = _allocMem(size);
+    if(res == NULL) {
+        defragmentation();
+        return _allocMem(size);
+    }
+    return res;
 }
 
 #ifdef CHECK_ERRORS_FREE_MEMMORY
@@ -283,8 +292,7 @@ void clearAllMemmory(void){
 #endif
 }
 
-
-byte_ptr allocMem(const u08 size) { //size - до 127 размер блока выделяемой памяти
+static byte_ptr _allocMem(const u08 size) { //size - до 127 размер блока выделяемой памяти
 	if(size < 128 && size) {
 		u16 i = 0;  // Поиск свободного места начнем с нулевого элемента, максимум определен размером u16
 		unlock_t unlock = lock(heap);
@@ -319,6 +327,15 @@ byte_ptr allocMem(const u08 size) { //size - до 127 размер блока в
 		return (heap + i + 1); // Иначе вернем валидный указатель на начало массива
 	}
     return NULL;
+}
+
+byte_ptr allocMem(const u08 size) {
+    byte_ptr res = _allocMem(size);
+    if(res == NULL) {
+        defragmentation();
+        return _allocMem(size);
+    }
+    return res;
 }
 
 #ifdef CHECK_ERRORS_FREE_MEMMORY
