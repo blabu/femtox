@@ -42,7 +42,7 @@
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
-#define ArraySize   12 /*Общее количество всех структур данных*/
+#define DATA_STRUCT_ArraySize   12 /*Общее количество всех структур данных*/
 #endif
 
 #ifdef MUTEX_ENABLE

@@ -659,8 +659,8 @@ BaseSize_t base64Decode(const string_t input, byte_ptr output) {
 
 	  while (in_len-- && ( input[in_] != '=') && isBase64(input[in_])) {
 	    char_array_4[i++]=input[in_++];
-	    if (i ==4) {
-	      for (i = 0; i <4; i++) char_array_4[i] = findSymb(char_array_4[i], base64Chars);
+	    if (i == 4) {
+	      for (i = 0; i<4; i++) char_array_4[i] = (u08)findSymb(char_array_4[i], base64Chars);
 
 	      char_array_3[0] = ( char_array_4[0] << 2       ) + ((char_array_4[1] & 0x30) >> 4);
 	      char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
@@ -671,7 +671,7 @@ BaseSize_t base64Decode(const string_t input, byte_ptr output) {
 	    }
 	  }
 	  if (i) {
-	    for (j = 0; j < i; j++) char_array_4[j] = findSymb(char_array_4[j], base64Chars);
+	    for (j = 0; j < i; j++) char_array_4[j] = (u08)findSymb(char_array_4[j], base64Chars);
 
 	    char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
 	    char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);

@@ -284,23 +284,23 @@ void setDate(string_t date) {
 	Date_t resultData;
 	if(strSize(date) < 17) { return;}
 	strCopy(tempStr,date,2,0);
-	resultData.year = toIntDec(tempStr);
+	resultData.year = (u16)toIntDec(tempStr);
 	resultData.year = toStandartYear(resultData.year);
 	strClear(tempStr);
 	strCopy(tempStr,date,2,3);
-	resultData.mon = toIntDec(tempStr);
+	resultData.mon = (u08)toIntDec(tempStr);
 	strClear(tempStr);
 	strCopy(tempStr,date,2,6);
-	resultData.day = toIntDec(tempStr);
+	resultData.day = (u08)toIntDec(tempStr);
 	strClear(tempStr);
 	strCopy(tempStr,date,2,9);
-	resultData.hour = toIntDec(tempStr);
+	resultData.hour = (u08)toIntDec(tempStr);
 	strClear(tempStr);
 	strCopy(tempStr,date,2,12);
-	resultData.min = toIntDec(tempStr);
+	resultData.min = (u08)toIntDec(tempStr);
 	strClear(tempStr);
 	strCopy(tempStr,date,2,15);
-	resultData.sec = toIntDec(tempStr);
+	resultData.sec = (u08)toIntDec(tempStr);
 	Time_t tempSeconds = getSecondsFromDate(&resultData);
 	setSeconds(tempSeconds);
 }

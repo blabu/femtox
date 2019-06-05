@@ -15,8 +15,8 @@
 #define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/
 #define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
 //#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
-#define ALLOC_MEM   /*Включение динамического выделения памяти*/
-//#define ALLOC_MEM_LARGE   /*Включение динамического выделения памяти без ограничения размера*/
+//#define ALLOC_MEM   /*Включение динамического выделения памяти*/
+#define ALLOC_MEM_LARGE   /*Включение динамического выделения памяти без ограничения размера*/
 #define EVENT_LOOP_TASKS
 //#define USE_SOFT_UART
 #define CLOCK_SERVICE
@@ -32,7 +32,7 @@
 #define NEED_BASE64
 #define ENABLE_LOGGING
 //#define NEED_MATRIX
-#define STANDART_MEMCPY_MEMSET
+//#define STANDART_MEMCPY_MEMSET
 
 #define TASK_LIST_LEN 200U /*Длина очереди задач*/
 #define TIME_LINE_LEN 230U /*Максимальне количество системных таймеров*/
@@ -43,11 +43,11 @@
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
-#define ArraySize   200 /*Общее количество всех структур данных*/
+#define DATA_STRUCT_ArraySize   200 /*Общее количество всех структур данных*/
 #endif
 
 #ifdef MUTEX_ENABLE
-#define MUTEX_SIZE 8 /*Может быть 8,16,32 бита, и соответсвенно столько же мьютексов*/
+#define MUTEX_SIZE 16 /*Может быть 8,16,32 бита, и соответсвенно столько же мьютексов*/
 #endif
 
 #ifdef CYCLE_FUNC
@@ -59,15 +59,15 @@
 #define CHECK_ERRORS_FREE_MEMMORY
 #endif
 #ifdef ALLOC_MEM_LARGE
-#define HEAP_SIZE 10000UL /*6500*/
+#define HEAP_SIZE 30000UL /*6500*/
 #endif
 
 #ifdef CALL_BACK_TASK
-#define CALL_BACK_TASK_LIST_LEN 30
+#define CALL_BACK_TASK_LIST_LEN 150
 #endif
 
 #ifdef SIGNALS_TASK
-#define SIGNAL_LIST_LEN 10
+#define SIGNAL_LIST_LEN 100
 #endif
 
 #ifdef _PWR_SAVE

@@ -34,8 +34,9 @@ extern "C" {
  * V1.4.5.1  - Add compiler specific attributes
  * V1.4.5.2  - Change load avarage coefficient
  * V1.4.5.3  - Delete double blocking timer queue in power save mode + fix bug in PlatformSpecificMSP in power save mode
+ * V1.4.5.4  - Add Readme.md, Now compiled in Visual Studio
  * */
-const char* const _osVersion = "V1.4.5.3";
+const char* const _osVersion = "V1.4.5.4";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
 
 static void TaskManager(void);
@@ -498,7 +499,7 @@ void memCpy(void* destination, const void* source, const BaseSize_t num) {
 		}
 		for(u08 i = 0; i<last; i++) {
 			*((byte_ptr)destination) = *((byte_ptr)source);
-			(byte_ptr)destination++; (byte_ptr)source++;
+			((byte_ptr)destination)++; ((byte_ptr)source)++;
 		}
 #elif ARCH == 32
 	BaseSize_t blocks = num>>2;		// 4-ре байта копируются за один раз
@@ -542,7 +543,7 @@ void memSet(void* destination, const BaseSize_t size, const u08 value) {
 	}
 	for(BaseSize_t i = 0; i<last; i++) {
 		*((byte_ptr)destination) = value;
-		(byte_ptr)destination++;
+		((byte_ptr)destination)++;
 	}
 #elif ARCH == 32
 	BaseSize_t blocks = size>>2; // 4-ре байта копируются за один раз
