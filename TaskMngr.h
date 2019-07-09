@@ -35,7 +35,6 @@ extern const char* const _osVersion;
 #define MIN(a,b)                                   (((a)<(b))?(a):(b))
 #define MAX(a,b) 								   (((a)>(b))?(a):(b))
 
-
 void initFemtOS(void);    /* Инициализация менеджера задач. Здесь весь список задач (масив TaskLine) иницмализируется функцией Idle*/
 CC_NO_RETURN void ResetFemtOS(void);  // Програмный сброс микроконтроллера
 CC_NO_RETURN void runFemtOS( void ); // Запуск операционной системы
@@ -45,7 +44,7 @@ void SetTask (const TaskMng New_Task, const BaseSize_t n, const BaseParam_t data
 код ошибки если не удалось записать задачу и нормального завершения. Тогда функция будет иметь тип не void, а uint8_t.
  */
 
-bool_t isEmptyTaskList( void );
+bool_t isEmptyTaskList(void);
 u08 getFreePositionForTask(void);
 u08 getFreePositionForTimerTask(void);
 
@@ -70,7 +69,7 @@ void SetTimerTask(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data
  */
 bool_t updateTimer(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data, const Time_t New_Time);
 void delTimerTask(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data);
-void delAllTimerTask();
+void delAllTimerTask(void);
 void SetIdleTask(const IdleTask_t Task);
 // Можно задать IDLE задачку, которая выполняется когда есть свободное время у процессора
 //Задача должна иметь сигнатуру void Task(void)
@@ -211,7 +210,7 @@ void execCallBack(const void*const labelPtr);
 void execErrorCallBack(const BaseSize_t errorCode, const void*const labelPtr);
 void deleteCallBack(const BaseSize_t arg_n, const void*const labelPtr);
 u08 changeCallBackLabel(const void* oldLabel, const void*const newLabel);
-void clearAllCallBackList();
+void clearAllCallBackList(void);
 #endif
 
 #ifdef SIGNALS_TASK
@@ -226,9 +225,9 @@ void emitSignal(const void*const signal, BaseSize_t arg_n, BaseParam_t arg_p);
  *  Для организации основных скоростей UART таймер работает с постоянной частотой прервыний
  *  Например 9600 бод/с = 1/(BAUD_9600*26мкс)
 */
-void initSoftUART();
+void initSoftUART(void);
 void enableSoftUART(bool_t txEnable, bool_t rxEnable);
-void disableSoftUART();
+void disableSoftUART(void);
 void delSoftUART(const u08 numbUART);
 void CreateSoftUART(const BaseSize_t buffTXsize, const BaseSize_t buffRXsize, const s08 BAUD,
                     const u08 numbUART, const u08 TXpinNumber, const u08 RXpinNumber);
@@ -238,7 +237,7 @@ BaseSize_t readUART_array(const u08 numbUART, const BaseSize_t size, const unsig
 void clearSoftUartRxBuffer(const u08 numbUART);
 void sendUART_str(const u08 numbUART, const string_t U_data);
 void sendUART_array(const u08 numbUART, const BaseSize_t size, const unsigned char* U_data);
-void UARTTimerISR(); // Само прерывание
+void UARTTimerISR(void); // Само прерывание
 #endif //USE_SOFT_UART
 
 //---------------------------------------------------------	СИНОНИМЫ API функций ядра ------------------------------------------------------------

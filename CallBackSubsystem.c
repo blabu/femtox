@@ -53,7 +53,7 @@ u08 registerCallBack(const TaskMng task, const BaseSize_t arg_n, const BaseParam
 	return OVERFLOW_OR_EMPTY_ERROR;
 }
 
-void clearAllCallBackList() {
+void clearAllCallBackList(void) {
 	unlock_t unlock = lock(callBackList);
 	initCallBackTask();
 	unlock(callBackList);

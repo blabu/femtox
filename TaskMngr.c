@@ -6,8 +6,6 @@ extern "C" {
 #endif
 /*
 Создание простого диспетчера задач. Пример построения программы
-Кроме диспетчера задач здесь также реализован системный таймер на базе Т/С0
-инициализируется таймер счетчик, и включает прерывание по переполнению Т/С0
  */
 
 /*
@@ -477,7 +475,7 @@ void delTimerTask(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data
 	}
 }
 
-void delAllTimerTask(){
+void delAllTimerTask(void){
 	unlock_t unlock = lock((void*)MainTime);
     _lastTimerIndex = 0;
     unlock((void*)MainTime);

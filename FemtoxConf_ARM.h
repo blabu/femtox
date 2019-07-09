@@ -33,7 +33,7 @@
 #define ENABLE_LOGGING
 #define NEED_MATRIX
 //#define STANDART_MEMCPY_MEMSET
-#define LOAD_STATISTIC /*Сколько времени мы находимся в IDLE процессе в сравнении с полным рабочим временем в секундах*/
+//#define LOAD_STATISTIC /*Сколько времени мы находимся в IDLE процессе в сравнении с полным рабочим временем в секундах*/
 
 #define TASK_LIST_LEN 15U /*Длина очереди задач*/
 #define TIME_LINE_LEN 30U /*Максимальне количество системных таймеров*/
@@ -56,7 +56,7 @@
 #endif
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 7500UL /*6500*/
+#define HEAP_SIZE 8000UL /*6500*/
 #endif
 #ifdef ALLOC_MEM_LARGE
 #define HEAP_SIZE 10000UL /*6500*/

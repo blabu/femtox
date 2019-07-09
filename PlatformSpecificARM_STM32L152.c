@@ -57,7 +57,9 @@ void initWatchDog(){
 	HAL_IWDG_Init(&watchDog);
 }
 
+#include "fonTask.h" // FIXME delete it after testing
 void resetWatchDog(void){
+	blinkLed(3);//FIXME delete it after testing
 	HAL_IWDG_Refresh(&watchDog);
 }
 
