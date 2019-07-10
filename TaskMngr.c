@@ -554,7 +554,7 @@ void memSet(void* destination, const BaseSize_t size, const u08 value) {
 			destination = (void*)((byte_ptr)destination + 4);
 		}
 	}
-	for(BaseSize_t i = 0; i<last; i++) {
+	for(u08 i = 0; i<last; i++) {
 		*((byte_ptr)destination) = value;
 		(byte_ptr)destination++;
 	}
