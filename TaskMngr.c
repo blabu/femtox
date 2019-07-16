@@ -34,8 +34,9 @@ extern "C" {
  * V1.4.5.3  - Delete double blocking timer queue in power save mode + fix bug in PlatformSpecificMSP in power save mode
  * V1.4.5.4  - Add Readme.md, Now compiled in Visual Studio
  * V1.4.5.5  - Add defragmentation function when allocMem fail and try again
+ * V1.4.6    - Add SHA256 (not tested)
  * */
-const char* const _osVersion = "V1.4.5.5";
+const char* const _osVersion = "V1.4.6";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
 
 static void TaskManager(void);

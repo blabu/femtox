@@ -17,19 +17,19 @@
 #define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 #define ALLOC_MEM   /*Включение динамического выделения памяти*/
 //#define ALLOC_MEM_LARGE 1   /*Включение динамического выделения памяти без ограничения размера*/
-#define EVENT_LOOP_TASKS
+//#define EVENT_LOOP_TASKS
 //#define USE_SOFT_UART
 #define CLOCK_SERVICE
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
-#define SIGNALS_TASK
+//#define SIGNALS_TASK
 //#define _LIST_STRUCT
 //#define _DYNAMIC_ARRAY
 //#define _PWR_SAVE
 //#define NEED_CRYPT
 //#define NEED_BASE64
 //#define NEED_RANDOM
-#define NEED_SHA256
+//#define NEED_SHA256
 #define NEED_CRC16
 //#define ENABLE_LOGGING
 #define NEED_MATRIX
