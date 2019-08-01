@@ -90,7 +90,7 @@ void enableLogging(void) {
 }
 
 void disableLogging(void){
-	if(countEnableLogging > 0) countEnableLogging--;
+	if(countEnableLogging > 0) countEnableLogging--;//---------------------------------------
 	if(!countEnableLogging) {
 		disableUART2();
 #ifndef _X86
