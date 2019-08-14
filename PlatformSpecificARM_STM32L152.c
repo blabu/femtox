@@ -4,12 +4,15 @@
 #include "stm32l152xe.h"
 
 #ifdef MAXIMIZE_OVERFLOW_ERROR
-#include "logging.h"
+#include "UART2.h"
 	void MaximizeErrorHandler(string_t str){
-		writeLogStr(str);
-		for(u16 i = 0; i<0xFFFF; i++);
 		initWatchDog();
-		while(1);
+		enableUART2(57600);
+		resetWatchDog();
+		sendCOM2_long((unsigned char*)str);
+		__enable_irq();
+		for(u16 i = 0; i<0xFFFF; i++); // Небольшая задержка
+		while(1); // + Еще задержка для передачи данных пока не сработает таймер
 	}
 #else
 #include "logging.h"
@@ -57,9 +60,7 @@ void initWatchDog(){
 	HAL_IWDG_Init(&watchDog);
 }
 
-#include "fonTask.h" // FIXME delete it after testing
-void resetWatchDog(void){
-	blinkLed(3);//FIXME delete it after testing
+inline void resetWatchDog(void){
 	HAL_IWDG_Refresh(&watchDog);
 }
 

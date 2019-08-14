@@ -11,15 +11,14 @@
 #include "TaskMngr.h"
 
 #ifndef ENABLE_LOGGING
-void enableLogging(void) {
-}
-void disableLogging(void){
-}
+void enableLogging(void) {}
+void disableLogging(void){}
+
 void writeLogByteArray(u08 sizeBytes, byte_ptr array){}
 
 void disableLogLevel(string_t level) {}
 
-void writeLogWhithStr(const string_t c_str, u32 n){}
+void writeLogWithStr(const string_t c_str, u32 n){}
 
 void writeLogStr(const string_t c_str){}
 
@@ -118,7 +117,7 @@ void disableLogLevel(string_t level) {
 	disableLavel = level;
 }
 
-void writeLogWhithStr(const string_t c_str, u32 n) {
+void writeLogWithStr(const string_t c_str, u32 n) {
 	char str[50];
 	if(str1_str2(disableLavel,c_str)) return;
 	u08 size = strSize(c_str);
