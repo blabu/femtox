@@ -11,9 +11,11 @@
 #ifdef ENABLE_LOGGING
 		writeLogStr(str);
 #endif
-		for(u16 i = 0; i<0xFFFF; i++);
 		initWatchDog();
-		while(1);
+		resetWatchDog();
+		__enable_irq();
+		for(u16 i = 0; i<0xFFFF; i++); // Небольшая задержка
+		while(1); // + Еще задержка для передачи данных пока не сработает таймер
 	}
 #else
 #include "logging.h"
@@ -61,9 +63,7 @@ void initWatchDog(){
 	HAL_IWDG_Init(&watchDog);
 }
 
-#include "fonTask.h" // FIXME delete it after testing
-void resetWatchDog(void){
-	blinkLed(3);//FIXME delete it after testing
+inline void resetWatchDog(void){
 	HAL_IWDG_Refresh(&watchDog);
 }
 
