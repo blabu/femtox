@@ -4,9 +4,13 @@
 #include "stm32l152xe.h"
 
 #ifdef MAXIMIZE_OVERFLOW_ERROR
+#ifdef ENABLE_LOGGING
 #include "logging.h"
-	void MaximizeErrorHandler(string_t str){
+#endif
+	void MaximizeErrorHandler(string_t str) {
+#ifdef ENABLE_LOGGING
 		writeLogStr(str);
+#endif
 		for(u16 i = 0; i<0xFFFF; i++);
 		initWatchDog();
 		while(1);
