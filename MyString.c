@@ -7,8 +7,8 @@ extern "C" {
 #endif
 
 /*
-command - строка, которую ищут
-answer  - строка, в которой ищут
+small - строка, которую ищут
+big  - строка, в которой ищут
 */
 s16 findStr(const string_t small, const string_t big){
 	if(small != NULL && big != NULL) {
