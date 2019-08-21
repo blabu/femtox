@@ -686,7 +686,7 @@ BaseSize_t base64Decode(const string_t input, byte_ptr output) {
 void GenerateRandomString(BaseSize_t size, string_t result) {
 	if(result != NULL) {
 		for(BaseSize_t i=size; i != 0; i--) {
-			result[i] = base64Chars[RandomSimple()%62];
+			result[i-1] = base64Chars[RandomSimple()%62];
 		}
 	}
 }
