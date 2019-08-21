@@ -4,12 +4,15 @@
 #include "stm32l152xe.h"
 
 #ifdef MAXIMIZE_OVERFLOW_ERROR
-#include "UART2.h"
-	void MaximizeErrorHandler(string_t str){
+#ifdef ENABLE_LOGGING
+#include "logging.h"
+#endif
+	void MaximizeErrorHandler(string_t str) {
+#ifdef ENABLE_LOGGING
+		writeLogStr(str);
+#endif
 		initWatchDog();
-		enableUART2(57600);
 		resetWatchDog();
-		sendCOM2_long((unsigned char*)str);
 		__enable_irq();
 		for(u16 i = 0; i<0xFFFF; i++); // Небольшая задержка
 		while(1); // + Еще задержка для передачи данных пока не сработает таймер
