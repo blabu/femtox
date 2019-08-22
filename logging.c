@@ -14,13 +14,22 @@
 void enableLogging(void) {}
 void disableLogging(void){}
 
+#ifndef ALLOC_MEM_LARGE
 void writeLogByteArray(u08 sizeBytes, byte_ptr array){}
-
+#else
+void writeLogByteArray(BaseSize_t sizeBytes, byte_ptr array){}
+#endif
 void disableLogLevel(string_t level) {}
 
 void writeLogWithStr(const string_t c_str, u32 n){}
 
 void writeLogStr(const string_t c_str){}
+
+void writeLog2Str(const string_t c_str1, const string_t c_str2){}
+
+void writeLog3Str(const string_t c_str1, const string_t c_str2, const string_t c_str3){}
+
+void writeLog4Str(const string_t c_str1, const string_t c_str2, const string_t c_str3, const string_t c_str4){}
 
 void writeLogTempString(string_t tempStr){}
 
@@ -134,6 +143,30 @@ void writeLogWithStr(const string_t c_str, u32 n) {
 void writeLogStr(const string_t c_str){
 	if(str1_str2(disableLavel,c_str)) return;
 	sendCOM2_buf(0, (byte_ptr)c_str);
+	sendCOM2_buf(0,(byte_ptr)"\r\n");
+}
+
+void writeLog2Str(const string_t c_str1, const string_t c_str2){
+	if(str1_str2(disableLavel,c_str1)) return;
+	sendCOM2_buf(0, (byte_ptr)c_str1);
+	sendCOM2_buf(0, (byte_ptr)c_str2);
+	sendCOM2_buf(0,(byte_ptr)"\r\n");
+}
+
+void writeLog3Str(const string_t c_str1, const string_t c_str2, const string_t c_str3){
+	if(str1_str2(disableLavel,c_str1)) return;
+	sendCOM2_buf(0, (byte_ptr)c_str1);
+	sendCOM2_buf(0, (byte_ptr)c_str2);
+	sendCOM2_buf(0, (byte_ptr)c_str3);
+	sendCOM2_buf(0,(byte_ptr)"\r\n");
+}
+
+void writeLog4Str(const string_t c_str1, const string_t c_str2, const string_t c_str3, const string_t c_str4) {
+	if(str1_str2(disableLavel,c_str1)) return;
+	sendCOM2_buf(0, (byte_ptr)c_str1);
+	sendCOM2_buf(0, (byte_ptr)c_str2);
+	sendCOM2_buf(0, (byte_ptr)c_str3);
+	sendCOM2_buf(0, (byte_ptr)c_str4);
 	sendCOM2_buf(0,(byte_ptr)"\r\n");
 }
 

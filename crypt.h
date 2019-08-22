@@ -8,8 +8,14 @@ u32 RandomSimple();
 u32 RandomMultiply();
 u16 CRC16(BaseSize_t size, byte_ptr msg);
 
+#ifdef NEED_BASE64
 BaseSize_t base64Encode(BaseSize_t len, byte_ptr input, string_t output);
 BaseSize_t base64Decode(const string_t input, byte_ptr output);
+
+#ifdef NEED_RANDOM
+void GenerateRandomString(BaseSize_t size, string_t result);
+#endif
+#endif
 
 // #define the macros below to 1/0 to enable/disable the mode of operation.
 // CBC enables AES encryption in CBC-mode of operation.

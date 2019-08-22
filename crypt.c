@@ -554,6 +554,7 @@ u32 RandomMultiply() {
 	seed = (A*seed)%M;
 	return seed;
 }
+
 #endif //NEED_RANDOM
 
 #ifdef NEED_CRC16
@@ -680,7 +681,20 @@ BaseSize_t base64Decode(const string_t input, byte_ptr output) {
 	  }
 	  return nOut;
 }
+
+#ifdef NEED_RANDOM
+void GenerateRandomString(BaseSize_t size, string_t result) {
+	if(result != NULL) {
+		for(BaseSize_t i=size; i != 0; i--) {
+			result[i-1] = base64Chars[RandomSimple()%62];
+		}
+	}
+}
+#endif
+
 #endif // NEED_BASE64
+
+
 
 #ifdef NEED_SHA256
 /****************************** MACROS ******************************/

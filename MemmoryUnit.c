@@ -162,7 +162,7 @@ static byte_ptr _allocMem(const BaseSize_t size) {
 	return NULL;
 }
 
-byte_ptr allocMem(const u08 size) {
+byte_ptr allocMem(const BaseSize_t size) {
     byte_ptr res = _allocMem(size);
     if(res == NULL) {
         defragmentation();
