@@ -9,6 +9,7 @@
 #endif
 	void MaximizeErrorHandler(string_t str) {
 #ifdef ENABLE_LOGGING
+		writeLogStr("FATAL: Maximize error handler");
 		writeLogStr(str);
 #endif
 		initWatchDog();
@@ -20,6 +21,7 @@
 #else
 #include "logging.h"
 	void MaximizeErrorHandler(string_t str){
+		writeLogStr("FATAL: Maximize error handler");
 		writeLogStr(str);
 	}
 #endif
