@@ -684,6 +684,7 @@ BaseSize_t base64Decode(const string_t input, byte_ptr output) {
 
 #ifdef NEED_RANDOM
 void GenerateRandomString(BaseSize_t size, string_t result) {
+	setSeed(getTick());
 	if(result != NULL) {
 		for(BaseSize_t i=size; i != 0; i--) {
 			result[i-1] = base64Chars[RandomSimple()%62];
@@ -787,8 +788,7 @@ void sha256_update(SHA256_CTX *ctx, const u08 data[], u32 len){
 }
 
 void sha256_final(SHA256_CTX *ctx, u08 hash[]) {
-	u32 i;
-	i = ctx->datalen;
+	u32 i = ctx->datalen;
 
 	// Pad whatever data is left in the buffer.
 	if (ctx->datalen < 56) {
@@ -805,7 +805,7 @@ void sha256_final(SHA256_CTX *ctx, u08 hash[]) {
 	}
 
 	// Append to the padding the total message's length in bits and transform.
-	ctx->bitlen += ctx->datalen >> 3; // multuply 8
+	ctx->bitlen += ctx->datalen << 3; // multuply 8
 	ctx->data[63] = ctx->bitlen;
 	ctx->data[62] = ctx->bitlen >> 8;
 	ctx->data[61] = ctx->bitlen >> 16;
