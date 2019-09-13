@@ -6,6 +6,12 @@ extern "C" {
 #endif
 #ifdef NEED_MATRIX
 #ifdef ALLOC_MEM
+#define ALLOCATE_ENABLE
+#endif
+#ifdef ALLOC_MEM_LARGE
+#define ALLOCATE_ENABLE
+#endif
+#ifdef ALLOCATE_ENABLE
 
 void rotate90RightSqrtMatr(BaseSize_t size, BaseParam_t matr)
 {
