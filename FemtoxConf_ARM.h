@@ -10,26 +10,26 @@
 #ifndef FEMTOXCONF_ARM_H_
 #define FEMTOXCONF_ARM_H_
 
-//#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
+#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
 #define DATA_STRUCT_MANAGER   /*Включаем работу с очередями средствами деспетчера*/
 #define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/
 //#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
 //#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
-#define ALLOC_MEM   /*Включение динамического выделения памяти*/
-//#define ALLOC_MEM_LARGE 1   /*Включение динамического выделения памяти без ограничения размера*/
+//#define ALLOC_MEM   /*Включение динамического выделения памяти*/
+#define ALLOC_MEM_LARGE 1   /*Включение динамического выделения памяти без ограничения размера*/
 //#define EVENT_LOOP_TASKS
 //#define USE_SOFT_UART
 #define CLOCK_SERVICE
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
-//#define SIGNALS_TASK
+#define SIGNALS_TASK
 //#define _LIST_STRUCT
 //#define _DYNAMIC_ARRAY
 #define _PWR_SAVE
 //#define NEED_CRYPT
-//#define NEED_BASE64
-//#define NEED_RANDOM
-//#define NEED_SHA256
+#define NEED_BASE64
+#define NEED_RANDOM
+#define NEED_SHA256
 #define NEED_CRC16
 #define ENABLE_LOGGING
 #define NEED_MATRIX
@@ -60,7 +60,7 @@
 #define HEAP_SIZE 8000UL /*6500*/
 #endif
 #ifdef ALLOC_MEM_LARGE
-#define HEAP_SIZE 3000UL /*TODO было 10000*/
+#define HEAP_SIZE 5000 /*TODO было 10000*/
 #endif
 
 #ifdef CALL_BACK_TASK
