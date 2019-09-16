@@ -73,7 +73,11 @@ void execCallBack(const void*const labelPtr){
 	for(u08 i = 0; i < CALL_BACK_TASK_LIST_LEN; i++){
 		if(labelPointer[i] == labelPtr){
 			if(callBackList[i].Task != NULL) {
+			#ifdef SET_FRONT_TASK_ENABLE
+				SetFrontTask(callBackList[i].Task,callBackList[i].arg_n,callBackList[i].arg_p);
+			#else
 				SetTask(callBackList[i].Task,callBackList[i].arg_n,callBackList[i].arg_p);
+			#endif
 			}
 			unlock_t unlock = lock(callBackList);
 			labelPointer[i] = NULL;
