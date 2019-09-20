@@ -69,6 +69,16 @@ void deleteCallBack(const BaseSize_t arg_n, const void*const labelPtr){
 	}
 }
 
+void deleteCallBackByTask(TaskMng task) {
+	for(u08 i = 0; i < CALL_BACK_TASK_LIST_LEN; i++){
+		if(labelPointer[i] != NULL && callBackList[i].Task == task) {
+			unlock_t unlock = lock(callBackList);
+			labelPointer[i] = NULL;
+			unlock(callBackList);
+		}
+	}
+}
+
 void execCallBack(const void*const labelPtr){
 	for(u08 i = 0; i < CALL_BACK_TASK_LIST_LEN; i++){
 		if(labelPointer[i] == labelPtr){

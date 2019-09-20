@@ -209,6 +209,7 @@ u08 registerCallBack(const TaskMng task, const BaseSize_t arg_n, const BaseParam
 void execCallBack(const void*const labelPtr);
 void execErrorCallBack(const BaseSize_t errorCode, const void*const labelPtr);
 void deleteCallBack(const BaseSize_t arg_n, const void*const labelPtr);
+void deleteCallBackByTask(TaskMng task);
 u08 changeCallBackLabel(const void* oldLabel, const void*const newLabel);
 void clearAllCallBackList(void);
 #endif

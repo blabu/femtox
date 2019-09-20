@@ -35,8 +35,10 @@ extern "C" {
  * V1.4.5.4  - Add Readme.md, Now compiled in Visual Studio
  * V1.4.5.5  - Add defragmentation function when allocMem fail and try again
  * V1.4.6    - Add SHA256 (not tested)
+ * V1.4.61   - Tested SHA256 and BASE64
+ * V1.4.62	 - Add delete callback by task
  * */
-const char* const _osVersion = "V1.4.6";
+const char* const _osVersion = "V1.4.62";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
 
 static void TaskManager(void);
