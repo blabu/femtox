@@ -77,7 +77,7 @@ void SetIdleTask(const IdleTask_t Task);
 u32 getTick(void);
 
 void MaximizeErrorHandler(const string_t str);
-
+bool_t compare(const void* block1, const void* block2, const BaseSize_t size);
 void memCpy(void * destination, const void * source, const BaseSize_t num);
 void memSet(void* destination, const BaseSize_t size, const u08 value);
 

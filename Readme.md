@@ -202,3 +202,6 @@ runFemtOS();
 return 0;
 }
 ```
+Лицензия
+-------------
+MIT License

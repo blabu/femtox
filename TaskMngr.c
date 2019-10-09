@@ -1,3 +1,26 @@
+/*
+MIT License
+
+Copyright (c) 2017 Oleksiy Khanin
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+ * */
 #include "TaskMngr.h"
 #include "PlatformSpecific.h"
 
@@ -36,9 +59,10 @@ extern "C" {
  * V1.4.5.5  - Add defragmentation function when allocMem fail and try again
  * V1.4.6    - Add SHA256 (not tested)
  * V1.4.61   - Tested SHA256 and BASE64
- * V1.4.62	 - Add delete callback by task
+ * V1.4.62	 - Add delete callback by task (Don't test yet)
+ * V1.4.63   - Add compare function for compare to array data (Don't test yet)
  * */
-const char* const _osVersion = "V1.4.62";
+const char* const _osVersion = "V1.4.63";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
 
 static void TaskManager(void);
@@ -494,92 +518,53 @@ u08 getFreePositionForTimerTask(void) {
 void memCpy(void* destination, const void* source, const BaseSize_t num) {
 #if ARCH == 64
 		BaseSize_t blocks = num>>4;		// 8-мь байт копируются за один раз
-		u08 last = num & 0x0F; // остаток
+		BaseSize_t last = num & 0x0F; // остаток
 		for(BaseSize_t i = 0; i<blocks; i++) {
 			*((u64*)destination) = *((u64*)source);
 			destination = (void*)((byte_ptr)destination + 8);
 			source = (void*)((byte_ptr)source + 8);
 		}
-		for(u08 i = 0; i<last; i++) {
-			*((byte_ptr)destination) = *((byte_ptr)source);
-			((byte_ptr)destination)++; ((byte_ptr)source)++;
-		}
 #elif ARCH == 32
 	BaseSize_t blocks = num>>2;		// 4-ре байта копируются за один раз
-	u08 last = num & 0x03; // остаток
+	BaseSize_t last = num & 0x03; // остаток
 	for(BaseSize_t i = 0; i<blocks; i++) {
 		*((u32*)destination) = *((u32*)source);
 		destination = (void*)((byte_ptr)destination + 4);
 		source = (void*)((byte_ptr)source + 4);
 	}
-	for(u08 i = 0; i<last; i++) {
-		*((byte_ptr)destination) = *((byte_ptr)source);
-		destination = (void*)((byte_ptr)destination+1); source = (void*)((byte_ptr)source+1);
-	}
-#elif ARCH == 16
-	BaseSize_t blocks = num>>1;		// 2 байта копируются за один раз
-	BaseSize_t last = num & 0x01; // остаток
-	for(BaseSize_t i = 0; i<blocks; i++) {
-		*((u16*)destination) = *((u16*)source);
-		destination = (void*)((byte_ptr)destination + 2);
-		source = (void*)((byte_ptr)source + 2);
-	}
-	if(last) *((byte_ptr)destination) = *((byte_ptr)source);
 #else
-	for (BaseSize_t i=0; i<num; i++){ //Копирование будет побайтное
+	BaseSize last = num;
+#endif
+	for (BaseSize_t i=0; i<last; i++){ //Копирование будет побайтное
 		*((byte_ptr)destination + i) = *((byte_ptr)source + i); // Выполняем копирование данных
 	}
-#endif
 }
 
 void memSet(void* destination, const BaseSize_t size, const u08 value) {
 #if ARCH == 64
 	BaseSize_t blocks = size>>4; // 4-ре байта копируются за один раз
-	u08 last = size & 0x0F;      // остаток
-	if(blocks > 0) {
-		u64 val = (u64)value<<56 | (u64)value<<48 | (u64)value<<40 | (u64)value<<32 |
-				  (u32)value<<24 | (u32)value<<16 | (u16)value<<8 | value;
-		for(BaseSize_t i = 0; i<blocks; i++) {
-			*((u64*)destination) = val;
-			destination = (void*)((byte_ptr)destination + 8);
-		}
-	}
-	for(BaseSize_t i = 0; i<last; i++) {
-		*((byte_ptr)destination) = value;
-		((byte_ptr)destination)++;
+	BaseSize_t last = size & 0x0F;      // остаток
+	u64 val = (u64)value<<56 | (u64)value<<48 | (u64)value<<40 | (u64)value<<32 |
+			  (u32)value<<24 | (u32)value<<16 | (u16)value<<8 | value;
+	for(BaseSize_t i = 0; i<blocks; i++) {
+		*((u64*)destination) = val;
+		destination = (void*)((byte_ptr)destination + 8);
 	}
 #elif ARCH == 32
 	BaseSize_t blocks = size>>2; // 4-ре байта копируются за один раз
-	u08 last = size & 0x03;      // остаток
-	if(blocks > 0) {
-		u32 val = (u32)value<<24 | (u32)value<<16 | (u16)value<<8 | value;
-		for(BaseSize_t i = 0; i<blocks; i++) {
-			*((u32*)destination) = val;
-			destination = (void*)((byte_ptr)destination + 4);
-		}
+	BaseSize_t last = size & 0x03;      // остаток
+	u32 val = (u32)value<<24 | (u32)value<<16 | (u16)value<<8 | value;
+	for(BaseSize_t i = 0; i<blocks; i++) {
+		*((u32*)destination) = val;
+		destination = (void*)((byte_ptr)destination + 4);
 	}
-	for(u08 i = 0; i<last; i++) {
+#else
+	BaseSize_t last = size;
+#endif // ARCH
+	for(BaseSize_t i = 0; i<last; i++) {
 		*((byte_ptr)destination) = value;
 		(byte_ptr)destination++;
 	}
-#elif ARCH == 16
-	BaseSize_t blocks = size>>1;		// 2 байта копируются за один раз
-	u08 last = size & 0x01; // остаток
-	u16 val = (u16)value<<8 | value;
-	for(BaseSize_t i = 0; i<blocks; i++) {
-		*((u16*)destination) = val;
-#ifndef _IAR_
-		(byte_ptr)destination+=2;
-#else
-		destination = (void*)((byte_ptr)destination + 2);
-#endif
-	}
-	if(last) *((byte_ptr)destination) = value;
-#else
-	for (BaseSize_t i = 0; i < size; i++){
-		*((byte_ptr)destination + i) = value;
-	}
-#endif // ARCH
 }
 #else
 #include <string.h>
@@ -591,6 +576,42 @@ void memCpy(void* destination, const void* source, const BaseSize_t num) {
     memcpy(destination,source,num);
 }
 #endif
+
+//TODO check array compare (test it)
+bool_t compare(const void* block1, const void* block2, const BaseSize_t size) {
+#if ARCH == 64
+	BaseSize_t blocks = size>>4; // 4-ре байта копируются за один раз
+	BaseSize_t last = size & 0x0F;      // остаток
+	for(BaseSize_t i = 0; i<blocks; i++) {
+		if(*((u64*)block1) == *((u64*)block2)) {
+			block1 = (void*)((byte_ptr)block1 + 8);
+			block2 = (void*)((byte_ptr)block2 + 8);
+			continue;
+		}
+		else return FALSE;
+	}
+#elif ARCH == 32
+	BaseSize_t blocks = size>>2; // 4-ре байта проверяются за один раз
+	BaseSize_t last = size & 0x03;      // остаток
+	for(BaseSize_t i = 0; i<blocks; i++) {
+		if(*((u32*)block1) == *((u32*)block2)) {
+			block1 = (void*)((byte_ptr)block1 + 4);
+			block2 = (void*)((byte_ptr)block2 + 4);
+			continue;
+		}
+		else return FALSE;
+	}
+#else
+	BaseSize_t last = size;
+#endif
+	for(BaseSize_t i = 0; i<last; i++) {
+		if(*((byte_ptr)block1 + i) == *((byte_ptr)block1 + i)) {
+			continue;
+		}
+		else return FALSE;
+	}
+	return TRUE;
+}
 
 void shiftLeftArray(BaseParam_t source, BaseSize_t sourceSize, BaseSize_t shiftSize) {
 	BaseSize_t i = 0, j = shiftSize;
