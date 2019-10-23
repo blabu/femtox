@@ -88,11 +88,7 @@ typedef struct node {
 #endif
 
 #ifdef _DYNAMIC_ARRAY
-typedef struct {
-	u08 size;		// Текущее кол-во элементов
-	u08 capasity; 	// Текуший размер выделенной области
-	u08* data;		// Указатель на начало области
-}DynamicArray_t;
+
 #endif
 
 #endif //MSP430

@@ -90,15 +90,21 @@ bool_t CreateEvent(Predicat_t condition, CycleFuncPtr_t effect); // Регист
 void delEvent(Predicat_t condition); //Удаляем обработку события  condition
 #endif
 
+enum {
+ NOT_FOUND_DATA_STRUCT_ERROR  = 1,
+ OVERFLOW_OR_EMPTY_ERROR	  = 2,
+ OTHER_ERROR                  = 3,
+ NULL_PTR_ERROR               = 4,
+ NO_MEMORY_ERROR              = 5,
+ UNDEFINED_BEHAVIOR			  = 6,
+ NOT_IMPLEMENTED_ERROR		  = 7,
+ EVERYTHING_IS_OK             = 0,
+};
+
 #ifdef  DATA_STRUCT_MANAGER
-#define NOT_FOUND_DATA_STRUCT_ERROR 1
-#define OVERFLOW_OR_EMPTY_ERROR     2
-#define OTHER_ERROR                 3
-#define NULL_PTR_ERROR              4
-#define NO_MEMORY_ERROR             5
-#define EVERYTHING_IS_OK            0
 u08 CreateDataStruct(const void* D, const BaseSize_t sizeElement, const BaseSize_t sizeAll);
-u08 delDataStruct(const void* Data);                                    // Удаляем структуру из списка структур
+u08 delDataStruct(const void* Data);               // Удаляем структуру из списка структур
+void clearDataStruct(const void* const Data); // Очистить структуру данных с указателем Data
 BaseSize_t getCurrentSizeDataStruct(const void* const Data);
 u08 PutToCycleDataStruct(const void* Elem, const void* Array);
 u08 GetFromCycleDataStruct(void* returnValue, const void* Array);
@@ -111,9 +117,7 @@ u08 delFromEndDataStruct(const void* const Data); // Удаляет один э�
 u08 peekFromFrontData(void* returnValue, const void* Array); // Посмотреть первый элемент очереди не удаляя его
 u08 peekFromEndData(void* returnValue, const void* Array);  // Посмотреть последний элемент очереди не удаляя его
 bool_t isEmptyDataStruct(const void* const Data); // Проверяет пустая ли структура данных
-void for_each(const void* const Array, TaskMng tsk);
-void clearDataStruct(const void* const Data); // Очистить структуру данных с указателем Data
-void showAllDataStruct(void); // передает в ЮАРТ данные о всех структурах данных
+void forEach(const void* const Array, TaskMng tsk);
 /*---------------ОЧЕРЕДЬ-------------------*/
 // Создание очереди вернет ноль если очередь успешно создана
 #define CreateQ(Q, sizeElement, sizeAll)    CreateDataStruct((void*)(Q), (BaseSize_t)(sizeElement), (BaseSize_t)(sizeAll))
@@ -199,12 +203,6 @@ void subOneDayFromDate(Date_t * date);
 #endif
 
 #ifdef CALL_BACK_TASK
-#ifndef OVERFLOW_OR_EMPTY_ERROR
-#define OVERFLOW_OR_EMPTY_ERROR 2
-#endif
-#ifndef EVERYTHING_IS_OK
-#define EVERYTHING_IS_OK 0
-#endif
 u08 registerCallBack(const TaskMng task, const BaseSize_t arg_n, const BaseParam_t arg_p, const void*const labelPtr);
 void execCallBack(const void*const labelPtr);
 void execErrorCallBack(const BaseSize_t errorCode, const void*const labelPtr);

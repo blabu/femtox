@@ -71,6 +71,10 @@ void writeSymb(char symb) {}
 #include "TaskMngr.h"
 #define LOCAL_MUTEX 1<<7
 
+#ifdef __unix__
+#define fprintf_s fprintf
+#endif
+
 //#define TO_FILE
 
 void enableUART2(u32 baud) {}

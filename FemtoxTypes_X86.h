@@ -8,9 +8,7 @@
 #define FEMTOXTYPES_X86_H_
 
 #ifdef _X86
-
 #include "FemtoxConf.h"
-
 
 #ifndef NULL
 #define NULL ((void*)0)
@@ -81,11 +79,7 @@ typedef struct node {
 #endif
 
 #ifdef _DYNAMIC_ARRAY
-typedef struct {
-	u08 size;		// Текущее кол-во элементов
-	u08 capasity; 	// Текуший размер выделенной области
-	u08* data;		// Указатель на начало области
-}DynamicArray_t;
+
 #endif
 
 #endif //_X86

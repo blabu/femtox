@@ -71,43 +71,42 @@ struct {
 }resourceMutexList[RESOURCE_LIST]; // Очередь на ресурсы
 static std::mutex mt; // Мьютекс защищающий очередь
 static void unlock(const void*const resourceId) {
-	mt.lock();
+	std::lock_guard<std::mutex> l(mt);
 	for(u08 i=0; i<RESOURCE_LIST; i++) {
 		if(resourceMutexList[i].resourceId == resourceId) {
-			mt.unlock();
 			resourceMutexList[i].mt.unlock();
 			return;
 		}
 	}
-	mt.unlock();
 }
+
 static void empty(const void* const resourceId) {}
 
 static unlock_t lock3(const void*const resourceId) {
 	return empty;
 }
 
-static unlock_t lock2(const void*const resourceId) {
+static s16 findLock(const void*const resourceId) {
 	s16 saveIndex = -1;
-	mt.lock();
+	std::lock_guard<std::mutex> l(mt);
 	for(u08 i=0; i<RESOURCE_LIST; i++) {
 		if(resourceMutexList[i].resourceId == resourceId) {
-			if(resourceMutexList[i].mt.try_lock()) mt.unlock();
-			else {
-				mt.unlock();
-				resourceMutexList[i].mt.lock();
-			}
-			return unlock;
+			return i;
 		}
-		if(resourceMutexList[i].resourceId == NULL) saveIndex = i;
+		if(saveIndex<0 && resourceMutexList[i].resourceId == NULL) saveIndex = i;
 	}
-	if(saveIndex > 0) { // Еще ни разу не залоченный ресурс
+	if(saveIndex >= 0) {
 		resourceMutexList[saveIndex].resourceId = (void*)resourceId;
+	}
+	return saveIndex;
+}
+
+static unlock_t lock2(const void*const resourceId) {
+	s16 saveIndex = findLock(resourceId);
+	if(saveIndex >= 0) { // Еще ни разу не залоченный ресурс
 		resourceMutexList[saveIndex].mt.lock();
-		mt.unlock();
 		return unlock;
 	}
-	mt.unlock();
 	writeLogStr((string_t)"WARN, Never be here list empty error");
 	return empty;
 }
@@ -142,11 +141,10 @@ static void __timer() {
 
 void _init_Timer(void) {// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
 	writeLogStr((string_t)"start init timer");
-	mt.lock();
+	std::lock_guard<std::mutex> l(mt);
 	for(u08 i=0; i<RESOURCE_LIST; i++) {
 		resourceMutexList[i].resourceId = NULL;
 	}
-	mt.unlock();
 	timerThread = new std::thread(__timer);
 }
 

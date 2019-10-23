@@ -46,20 +46,20 @@ ListNode_t* createNewList(void* data){
 	return res;
 }
 
-ListNode_t* findHead(ListNode_t* listPtr) {
+ListNode_t* findHead(const ListNode_t* listPtr) {
 	if(listPtr == NULL) return NULL;
 	while(listPtr->prev != NULL) {
         listPtr = listPtr->prev;
 	}
-	return listPtr;
+	return (ListNode_t*)listPtr;
 }
 
-ListNode_t* findTail(ListNode_t* listPtr) {
+ListNode_t* findTail(const ListNode_t* listPtr) {
 	if(listPtr == NULL) return NULL;
 	while(listPtr->next != NULL) {
-            listPtr = listPtr->next;
+       listPtr = listPtr->next;
 	}
-	return listPtr;
+	return (ListNode_t*)listPtr;
 }
 
 void deleteList(ListNode_t* listPtr) {
@@ -75,8 +75,8 @@ void deleteList(ListNode_t* listPtr) {
 	freeMem((byte_ptr)listPtr);
 }
 
-// flag 0...6 bits is a size of data, and last 7's bit is a flag for allocate memmory
-ListNode_t* putToEndList(ListNode_t* list, void* data, u08 Flagalloc_Datasize) {
+
+ListNode_t* putToEndList(ListNode_t* list, void* data) {
 	if(list == NULL || data == NULL) {
 		writeLogStr("ERROR putToEndList Incorrect input value");
 		return NULL;
@@ -86,27 +86,15 @@ ListNode_t* putToEndList(ListNode_t* list, void* data, u08 Flagalloc_Datasize) {
 		writeLogStr("ERROR putToEndList Memory error");
 		return NULL;
 	}
-	byte_ptr temp;
 	list = findTail(list);
-	if(Flagalloc_Datasize>>7) {
-		u08 size = Flagalloc_Datasize & 0x7F;
-		temp = (byte_ptr)allocMem(size);
-		if(temp == NULL) {
-			writeLogStr("ERROR when try alloc mem for data");
-			freeMem((byte_ptr)newNode);
-			return NULL;
-		}
-		memCpy(temp, data, size);
-		newNode->data = temp;
-	}
-	else newNode->data = data;
+	newNode->data = data;
     list->next = newNode;
 	newNode->prev = list;
 	newNode->next = NULL;
 	return newNode;
 }
 
-ListNode_t* putToFrontList(ListNode_t* list, void* data, u08 Flagalloc_Datasize) {
+ListNode_t* putToFrontList(ListNode_t* list, void* data) {
 	if(list == NULL || data == NULL){
 		writeLogStr("ERROR putToFrontList Incorrect input value");
 		return NULL;
@@ -116,18 +104,8 @@ ListNode_t* putToFrontList(ListNode_t* list, void* data, u08 Flagalloc_Datasize)
 		writeLogStr("ERROR putToFrontList Memory error");
 		return NULL;
 	}
-	byte_ptr temp = NULL;
 	list = findHead(list);
-	if(Flagalloc_Datasize>>7) {
-		temp = (byte_ptr)allocMem(Flagalloc_Datasize & 0x7F);
-		if(temp == NULL) {
-			freeMem((byte_ptr)newNode);
-			return NULL;
-		}
-		memCpy(temp, data, (Flagalloc_Datasize & 0x7F));
-		newNode->data = temp;
-	}
-	else newNode->data = data;
+	newNode->data = data;
 	list->prev = newNode;
     newNode->next = list;
     newNode->prev = NULL;
@@ -166,6 +144,29 @@ ListNode_t* getFromFrontList(ListNode_t* list, void** result){
    	return NULL;
 }
 
+void* peekFromFrontList(ListNode_t* list) {
+	if(list != NULL) {
+		ListNode_t *head = findHead(list);
+		if(head != NULL) {
+			return head->data;
+		}
+		return NULL;
+	}
+	return NULL;
+}
+
+void* peekFromEndtList(ListNode_t* list) {
+	if(list != NULL) {
+		ListNode_t *tail = findTail(list);
+		if(tail != NULL) {
+			return tail->data;
+		}
+		return NULL;
+	}
+	return NULL;
+}
+
+
 BaseSize_t getSizeList(ListNode_t* list){
 	BaseSize_t size = 0;
 	if(list != NULL) {
@@ -180,7 +181,7 @@ BaseSize_t getSizeList(ListNode_t* list){
     return size;
 }
 
-void ForEachListNodes(ListNode_t* list, TaskMng task, bool_t flagToManager, BaseSize_t arg_n) {
+void forEachListNodes(ListNode_t* list, TaskMng task, bool_t flagToManager, BaseSize_t arg_n) {
 	if(list != NULL) {
 		ListNode_t* head = findHead(list);
 		if(head != NULL) {

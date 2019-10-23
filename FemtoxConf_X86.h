@@ -24,7 +24,7 @@
 #define CALL_BACK_TASK
 #define SIGNALS_TASK
 #define _LIST_STRUCT
-//#define _DYNAMIC_ARRAY
+#define _DYNAMIC_ARRAY
 #define _PWR_SAVE
 #define NEED_CRYPT
 #define NEED_RANDOM
@@ -73,6 +73,8 @@
 #ifdef _PWR_SAVE
 //   #define NATIVE_TIMER_PWR_SAVE /*Реализация динамического изменения частоты таймера нативным способом*/
 #endif
+
+
 
 #ifdef USE_SOFT_UART
   #define SOFT_UART_WORK_FLAG 1<<2

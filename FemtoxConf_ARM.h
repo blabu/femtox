@@ -23,8 +23,8 @@
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
 #define SIGNALS_TASK
-//#define _LIST_STRUCT
-//#define _DYNAMIC_ARRAY
+#define _LIST_STRUCT
+#define _DYNAMIC_ARRAY
 #define _PWR_SAVE
 //#define NEED_CRYPT
 #define NEED_BASE64
@@ -74,6 +74,10 @@
 
 #ifdef _PWR_SAVE
 //   #define NATIVE_TIMER_PWR_SAVE /*Реализация динамического изменения частоты таймера нативным способом*/
+#endif
+
+#ifdef _DYNAMIC_ARRAY
+#define _ARRAYS_SIZE 10
 #endif
 
 #ifdef USE_SOFT_UART

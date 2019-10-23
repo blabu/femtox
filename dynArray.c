@@ -22,68 +22,84 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  * */
 
-/*
- * dynString.c
- *
- *  Created on: 17 жовт. 2017 р.
- *      Author: oleksiy.khanin
- */
-
 #include "dynArray.h"
+#include "List.h"
 
-#ifdef _DYNAMIC_ARRAY
-#ifdef __cplusplus
-extern "C" {
-#endif
+const u08 deltaBaseDataRice = 10;
+typedef struct {
+	void* arrayLabel;
+	ListNode_t* base;
+	BaseSize_t sizeBaseElement;
+} DynamicArray_t;
 
-DynamicArray_t* createNewDynamicArray(u08 capasity) {
-	if(capasity > 0x7F) return NULL; // Size is to big
-	DynamicArray_t* res = (DynamicArray_t*)allocMem(sizeof(DynamicArray_t));
-	if(res == NULL) return res; // Memmory allocate error
-	res->data = (u08*)allocMem(capasity);
-	if(res->data == NULL) {
-		freeMem((byte_ptr)res);
-		return NULL;
+DynamicArray_t allArrays;
+
+static DynamicArray_t* findArray(const void* data) {
+	if(allArrays.arrayLabel == data) return &allArrays;
+	return NULL;
+}
+
+u08 CreateArray(const void* D, const BaseSize_t sizeElement, const BaseSize_t sizeAll) {
+	u08 res = CreateDataStruct(D,sizeElement,sizeAll);
+	if(res != EVERYTHING_IS_OK) {
+		return res;
 	}
-	res->capasity = capasity;
-	res->size = 0;
-	return res;
-}
-
-void deleteDynamicArray(DynamicArray_t* array) {
-	if(array == NULL) return;
-	freeMem(array->data);
-    array->size = 0;
-    array->capasity = 0;
-	freeMem((byte_ptr)array);
-}
-
-void freeDynamicArray(DynamicArray_t* array) {
-    if(array == NULL) return;
-    freeMem(array->data);
-    array->size = 0;
-    array->capasity = 0;
-}
-
-u08 arrayAppend(DynamicArray_t* array, byte_ptr data, u08 DataSize) {
-	if(array == NULL || data == NULL) return NULL_PTR_ERROR;
-	if(DataSize > 0x7F) return  OVERFLOW_OR_EMPTY_ERROR;
-	if((array->size + DataSize)>0x7F) return OVERFLOW_OR_EMPTY_ERROR; // Can't allocate memmory for this data
-	if((array->capasity - array->size) < DataSize) { // need reallocate memmory
-		u08* tempData = (u08*)allocMem((array->size + DataSize));
-		if(tempData == NULL) {return NO_MEMORY_ERROR;}
-		memCpy(tempData,array->data,array->size); //for(u08 i = 0; i<(array->size); i++) tempData[i] = array->data[i];
-		freeMem(array->data);
-		array->data = tempData;
-	}
-	memCpy((array->data+array->size),data,DataSize); //for(u08 i = array->size; i<(array->size + DataSize); i++) array->data[i] = data[i];
-	array->size += DataSize;
+	//TODO find free DynamicArray_t
+	allArrays.base = createNewList((void*)D);
+	allArrays.sizeBaseElement = sizeElement;
+	allArrays.arrayLabel = D;
 	return EVERYTHING_IS_OK;
 }
 
-#ifdef __cplusplus
+static void deleteAllData(BaseSize_t arg_n, BaseParam_t arg_p) {
+	delDataStruct((void*)arg_p);
+	freeMem(arg_p);
 }
-#endif
 
+u08 delArray(const void* Data) {
+	DynamicArray_t* a = findArray(Data);
+	if(a == NULL) return NULL_PTR_ERROR;
+	forEachListNodes(a->base, deleteAllData,TRUE,0);
+	deleteList(a->base);
+	return EVERYTHING_IS_OK;
+}
 
-#endif //_DYNAMIC_ARRAY
+u08 PutToFrontArray(const void * Elem, const void* Array) {
+	DynamicArray_t* a = findArray(Array);
+	if(a == NULL) return NULL_PTR_ERROR;
+	void* head = peekFromFrontList(a->base);
+	if(head == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
+	if(PutToFrontDataStruct(Elem, head) != EVERYTHING_IS_OK) {
+		byte_ptr newNode = allocMem(deltaBaseDataRice*(a->sizeBaseElement));
+		if(newNode == NULL) return NO_MEMORY_ERROR;
+		u08 res = CreateDataStruct(newNode,a->sizeBaseElement,deltaBaseDataRice);
+		if(res != EVERYTHING_IS_OK) {
+			freeMem(newNode);
+			return res;
+		}
+		res = PutToFrontDataStruct(Elem, newNode);
+		if(res != EVERYTHING_IS_OK) {
+			freeMem(newNode);
+			return res;
+		}
+		a->base = putToFrontList(a->base, newNode);
+		writeLogStr("Add new list node and data struct");
+	}
+	return EVERYTHING_IS_OK;
+}
+
+u08 GetFromFrontArray(void* returnValue, const void* Array) {
+	DynamicArray_t* a = findArray(Array);
+	if(a == NULL) return NULL_PTR_ERROR;
+	void* head = peekFromFrontList(a->base);
+	for(;head != NULL; head=peekFromFrontList(a->base)) {
+		if(GetFromFrontDataStruct(returnValue, head) == EVERYTHING_IS_OK) return EVERYTHING_IS_OK;
+		writeLogStr("Delete old list node and data struct");
+		delDataStruct(head);
+		freeMem(head);
+		a->base = getFromFrontList(a->base, &head);
+		if(a->base == NULL) return OVERFLOW_OR_EMPTY_ERROR;
+	}
+	if(head == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
+	return UNDEFINED_BEHAVIOR;
+}
