@@ -644,7 +644,7 @@ BaseSize_t base64Encode(BaseSize_t len, byte_ptr input, string_t output) {
 	  u08 i = 0;
 	  u08 j = 0;
 	  BaseSize_t nOut = 0;
-	  u08 char_array_3[3], char_array_4[4];
+	  u08 char_array_3[3]={0}, char_array_4[4] = {0};
 
 	  while(len--) {
 	    char_array_3[i++] = *(input++);

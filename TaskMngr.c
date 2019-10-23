@@ -377,7 +377,7 @@ void SetFrontTask (const TaskMng New_Task, const BaseSize_t n, const BaseParam_t
 	}
 	// Здесь мы окажемся если все таки очередь переполнена (мало вероятный случай)
 	SetTimerTask(New_Task, n, data, TIME_DELAY_IF_BUSY);
-	unlock(TaskList);
+	unlock((const void* const)TaskList);
 }
 #endif  //SET_FRONT_TASK_ENABLE
 

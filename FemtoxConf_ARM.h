@@ -45,7 +45,7 @@
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
-#define DATA_STRUCT_ArraySize   12 /*Общее количество всех структур данных*/
+#define DATA_STRUCT_ArraySize   10 /*Общее количество всех структур данных*/
 #endif
 
 #ifdef MUTEX_ENABLE
@@ -53,14 +53,14 @@
 #endif
 
 #ifdef CYCLE_FUNC
-#define TIMERS_ARRAY_SIZE 10
+#define TIMERS_ARRAY_SIZE 6
 #endif
 
 #ifdef ALLOC_MEM
 #define HEAP_SIZE 8000UL /*6500*/
 #endif
 #ifdef ALLOC_MEM_LARGE
-#define HEAP_SIZE 19200 /*TODO было 10000*/
+#define HEAP_SIZE 19456 /*TODO было 10000*/
 #endif
 
 #ifdef CALL_BACK_TASK
@@ -69,7 +69,7 @@
 #endif
 
 #ifdef SIGNALS_TASK
-#define SIGNAL_LIST_LEN 2
+#define SIGNAL_LIST_LEN 3
 #endif
 
 #ifdef _PWR_SAVE
