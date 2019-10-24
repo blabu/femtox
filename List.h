@@ -33,7 +33,7 @@ ListNode_t* putToFrontList(ListNode_t* list, void* data);
 ListNode_t* getFromEndList(ListNode_t* list, void** result);
 ListNode_t* getFromFrontList(ListNode_t* list, void** result);
 void* peekFromFrontList(ListNode_t* list);
-void* peekFromEndtList(ListNode_t* list);
+void* peekFromEndList(ListNode_t* list);
 BaseSize_t getSizeList(ListNode_t* list);
 void forEachListNodes(ListNode_t* list, TaskMng task, bool_t flagToManager, BaseSize_t arg_n);
 #endif //_LIST_STRUCT

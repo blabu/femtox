@@ -34,20 +34,26 @@ typedef struct {
 
 DynamicArray_t allArrays;
 
-static DynamicArray_t* findArray(const void* data) {
-	if(allArrays.arrayLabel == data) return &allArrays;
+static DynamicArray_t* findArray(const void* identifier) {
+	if(allArrays.arrayLabel == identifier) return &allArrays;
 	return NULL;
 }
 
-u08 CreateArray(const void* D, const BaseSize_t sizeElement, const BaseSize_t sizeAll) {
-	u08 res = CreateDataStruct(D,sizeElement,sizeAll);
+u08 CreateArray(const void* identifier, const BaseSize_t sizeElement, const BaseSize_t sizeAll) {
+	byte_ptr data = allocMem(sizeAll*sizeElement);
+	if(data == NULL) return NO_MEMORY_ERROR;
+	u08 res = CreateDataStruct(data,sizeElement,sizeAll);
 	if(res != EVERYTHING_IS_OK) {
+		freeMem(data);
 		return res;
 	}
-	//TODO find free DynamicArray_t
-	allArrays.base = createNewList((void*)D);
-	allArrays.sizeBaseElement = sizeElement;
-	allArrays.arrayLabel = D;
+	DynamicArray_t* arr = findArray(NULL);
+	if(arr == NULL) {
+		return NOT_FOUND_DATA_STRUCT_ERROR;
+	}
+	arr->base = createNewList((void*)data);
+	arr->sizeBaseElement = sizeElement;
+	arr->arrayLabel = identifier;
 	return EVERYTHING_IS_OK;
 }
 
@@ -56,17 +62,17 @@ static void deleteAllData(BaseSize_t arg_n, BaseParam_t arg_p) {
 	freeMem(arg_p);
 }
 
-u08 delArray(const void* Data) {
-	DynamicArray_t* a = findArray(Data);
-	if(a == NULL) return NULL_PTR_ERROR;
-	forEachListNodes(a->base, deleteAllData,TRUE,0);
+u08 delArray(const void* identifier) {
+	DynamicArray_t* a = findArray(identifier);
+	if(a == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
+	forEachListNodes(a->base, deleteAllData, TRUE, 0);
 	deleteList(a->base);
 	return EVERYTHING_IS_OK;
 }
 
-u08 PutToFrontArray(const void * Elem, const void* Array) {
-	DynamicArray_t* a = findArray(Array);
-	if(a == NULL) return NULL_PTR_ERROR;
+u08 PutToFrontArray(const void * Elem, const void* identifier) {
+	DynamicArray_t* a = findArray(identifier);
+	if(a == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
 	void* head = peekFromFrontList(a->base);
 	if(head == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
 	if(PutToFrontDataStruct(Elem, head) != EVERYTHING_IS_OK) {
@@ -88,9 +94,33 @@ u08 PutToFrontArray(const void * Elem, const void* Array) {
 	return EVERYTHING_IS_OK;
 }
 
-u08 GetFromFrontArray(void* returnValue, const void* Array) {
-	DynamicArray_t* a = findArray(Array);
-	if(a == NULL) return NULL_PTR_ERROR;
+u08 PutToEndArray(const void* Elem, const void* identifier) {
+	DynamicArray_t* a = findArray(identifier);
+	if(a == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
+	void* head = peekFromEndList(a->base);
+	if(head == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
+	if(PutToEndDataStruct(Elem, head) != EVERYTHING_IS_OK) {
+		byte_ptr newNode = allocMem(deltaBaseDataRice*(a->sizeBaseElement));
+		if(newNode == NULL) return NO_MEMORY_ERROR;
+		u08 res = CreateDataStruct(newNode,a->sizeBaseElement, deltaBaseDataRice);
+		if(res != EVERYTHING_IS_OK) {
+			freeMem(newNode);
+			return res;
+		}
+		res = PutToEndDataStruct(Elem, newNode);
+		if(res != EVERYTHING_IS_OK) {
+			freeMem(newNode);
+			return res;
+		}
+		a->base = putToEndList(a->base, newNode);
+		writeLogStr("Add new list node and data struct");
+	}
+	return EVERYTHING_IS_OK;
+}
+
+u08 GetFromFrontArray(void* returnValue, const void* identifier) {
+	DynamicArray_t* a = findArray(identifier);
+	if(a == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
 	void* head = peekFromFrontList(a->base);
 	for(;head != NULL; head=peekFromFrontList(a->base)) {
 		if(GetFromFrontDataStruct(returnValue, head) == EVERYTHING_IS_OK) return EVERYTHING_IS_OK;
@@ -102,4 +132,124 @@ u08 GetFromFrontArray(void* returnValue, const void* Array) {
 	}
 	if(head == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
 	return UNDEFINED_BEHAVIOR;
+}
+
+u08 GetFromEndArray(void* returnValue, const void* identifier) {
+	DynamicArray_t* a = findArray(identifier);
+	if(a == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
+	void* head = peekFromEndList(a->base);
+	for(;head != NULL; head=peekFromEndList(a->base)) {
+		if(GetFromEndDataStruct(returnValue, head) == EVERYTHING_IS_OK) return EVERYTHING_IS_OK;
+		writeLogStr("Delete old list node and data struct");
+		delDataStruct(head);
+		freeMem(head);
+		a->base = getFromEndList(a->base, &head);
+		if(a->base == NULL) return OVERFLOW_OR_EMPTY_ERROR;
+	}
+	if(head == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
+	return UNDEFINED_BEHAVIOR;
+}
+
+u08 peekFromFrontArray(void* returnValue, const void* identifier) {
+	DynamicArray_t* a = findArray(identifier);
+	if(a == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
+	void* head = peekFromFrontList(a->base);
+	for(;head != NULL; head=peekFromFrontList(a->base)) {
+		if(peekFromFrontData(returnValue, head) == EVERYTHING_IS_OK) return EVERYTHING_IS_OK;
+		writeLogStr("Delete old list node and data struct");
+		delDataStruct(head);
+		freeMem(head);
+		a->base = getFromFrontList(a->base, &head);
+		if(a->base == NULL) return OVERFLOW_OR_EMPTY_ERROR;
+	}
+	if(head == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
+	return UNDEFINED_BEHAVIOR;
+}
+
+u08 peekFromEndArray(void* returnValue, const void* identifier) {
+	DynamicArray_t* a = findArray(identifier);
+	if(a == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
+	void* head = peekFromEndList(a->base);
+	for(;head != NULL; head=peekFromEndList(a->base)) {
+		if(peekFromEndData(returnValue, head) == EVERYTHING_IS_OK) return EVERYTHING_IS_OK;
+		writeLogStr("Delete old list node and data struct");
+		delDataStruct(head);
+		freeMem(head);
+		a->base = getFromEndList(a->base, &head);
+		if(a->base == NULL) return OVERFLOW_OR_EMPTY_ERROR;
+	}
+	if(head == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
+	return UNDEFINED_BEHAVIOR;
+}
+
+u08 delFromFrontArray(const void* const identifier) {
+	DynamicArray_t* a = findArray(identifier);
+	if(a == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
+	void* head = peekFromFrontList(a->base);
+	for(;head != NULL; head=peekFromFrontList(a->base)) {
+		if(delFromFrontDataStruct(head) == EVERYTHING_IS_OK) return EVERYTHING_IS_OK;
+		writeLogStr("Delete old list node and data struct");
+		delDataStruct(head);
+		freeMem(head);
+		a->base = getFromFrontList(a->base, &head);
+		if(a->base == NULL) return OVERFLOW_OR_EMPTY_ERROR;
+	}
+	if(head == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
+	return UNDEFINED_BEHAVIOR;
+}
+
+u08 delFromEndArray(const void* const identifier) {
+	DynamicArray_t* a = findArray(identifier);
+	if(a == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
+	void* head = peekFromEndList(a->base);
+	for(;head != NULL; head=peekFromEndList(a->base)) {
+		if(delFromEndDataStruct(head) == EVERYTHING_IS_OK) return EVERYTHING_IS_OK;
+		writeLogStr("Delete old list node and data struct");
+		delDataStruct(head);
+		freeMem(head);
+		a->base = getFromEndList(a->base, &head);
+		if(a->base == NULL) return OVERFLOW_OR_EMPTY_ERROR;
+	}
+	if(head == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
+	return UNDEFINED_BEHAVIOR;
+}
+
+BaseSize_t getCurrentSizeArray(const void* const identifier) {
+	DynamicArray_t* a = findArray(identifier);
+	if(a == NULL) return 0;
+	BaseSize_t sz = 0;
+	ListNode_t* l = findHead(a->base);
+	if(l == NULL) return sz;
+	do {
+		sz += getCurrentSizeDataStruct(l->data);
+		l = l->next;
+	} while(l != NULL);
+	return sz;
+}
+
+void clearArray(const void* const identifier) {
+	DynamicArray_t* a = findArray(identifier);
+	if(a == NULL) return;
+	ListNode_t* l = findHead(a->base);
+	if(l == NULL) return;
+	do {
+		clearDataStruct(l->data);
+		l = l->next;
+	} while(l != NULL);
+}
+
+bool_t isEmptyArray(const void* const identifier) {
+	return FALSE;
+}
+
+void forEachArray(const void* const identifier, TaskMng tsk) {
+	DynamicArray_t* a = findArray(identifier);
+	if(a == NULL) return;
+	BaseSize_t sz = 0;
+	ListNode_t* l = findHead(a->base);
+	if(l == NULL) return;
+	do {
+		forEach(l->data,tsk);
+		l = l->next;
+	} while(l != NULL);
 }

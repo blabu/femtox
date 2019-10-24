@@ -61,8 +61,10 @@ extern "C" {
  * V1.4.61   - Tested SHA256 and BASE64
  * V1.4.62	 - Add delete callback by task (Don't test yet)
  * V1.4.63   - Add compare function for compare to array data (Don't test yet)
+ * V1.4.64   - compare to arrays function is work fine
+ * V1.4.7	 - Add new linked array datatype. Dont't full tested yet
  * */
-const char* const _osVersion = "V1.4.63";
+const char* const _osVersion = "V1.4.7";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
 
 static void TaskManager(void);
@@ -517,8 +519,8 @@ u08 getFreePositionForTimerTask(void) {
 //destination - адрес в памяти КУДА копируем source - адрес в памяти ОТКУДА копируем n - количество БАЙТ копируемых
 void memCpy(void* destination, const void* source, const BaseSize_t num) {
 #if ARCH == 64
-		BaseSize_t blocks = num>>4;		// 8-мь байт копируются за один раз
-		BaseSize_t last = num & 0x0F; // остаток
+		BaseSize_t blocks = num>>3;		// 8-мь байт копируются за один раз
+		BaseSize_t last = num & 0x07; // остаток
 		for(BaseSize_t i = 0; i<blocks; i++) {
 			*((u64*)destination) = *((u64*)source);
 			destination = (void*)((byte_ptr)destination + 8);
@@ -533,7 +535,7 @@ void memCpy(void* destination, const void* source, const BaseSize_t num) {
 		source = (void*)((byte_ptr)source + 4);
 	}
 #else
-	BaseSize last = num;
+	BaseSize_t last = num;
 #endif
 	for (BaseSize_t i=0; i<last; i++){ //Копирование будет побайтное
 		*((byte_ptr)destination + i) = *((byte_ptr)source + i); // Выполняем копирование данных
@@ -542,8 +544,8 @@ void memCpy(void* destination, const void* source, const BaseSize_t num) {
 
 void memSet(void* destination, const BaseSize_t size, const u08 value) {
 #if ARCH == 64
-	BaseSize_t blocks = size>>4; // 4-ре байта копируются за один раз
-	BaseSize_t last = size & 0x0F;      // остаток
+	BaseSize_t blocks = size>>3; // 8 байт копируются за один раз
+	BaseSize_t last = size & 0x07;      // остаток
 	u64 val = (u64)value<<56 | (u64)value<<48 | (u64)value<<40 | (u64)value<<32 |
 			  (u32)value<<24 | (u32)value<<16 | (u16)value<<8 | value;
 	for(BaseSize_t i = 0; i<blocks; i++) {
@@ -577,16 +579,14 @@ void memCpy(void* destination, const void* source, const BaseSize_t num) {
 }
 #endif
 
-//TODO check array compare (test it)
 bool_t compare(const void* block1, const void* block2, const BaseSize_t size) {
 #if ARCH == 64
-	BaseSize_t blocks = size>>4; // 4-ре байта копируются за один раз
-	BaseSize_t last = size & 0x0F;      // остаток
+	BaseSize_t blocks = size>>3; // 8 байт копируются за один раз
+	BaseSize_t last = size & 0x07;      // остаток
 	for(BaseSize_t i = 0; i<blocks; i++) {
 		if(*((u64*)block1) == *((u64*)block2)) {
 			block1 = (void*)((byte_ptr)block1 + 8);
 			block2 = (void*)((byte_ptr)block2 + 8);
-			continue;
 		}
 		else return FALSE;
 	}

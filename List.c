@@ -155,7 +155,7 @@ void* peekFromFrontList(ListNode_t* list) {
 	return NULL;
 }
 
-void* peekFromEndtList(ListNode_t* list) {
+void* peekFromEndList(ListNode_t* list) {
 	if(list != NULL) {
 		ListNode_t *tail = findTail(list);
 		if(tail != NULL) {
