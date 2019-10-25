@@ -91,7 +91,6 @@ extern void initHeap(void);
 extern void initHeap(void);
 #endif
 
-
 #ifdef DATA_STRUCT_MANAGER
 extern void initDataStruct( void );
 #endif
@@ -99,6 +98,10 @@ extern void initDataStruct( void );
 #ifdef EVENT_LOOP_TASKS
 extern void EventManager( void );
 extern void initEventList( void );
+#endif
+
+#ifdef _DYNAMIC_ARRAY
+void initDynamicArray();
 #endif
 
 #ifdef CLOCK_SERVICE
@@ -233,18 +236,19 @@ void initFemtOS (void) {  // Инициализация менеджера за�
 #endif
 #ifdef DATA_STRUCT_MANAGER
 	initDataStruct();
-#endif //DATA_STRUCT_MANAGER
-
+#endif
+#ifdef _DYNAMIC_ARRAY
+	initDynamicArray();
+#endif
 #ifdef CYCLE_FUNC
 	initCycleTask();
-#endif  //CYCLE_FUNC
+#endif
 #ifdef EVENT_LOOP_TASKS
 	initEventList();
 #endif
 #ifdef CALL_BACK_TASK
 	initCallBackTask();
 #endif
-	//INTERRUPT_ENABLE;
 }
 
 CC_NO_RETURN void runFemtOS( void ) {

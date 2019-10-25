@@ -77,7 +77,7 @@
 #endif
 
 #ifdef _DYNAMIC_ARRAY
-#define _ARRAYS_SIZE 10
+#define DYNAMIC_ARRAY_SIZE 10
 #endif
 
 #ifdef USE_SOFT_UART

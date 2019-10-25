@@ -74,6 +74,9 @@
 //   #define NATIVE_TIMER_PWR_SAVE /*Реализация динамического изменения частоты таймера нативным способом*/
 #endif
 
+#ifdef _DYNAMIC_ARRAY
+#define DYNAMIC_ARRAY_SIZE 10
+#endif
 
 
 #ifdef USE_SOFT_UART

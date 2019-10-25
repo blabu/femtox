@@ -25,21 +25,29 @@ SOFTWARE.
 #include "dynArray.h"
 #include "List.h"
 
-const u08 deltaBaseDataRice = 10;
 typedef struct {
 	void* arrayLabel;
 	ListNode_t* base;
 	BaseSize_t sizeBaseElement;
+	BaseSize_t deltaDataRice;
 } DynamicArray_t;
 
-DynamicArray_t allArrays;
+DynamicArray_t allArrays[DYNAMIC_ARRAY_SIZE];
+
+void initDynamicArray() {
+	for(BaseSize_t i = 0; i<DYNAMIC_ARRAY_SIZE; i++) {
+		allArrays[i].arrayLabel = NULL;
+	}
+}
 
 static DynamicArray_t* findArray(const void* identifier) {
-	if(allArrays.arrayLabel == identifier) return &allArrays;
+	for(BaseSize_t i = 0; i<DYNAMIC_ARRAY_SIZE; i++) {
+		if(allArrays[i].arrayLabel == identifier) return allArrays+i;
+	}
 	return NULL;
 }
 
-u08 CreateArray(const void* identifier, const BaseSize_t sizeElement, const BaseSize_t sizeAll) {
+u08 CreateArray(const void* identifier, const BaseSize_t sizeElement, const BaseSize_t sizeAll, BaseSize_t dataRice) {
 	byte_ptr data = allocMem(sizeAll*sizeElement);
 	if(data == NULL) return NO_MEMORY_ERROR;
 	u08 res = CreateDataStruct(data,sizeElement,sizeAll);
@@ -54,18 +62,18 @@ u08 CreateArray(const void* identifier, const BaseSize_t sizeElement, const Base
 	arr->base = createNewList((void*)data);
 	arr->sizeBaseElement = sizeElement;
 	arr->arrayLabel = identifier;
+	arr->deltaDataRice = dataRice;
 	return EVERYTHING_IS_OK;
 }
 
-static void deleteAllData(BaseSize_t arg_n, BaseParam_t arg_p) {
-	delDataStruct((void*)arg_p);
-	freeMem(arg_p);
+static void deleteAllData(BaseSize_t arg_n, BaseParam_t dataStruct) {
+	delDataStruct((void*)dataStruct);
 }
 
 u08 delArray(const void* identifier) {
 	DynamicArray_t* a = findArray(identifier);
 	if(a == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
-	forEachListNodes(a->base, deleteAllData, TRUE, 0);
+	forEachListNodes(a->base, deleteAllData, FALSE, 0);
 	deleteList(a->base);
 	return EVERYTHING_IS_OK;
 }
@@ -76,9 +84,9 @@ u08 PutToFrontArray(const void * Elem, const void* identifier) {
 	void* head = peekFromFrontList(a->base);
 	if(head == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
 	if(PutToFrontDataStruct(Elem, head) != EVERYTHING_IS_OK) {
-		byte_ptr newNode = allocMem(deltaBaseDataRice*(a->sizeBaseElement));
+		byte_ptr newNode = allocMem(a->deltaDataRice*(a->sizeBaseElement));
 		if(newNode == NULL) return NO_MEMORY_ERROR;
-		u08 res = CreateDataStruct(newNode,a->sizeBaseElement,deltaBaseDataRice);
+		u08 res = CreateDataStruct(newNode,a->sizeBaseElement,a->deltaDataRice);
 		if(res != EVERYTHING_IS_OK) {
 			freeMem(newNode);
 			return res;
@@ -100,9 +108,9 @@ u08 PutToEndArray(const void* Elem, const void* identifier) {
 	void* head = peekFromEndList(a->base);
 	if(head == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
 	if(PutToEndDataStruct(Elem, head) != EVERYTHING_IS_OK) {
-		byte_ptr newNode = allocMem(deltaBaseDataRice*(a->sizeBaseElement));
+		byte_ptr newNode = allocMem(a->deltaDataRice*(a->sizeBaseElement));
 		if(newNode == NULL) return NO_MEMORY_ERROR;
-		u08 res = CreateDataStruct(newNode,a->sizeBaseElement, deltaBaseDataRice);
+		u08 res = CreateDataStruct(newNode,a->sizeBaseElement, a->deltaDataRice);
 		if(res != EVERYTHING_IS_OK) {
 			freeMem(newNode);
 			return res;
@@ -231,11 +239,10 @@ void clearArray(const void* const identifier) {
 	DynamicArray_t* a = findArray(identifier);
 	if(a == NULL) return;
 	ListNode_t* l = findHead(a->base);
-	if(l == NULL) return;
-	do {
+	while(l != NULL) {
 		clearDataStruct(l->data);
 		l = l->next;
-	} while(l != NULL);
+	}
 }
 
 bool_t isEmptyArray(const void* const identifier) {
@@ -247,9 +254,8 @@ void forEachArray(const void* const identifier, TaskMng tsk) {
 	if(a == NULL) return;
 	BaseSize_t sz = 0;
 	ListNode_t* l = findHead(a->base);
-	if(l == NULL) return;
-	do {
+	while(l != NULL) {
 		forEach(l->data,tsk);
 		l = l->next;
-	} while(l != NULL);
+	}
 }

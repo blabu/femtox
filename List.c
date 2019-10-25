@@ -184,12 +184,10 @@ BaseSize_t getSizeList(ListNode_t* list){
 void forEachListNodes(ListNode_t* list, TaskMng task, bool_t flagToManager, BaseSize_t arg_n) {
 	if(list != NULL) {
 		ListNode_t* head = findHead(list);
-		if(head != NULL) {
-			do {
-				if(flagToManager)SetTask(task, arg_n, (BaseParam_t)head->data);
-				else task(arg_n, (BaseParam_t)head->data);
-				head = head->next;
-			}while(head != NULL);
+		while(head != NULL) {
+			if(flagToManager) SetTask(task, arg_n, (BaseParam_t)head->data);
+			else task(arg_n, (BaseParam_t)head->data);
+			head = head->next;
 		}
 	}
 }
