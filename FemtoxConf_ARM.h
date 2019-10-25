@@ -23,8 +23,8 @@
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
 #define SIGNALS_TASK
-#define _LIST_STRUCT
-#define _DYNAMIC_ARRAY
+//#define _LIST_STRUCT
+//#define _DYNAMIC_ARRAY
 //#define _PWR_SAVE
 //#define NEED_CRYPT
 #define NEED_BASE64
@@ -45,7 +45,7 @@
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
-#define DATA_STRUCT_ArraySize 40 /*Общее количество всех структур данных*/
+#define DATA_STRUCT_ArraySize 42 /*Общее количество всех структур данных*/
 #endif
 
 #ifdef MUTEX_ENABLE
@@ -60,12 +60,12 @@
 #define HEAP_SIZE 8000UL /*6500*/
 #endif
 #ifdef ALLOC_MEM_LARGE
-#define HEAP_SIZE 38912 /*TODO было 10000*/
+#define HEAP_SIZE 27*1024U /*TODO было 10000*/
 #endif
 
 #ifdef CALL_BACK_TASK
 //#define CHECK_ERRORS_CALLBACK
-#define CALL_BACK_TASK_LIST_LEN 30
+#define CALL_BACK_TASK_LIST_LEN 35
 #endif
 
 #ifdef SIGNALS_TASK
@@ -77,7 +77,7 @@
 #endif
 
 #ifdef _DYNAMIC_ARRAY
-#define DYNAMIC_ARRAY_SIZE 3
+#define DYNAMIC_ARRAY_SIZE 2
 #endif
 
 #ifdef USE_SOFT_UART

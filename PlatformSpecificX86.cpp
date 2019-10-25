@@ -107,7 +107,7 @@ static unlock_t lock2(const void*const resourceId) {
 		resourceMutexList[saveIndex].mt.lock();
 		return unlock;
 	}
-	writeLogStr((string_t)"WARN, Never be here list empty error");
+	writeLogStr((string_t)"WARN, Never be here mutex list overflow error");
 	return empty;
 }
 
@@ -154,9 +154,7 @@ void _init_Timer(void) {// Инициализация таймера 0, наст
  * Все програмные UART должны находится на одном порту ввода вывода, который указывается здесь же
  * Если программных UART будет больше двух необходимо добавлять новые функции в ProgramUART.c
  */
-void _initTimerSoftUart() {
-
-}
+void _initTimerSoftUart() {}
 
 void initProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK) {
 

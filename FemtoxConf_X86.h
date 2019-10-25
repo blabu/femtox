@@ -25,7 +25,7 @@
 #define SIGNALS_TASK
 #define _LIST_STRUCT
 #define _DYNAMIC_ARRAY
-#define _PWR_SAVE
+//#define _PWR_SAVE
 #define NEED_CRYPT
 #define NEED_RANDOM
 #define NEED_CRC16
@@ -77,7 +77,6 @@
 #ifdef _DYNAMIC_ARRAY
 #define DYNAMIC_ARRAY_SIZE 10
 #endif
-
 
 #ifdef USE_SOFT_UART
   #define SOFT_UART_WORK_FLAG 1<<2

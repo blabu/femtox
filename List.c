@@ -79,8 +79,12 @@ void deleteListNode(ListNode_t* listPtr) {
 	if(listPtr == NULL) return;
 	ListNode_t* prev = listPtr->prev;
 	ListNode_t* next = listPtr->next;
-	next->prev = prev;
-	prev->next = next;
+	if(next != NULL) {
+		next->prev = prev;
+	}
+	if(prev != NULL) {
+		prev->next = next;
+	}
 	freeMem(listPtr->data);
 	freeMem(listPtr);
 }

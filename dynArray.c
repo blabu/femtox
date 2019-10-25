@@ -25,7 +25,7 @@ SOFTWARE.
 #include "dynArray.h"
 #include "List.h"
 #include "logging.h"
-
+#ifdef _DYNAMIC_ARRAY
 typedef struct {
 	void* arrayLabel;
 	ListNode_t* base;
@@ -258,6 +258,7 @@ void clearArray(const void* const identifier) {
 		clearDataStruct(l->data);
 		l = l->next;
 		if(l != NULL) {
+			a->base = l;
 			delDataStruct(l->prev->data);
 			deleteListNode(l->prev);
 		}
@@ -274,3 +275,4 @@ void forEachArray(const void* const identifier, TaskMng tsk) {
 		l = l->next;
 	}
 }
+#endif //_DYNAMIC_ARRAY

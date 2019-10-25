@@ -84,7 +84,7 @@ static BaseSize_t getNextBlockSize(byte_ptr startSize_ptr) {
 	BaseSize_t size = 0;
 	for(u08 i=0;;i++) {
 		size |= (*startSize_ptr & 0x1F) << (5*i);
-		if( !(*startSize_ptr & (1<<5)) ) break; // Если бит следующего размерного блока не выставлен выходим
+		if(!(*startSize_ptr & (1<<5))) break; // Если бит следующего размерного блока не выставлен выходим
 		startSize_ptr++;
 	}
 	return size;
