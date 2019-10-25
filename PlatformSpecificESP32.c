@@ -4,7 +4,8 @@
  *  Created on: 26 мар. 2019 г.
  *      Author: blabu
  */
-
+#include "platform.h"
+#ifdef ARM_ESP
 #include "driver/timer.h"
 #include "TaskMngr.h"
 #include "PlatformSpecific.h"
@@ -66,3 +67,4 @@ void deInitProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK){}
 #error "Can not compile whith it. Not implemented yet"
 #endif
 
+#endif

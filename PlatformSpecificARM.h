@@ -1,5 +1,7 @@
 #ifndef PLATFORMSPECIFIC_ARM
 #define PLATFORMSPECIFIC_ARM
+#include "platform.h"
+#ifdef ARM_STM32
 #include "stm32l1xx_hal.h"
 #include "stm32l152xe.h"
 //#include "stm32f1xx_hal.h"
@@ -45,5 +47,5 @@ extern TIM_HandleTypeDef TIM7InitStruct;
 #define WRITE_TX_PIN(PORT,PIN_MASK) HAL_GPIO_WritePin(PORT,PIN_MASK,GPIO_PIN_SET)
 #define CLEAR_TX_PIN(PORT,PIN_MASK) HAL_GPIO_WritePin(PORT,PIN_MASK,GPIO_PIN_RESET)
 
-
+#endif
 #endif // PLATFORMSPECIFIC_ARM

@@ -1,3 +1,5 @@
+#include "platform.h"
+#ifdef MSP430
 #include <../../include/msp430f2272.h>
 #include "ProgrammUART.h"
 #include "PlatformSpecific.h"
@@ -348,3 +350,4 @@ void UARTTimerISR()// Само прерывание
     }
 }
 #endif //USE_SOFT_UART
+#endif

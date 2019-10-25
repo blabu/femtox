@@ -1,3 +1,5 @@
+#include "platform.h"
+#ifdef MSP430
 #include "PlatformSpecific.h"
 #include "TaskMngr.h"
 
@@ -60,4 +62,5 @@ void _initTimerSoftUart()
 __interrupt_vec(TIMERA0_VECTOR)void TimerA_ISR(){
     UARTTimerISR();
 }
+#endif
 #endif

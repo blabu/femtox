@@ -1,5 +1,7 @@
 #ifndef PLATFORMSPECIFIC_MSP
 #define PLATFORMSPECIFIC_MSP
+#include "platform.h"
+#ifdef MSP430
 #include <msp430.h>
 #include "FemtoxConf.h"
 #include "FemtoxTypes.h"
@@ -48,4 +50,5 @@ void deInitProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK);
 #define WRITE_TX_PIN(PORT,PIN_MASK)  (PORT |=  (PIN_MASK))
 #define CLEAR_TX_PIN(PORT,PIN_MASK)  (PORT &= ~(PIN_MASK))
 #endif //USE_SOFT_UART
+#endif
 #endif // PLATFORMSPECIFIC_MSP

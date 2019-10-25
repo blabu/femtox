@@ -1,3 +1,5 @@
+#include "platform.h"
+#ifdef ARM_STM32
 #include "ProgrammUART.h"
 #include "PlatformSpecific.h"
 
@@ -356,3 +358,4 @@ void UARTTimerISR()// Само прерывание
     }
 }
 #endif //USE_SOFT_UART
+#endif

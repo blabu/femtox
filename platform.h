@@ -10,6 +10,7 @@
 
 //#define MSP430 1
 #define ARM_STM32 1
+//#define ARM_ESP
 //#define _X86 1
 //#define SCELETON
 

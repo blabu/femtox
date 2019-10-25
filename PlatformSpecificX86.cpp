@@ -1,3 +1,5 @@
+#include "platform.h"
+#ifdef _X86
 #ifdef _MSVC_LANG
 #include "../stdafx.h"
 #endif
@@ -159,3 +161,4 @@ void _initTimerSoftUart() {}
 void initProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK) {
 
 }
+#endif
