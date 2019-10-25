@@ -10,11 +10,11 @@
 #ifndef FEMTOXCONF_ARM_H_
 #define FEMTOXCONF_ARM_H_
 
-#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
+//#define SET_FRONT_TASK_ENABLE  /*разрешаем добавлеие в голову очереди задач (высокоприоритетная задача)*/
 #define DATA_STRUCT_MANAGER   /*Включаем работу с очередями средствами деспетчера*/
 #define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/
 //#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
-//#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
+#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 //#define ALLOC_MEM   /*Включение динамического выделения памяти*/
 #define ALLOC_MEM_LARGE 1   /*Включение динамического выделения памяти без ограничения размера*/
 //#define EVENT_LOOP_TASKS
@@ -25,16 +25,16 @@
 #define SIGNALS_TASK
 #define _LIST_STRUCT
 #define _DYNAMIC_ARRAY
-#define _PWR_SAVE
+//#define _PWR_SAVE
 //#define NEED_CRYPT
 #define NEED_BASE64
 #define NEED_RANDOM
 #define NEED_SHA256
-#define NEED_CRC16
+//#define NEED_CRC16
 #define ENABLE_LOGGING
-#define NEED_MATRIX
+//#define NEED_MATRIX
 //#define STANDART_MEMCPY_MEMSET
-#define LOAD_STATISTIC /*Сколько времени мы находимся в IDLE процессе в сравнении с полным рабочим временем в секундах*/
+//#define LOAD_STATISTIC /*Сколько времени мы находимся в IDLE процессе в сравнении с полным рабочим временем в секундах*/
 
 #define TASK_LIST_LEN 15U /*Длина очереди задач*/
 #define TIME_LINE_LEN 30U /*Максимальне количество системных таймеров*/
@@ -45,7 +45,7 @@
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
-#define DATA_STRUCT_ArraySize   10 /*Общее количество всех структур данных*/
+#define DATA_STRUCT_ArraySize 40 /*Общее количество всех структур данных*/
 #endif
 
 #ifdef MUTEX_ENABLE
@@ -53,14 +53,14 @@
 #endif
 
 #ifdef CYCLE_FUNC
-#define TIMERS_ARRAY_SIZE 6
+#define TIMERS_ARRAY_SIZE 5
 #endif
 
 #ifdef ALLOC_MEM
 #define HEAP_SIZE 8000UL /*6500*/
 #endif
 #ifdef ALLOC_MEM_LARGE
-#define HEAP_SIZE 19456 /*TODO было 10000*/
+#define HEAP_SIZE 38912 /*TODO было 10000*/
 #endif
 
 #ifdef CALL_BACK_TASK
@@ -77,7 +77,7 @@
 #endif
 
 #ifdef _DYNAMIC_ARRAY
-#define DYNAMIC_ARRAY_SIZE 10
+#define DYNAMIC_ARRAY_SIZE 3
 #endif
 
 #ifdef USE_SOFT_UART

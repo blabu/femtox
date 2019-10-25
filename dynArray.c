@@ -24,6 +24,7 @@ SOFTWARE.
 
 #include "dynArray.h"
 #include "List.h"
+#include "logging.h"
 
 typedef struct {
 	void* arrayLabel;
@@ -32,7 +33,7 @@ typedef struct {
 	BaseSize_t deltaDataRice;
 } DynamicArray_t;
 
-DynamicArray_t allArrays[DYNAMIC_ARRAY_SIZE];
+static DynamicArray_t allArrays[DYNAMIC_ARRAY_SIZE];
 
 void initDynamicArray() {
 	for(BaseSize_t i = 0; i<DYNAMIC_ARRAY_SIZE; i++) {
@@ -47,7 +48,8 @@ static DynamicArray_t* findArray(const void* identifier) {
 	return NULL;
 }
 
-u08 CreateArray(const void* identifier, const BaseSize_t sizeElement, const BaseSize_t sizeAll, BaseSize_t dataRice) {
+u08 CreateArray(const void*const identifier, const BaseSize_t sizeElement, const BaseSize_t sizeAll, BaseSize_t dataRice) {
+	writeLogStr("INFO: Create array");
 	byte_ptr data = allocMem(sizeAll*sizeElement);
 	if(data == NULL) return NO_MEMORY_ERROR;
 	u08 res = CreateDataStruct(data,sizeElement,sizeAll);
@@ -61,7 +63,7 @@ u08 CreateArray(const void* identifier, const BaseSize_t sizeElement, const Base
 	}
 	arr->base = createNewList((void*)data);
 	arr->sizeBaseElement = sizeElement;
-	arr->arrayLabel = identifier;
+	arr->arrayLabel = (void*)identifier;
 	arr->deltaDataRice = dataRice;
 	return EVERYTHING_IS_OK;
 }
@@ -71,10 +73,12 @@ static void deleteAllData(BaseSize_t arg_n, BaseParam_t dataStruct) {
 }
 
 u08 delArray(const void* identifier) {
+	writeLogStr("INFO: Delete array");
 	DynamicArray_t* a = findArray(identifier);
 	if(a == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
 	forEachListNodes(a->base, deleteAllData, FALSE, 0);
 	deleteList(a->base);
+	a->arrayLabel = NULL;
 	return EVERYTHING_IS_OK;
 }
 
@@ -97,7 +101,7 @@ u08 PutToFrontArray(const void * Elem, const void* identifier) {
 			return res;
 		}
 		a->base = putToFrontList(a->base, newNode);
-		writeLogStr("Add new list node and data struct");
+		writeLogStr("TRACE: Add new list node and data struct to front");
 	}
 	return EVERYTHING_IS_OK;
 }
@@ -121,7 +125,7 @@ u08 PutToEndArray(const void* Elem, const void* identifier) {
 			return res;
 		}
 		a->base = putToEndList(a->base, newNode);
-		writeLogStr("Add new list node and data struct");
+		writeLogStr("TRACE: Add new list node and data struct to end");
 	}
 	return EVERYTHING_IS_OK;
 }
@@ -132,7 +136,7 @@ u08 GetFromFrontArray(void* returnValue, const void* identifier) {
 	void* head = peekFromFrontList(a->base);
 	for(;head != NULL; head=peekFromFrontList(a->base)) {
 		if(GetFromFrontDataStruct(returnValue, head) == EVERYTHING_IS_OK) return EVERYTHING_IS_OK;
-		writeLogStr("Delete old list node and data struct");
+		writeLogStr("TRACE: Delete old list node and data struct from front");
 		delDataStruct(head);
 		freeMem(head);
 		a->base = getFromFrontList(a->base, &head);
@@ -148,7 +152,7 @@ u08 GetFromEndArray(void* returnValue, const void* identifier) {
 	void* head = peekFromEndList(a->base);
 	for(;head != NULL; head=peekFromEndList(a->base)) {
 		if(GetFromEndDataStruct(returnValue, head) == EVERYTHING_IS_OK) return EVERYTHING_IS_OK;
-		writeLogStr("Delete old list node and data struct");
+		writeLogStr("TRACE: Delete old list node and data struct from end");
 		delDataStruct(head);
 		freeMem(head);
 		a->base = getFromEndList(a->base, &head);
@@ -164,7 +168,7 @@ u08 peekFromFrontArray(void* returnValue, const void* identifier) {
 	void* head = peekFromFrontList(a->base);
 	for(;head != NULL; head=peekFromFrontList(a->base)) {
 		if(peekFromFrontData(returnValue, head) == EVERYTHING_IS_OK) return EVERYTHING_IS_OK;
-		writeLogStr("Delete old list node and data struct");
+		writeLogStr("TRACE: Delete old list node and data struct from front");
 		delDataStruct(head);
 		freeMem(head);
 		a->base = getFromFrontList(a->base, &head);
@@ -180,7 +184,7 @@ u08 peekFromEndArray(void* returnValue, const void* identifier) {
 	void* head = peekFromEndList(a->base);
 	for(;head != NULL; head=peekFromEndList(a->base)) {
 		if(peekFromEndData(returnValue, head) == EVERYTHING_IS_OK) return EVERYTHING_IS_OK;
-		writeLogStr("Delete old list node and data struct");
+		writeLogStr("TRACE: Delete old list node and data struct from end");
 		delDataStruct(head);
 		freeMem(head);
 		a->base = getFromEndList(a->base, &head);
@@ -196,7 +200,7 @@ u08 delFromFrontArray(const void* const identifier) {
 	void* head = peekFromFrontList(a->base);
 	for(;head != NULL; head=peekFromFrontList(a->base)) {
 		if(delFromFrontDataStruct(head) == EVERYTHING_IS_OK) return EVERYTHING_IS_OK;
-		writeLogStr("Delete old list node and data struct");
+		writeLogStr("TRACE: Delete old list node and data struct from front");
 		delDataStruct(head);
 		freeMem(head);
 		a->base = getFromFrontList(a->base, &head);
@@ -212,7 +216,7 @@ u08 delFromEndArray(const void* const identifier) {
 	void* head = peekFromEndList(a->base);
 	for(;head != NULL; head=peekFromEndList(a->base)) {
 		if(delFromEndDataStruct(head) == EVERYTHING_IS_OK) return EVERYTHING_IS_OK;
-		writeLogStr("Delete old list node and data struct");
+		writeLogStr("TRACE: Delete old list node and data struct from end");
 		delDataStruct(head);
 		freeMem(head);
 		a->base = getFromEndList(a->base, &head);
@@ -226,36 +230,47 @@ BaseSize_t getCurrentSizeArray(const void* const identifier) {
 	DynamicArray_t* a = findArray(identifier);
 	if(a == NULL) return 0;
 	BaseSize_t sz = 0;
-	ListNode_t* l = findHead(a->base);
-	if(l == NULL) return sz;
-	do {
+	ListNode_t* l = a->base = findHead(a->base);
+	while(l != NULL) {
 		sz += getCurrentSizeDataStruct(l->data);
 		l = l->next;
-	} while(l != NULL);
+	}
 	return sz;
 }
 
-void clearArray(const void* const identifier) {
-	DynamicArray_t* a = findArray(identifier);
-	if(a == NULL) return;
-	ListNode_t* l = findHead(a->base);
-	while(l != NULL) {
-		clearDataStruct(l->data);
-		l = l->next;
-	}
-}
-
 bool_t isEmptyArray(const void* const identifier) {
+	DynamicArray_t* a = findArray(identifier);
+	if(a == NULL) return TRUE;
+	ListNode_t* l = a->base = findHead(a->base);
+	while(l != NULL) {
+		if(!isEmptyDataStruct(l->data)) return TRUE;
+		l=l->next;
+	}
 	return FALSE;
 }
 
-void forEachArray(const void* const identifier, TaskMng tsk) {
+void clearArray(const void* const identifier) {
+	writeLogStr("TRACE: Clear dynamic array");
 	DynamicArray_t* a = findArray(identifier);
 	if(a == NULL) return;
-	BaseSize_t sz = 0;
-	ListNode_t* l = findHead(a->base);
+	ListNode_t* l = a->base = findHead(a->base);
 	while(l != NULL) {
-		forEach(l->data,tsk);
+		clearDataStruct(l->data);
+		l = l->next;
+		if(l != NULL) {
+			delDataStruct(l->prev->data);
+			deleteListNode(l->prev);
+		}
+	}
+}
+
+void forEachArray(const void* const identifier, TaskMng tsk) {
+	writeLogStr("TRACE: For each dynamic array");
+	DynamicArray_t* a = findArray(identifier);
+	if(a == NULL) return;
+	ListNode_t* l = a->base = findHead(a->base);
+	while(l != NULL) {
+		forEachDataStruct(l->data,tsk);
 		l = l->next;
 	}
 }

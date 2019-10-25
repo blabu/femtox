@@ -75,6 +75,15 @@ void deleteList(ListNode_t* listPtr) {
 	freeMem((byte_ptr)listPtr);
 }
 
+void deleteListNode(ListNode_t* listPtr) {
+	if(listPtr == NULL) return;
+	ListNode_t* prev = listPtr->prev;
+	ListNode_t* next = listPtr->next;
+	next->prev = prev;
+	prev->next = next;
+	freeMem(listPtr->data);
+	freeMem(listPtr);
+}
 
 ListNode_t* putToEndList(ListNode_t* list, void* data) {
 	if(list == NULL || data == NULL) {
@@ -168,17 +177,18 @@ void* peekFromEndList(ListNode_t* list) {
 
 
 BaseSize_t getSizeList(ListNode_t* list){
-	BaseSize_t size = 0;
 	if(list != NULL) {
 		ListNode_t * head = findHead(list);
 		if(head != NULL) {
+			BaseSize_t size = 1;
 			while(head->next != NULL) {
 				head = head->next;
 				size++;
 			}
+			return size;
 		}
 	}
-    return size;
+    return 0;
 }
 
 void forEachListNodes(ListNode_t* list, TaskMng task, bool_t flagToManager, BaseSize_t arg_n) {

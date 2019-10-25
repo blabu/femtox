@@ -12,7 +12,7 @@
 
 #ifdef _DYNAMIC_ARRAY
 
-u08 CreateArray(const void* identifier, const BaseSize_t sizeElement, const BaseSize_t sizeAll, BaseSize_t dataRice);
+u08 CreateArray(const void*const identifier, const BaseSize_t sizeElement, const BaseSize_t sizeAll, BaseSize_t dataRice);
 u08 delArray(const void* identifier);                                    // Удаляем структуру из списка структур
 BaseSize_t getCurrentSizeArray(const void* const identifier);
 u08 PutToFrontArray(const void * Elem, const void* identifier);   // Кладем элемент в начало

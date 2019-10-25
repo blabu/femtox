@@ -25,6 +25,7 @@
 
 ListNode_t* createNewList(void* data);
 void deleteList(ListNode_t* listPtr);
+void deleteListNode(ListNode_t* listPtr);
 ListNode_t* findHead(const ListNode_t* listPtr);
 ListNode_t* findTail(const ListNode_t* listPtr);
 // flag 0...6 bits is a size of data, and last 7's bit is a flag for allocate memmory

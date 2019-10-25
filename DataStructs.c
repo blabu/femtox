@@ -316,7 +316,7 @@ BaseSize_t getCurrentSizeDataStruct(const void* const Data) {
 	return 0;
 }
 
-void forEach(const void* const Array, TaskMng tsk) {
+void forEachDataStruct(const void* const Array, TaskMng tsk) {
 	register u08 i = findNumberDataStruct(Array);
 	if(i == DATA_STRUCT_ArraySize) return;
 	BaseSize_t first = 0;

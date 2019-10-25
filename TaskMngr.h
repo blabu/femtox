@@ -118,7 +118,7 @@ u08 delFromEndDataStruct(const void* const Data); // Удаляет один э�
 u08 peekFromFrontData(void* returnValue, const void* Array); // Посмотреть первый элемент очереди не удаляя его
 u08 peekFromEndData(void* returnValue, const void* Array);  // Посмотреть последний элемент очереди не удаляя его
 bool_t isEmptyDataStruct(const void* const Data); // Проверяет пустая ли структура данных
-void forEach(const void* const Array, TaskMng tsk);
+void forEachDataStruct(const void* const Array, TaskMng tsk);
 /*---------------ОЧЕРЕДЬ-------------------*/
 // Создание очереди вернет ноль если очередь успешно создана
 #define CreateQ(Q, sizeElement, sizeAll)    CreateDataStruct((void*)(Q), (BaseSize_t)(sizeElement), (BaseSize_t)(sizeAll))
@@ -126,6 +126,7 @@ void forEach(const void* const Array, TaskMng tsk);
 #define PutToBackQ(Elem, Queue) PutToEndDataStruct((void*)(Elem), (void*)(Queue))
 // Достать єлемент из очереди и записать его по указателю returnValue
 #define GetFromQ(returnValue, Queue)   GetFromFrontDataStruct((void*)(returnValue), (const void*)(Queue))
+#define DelFromQ(Queue) delFromFrontDataStruct((const void*)(Queue))
 // Удаляем из массива очередей очередь с заданным идентивикатором
 #define DeleteQ(Queue)  delDataStruct((void*)(Queue))
 
