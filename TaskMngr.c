@@ -294,7 +294,7 @@ void TimerISR(void) {
 	u32 minCycleService = CycleService(); // Вернет минимальное время из циклических задач
 	if(minTimerService && minCycleService) {
 		if(minTimerService < minCycleService) _minTimeOut = minTimerService;
-		else if(minCycleService != 0) _minTimeOut = minCycleService;
+		else _minTimeOut = minCycleService;
 	}
 	else if(minTimerService) _minTimeOut = minTimerService;
 	else if(minCycleService) _minTimeOut = minCycleService;
@@ -609,7 +609,7 @@ bool_t compare(const void* block1, const void* block2, const BaseSize_t size) {
 	BaseSize_t last = size;
 #endif
 	for(BaseSize_t i = 0; i<last; i++) {
-		if(*((byte_ptr)block1 + i) == *((byte_ptr)block1 + i)) {
+		if(*((byte_ptr)block1 + i) == *((byte_ptr)block2 + i)) {
 			continue;
 		}
 		else return FALSE;

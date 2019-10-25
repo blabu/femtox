@@ -1,6 +1,8 @@
 #include "PlatformSpecific.h"
 #include "TaskMngr.h"
 
+#ifdef _SOME_VALUE_NEVER_DEFINED
+
 #ifdef MAXIMIZE_OVERFLOW_ERROR
 	void MaximizeErrorHandler(){
 		initWatchDog();
@@ -176,4 +178,5 @@ void TIM7_IRQHandler(void){
 	}
 }
 
+#endif
 #endif

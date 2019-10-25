@@ -32,43 +32,51 @@ SOFTWARE.
 #include "PlatformSpecific.h"
 #ifdef SIGNALS_TASK
 
-#if SIGNAL_LIST_LEN>0xFF
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if SIGNAL_LIST_LEN > 0xFF
 #error "SIGNAL MUST BE LESS 0xFF"
 #endif
 
 volatile static TaskMng taskList[SIGNAL_LIST_LEN];
-volatile static void* signalList[SIGNAL_LIST_LEN];
+volatile static void *signalList[SIGNAL_LIST_LEN];
 
 // Прочесываем очередь, находим задачи подписанные на этот сигнал и вызываем их. При этом задачи из списка не удаляются
-void emitSignal(const void*const signal, BaseSize_t arg_n, BaseParam_t arg_p) {
-	for(u08 i = 0; i<SIGNAL_LIST_LEN; i++) {
-		if(signalList[i] == signal) {
-			if(taskList[i] != NULL) {
-				SetTask(taskList[i],arg_n,arg_p);
-			}
-		}
-	}
+void emitSignal(const void *const signal, BaseSize_t arg_n, BaseParam_t arg_p) {
+    for (u08 i = 0; i < SIGNAL_LIST_LEN; i++) {
+        if (signalList[i] == signal) {
+            if (taskList[i] != NULL) {
+                SetTask(taskList[i], arg_n, arg_p);
+            }
+        }
+    }
 }
 
-void connectTaskToSignal(const TaskMng task, const void*const signal) {
-	for(u08 i = 0; i<SIGNAL_LIST_LEN; i++) {
-		if(signalList[i] == NULL) {
-			unlock_t unlock = lock(signalList);
-			signalList[i] = (void*)signal;
-			taskList[i] = task;
-			unlock(signalList);
-			return;
-		}
-	}
+void connectTaskToSignal(const TaskMng task, const void *const signal) {
+    for (u08 i = 0; i < SIGNAL_LIST_LEN; i++) {
+        if (signalList[i] == NULL) {
+            unlock_t unlock = lock(signalList);
+            signalList[i] = (void *) signal;
+            taskList[i] = task;
+            unlock(signalList);
+            return;
+        }
+    }
 }
 
-void disconnectTaskFromSignal(const TaskMng task, const void*const signal){
-	for(u08 i = 0; i<SIGNAL_LIST_LEN; i++) {
-		if(signalList[i] == signal && taskList[i] == task) {
-			unlock_t unlock = lock(signalList);
-			signalList[i] = NULL;
-			unlock(signalList);
-		}
-	}
+void disconnectTaskFromSignal(const TaskMng task, const void *const signal) {
+    for (u08 i = 0; i < SIGNAL_LIST_LEN; i++) {
+        if (signalList[i] == signal && taskList[i] == task) {
+            unlock_t unlock = lock(signalList);
+            signalList[i] = NULL;
+            unlock(signalList);
+        }
+    }
 }
+
+#ifdef __cplusplus
+}
+#endif
 #endif //SIGNALS_TASK
