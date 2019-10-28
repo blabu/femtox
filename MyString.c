@@ -301,7 +301,7 @@ s64 toIntDec(const string_t c_str) {
     if(c_str[0] == '-') {sign=TRUE; i = 1;}
 	razryad <<= 1;
 	while(c_str[i] != END_STRING) {
-		if(c_str[i] >= '0' && c_str[i] <= '9') { // Значит валидный знак
+		if(isDigitDec(c_str[i])) { // Значит валидный знак
 			res *= 10;
 			res += (c_str[i]-'0');
 			razryad--;
@@ -359,15 +359,12 @@ double toDouble(const string_t c_str) {
 }
 
 bool_t isDigitDec(const char symb) {
-    if(symb < '0') return FALSE;
-    if(symb > '9') return FALSE;
+    if(symb < '0' || symb > '9') return FALSE;
     return TRUE;
 }
 
 bool_t isDigit(const char symb) {
-	if(symb < '0') return FALSE;
-	if(symb > '9' && symb < 'A') return FALSE;
-	if(symb > 'F') return FALSE;
+	if(symb < '0' || (symb > '9' && symb < 'A') || (symb > 'F' && symb < 'a') || symb > 'f' ) return FALSE;
 	return TRUE;
 }
 

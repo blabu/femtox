@@ -36,7 +36,7 @@
 //#define STANDART_MEMCPY_MEMSET
 //#define LOAD_STATISTIC /*Сколько времени мы находимся в IDLE процессе в сравнении с полным рабочим временем в секундах*/
 
-#define TASK_LIST_LEN 15U /*Длина очереди задач*/
+#define TASK_LIST_LEN 12U /*Длина очереди задач*/
 #define TIME_LINE_LEN 30U /*Максимальне количество системных таймеров*/
 #define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
@@ -60,7 +60,7 @@
 #define HEAP_SIZE 8000UL /*6500*/
 #endif
 #ifdef ALLOC_MEM_LARGE
-#define HEAP_SIZE 27*1024U /*TODO было 10000*/
+#define HEAP_SIZE 25*1024U /*TODO было 10000*/
 #endif
 
 #ifdef CALL_BACK_TASK
