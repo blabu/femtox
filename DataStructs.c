@@ -49,7 +49,7 @@ extern "C" {
 #endif
 typedef struct
 {
-	void* Data;               // Указатель на начало очереди
+	const void* Data;               // Указатель на начало очереди
 	BaseSize_t firstCount;    // Указатель на первый свободный элемент абстрактной структуры данных
 	BaseSize_t lastCount;     // Указатель на последний фактический элемент в абстрактной структуре данных
 	BaseSize_t sizeElement;   // Размер одного элемента абстрактной структуры данных в байтах
@@ -66,10 +66,10 @@ static inline u08 findNumberDataStruct(const void* const Data) {
 }
 
 void initDataStruct(void) {  // Инициализация абстрактной структуры данных
-	for(register u08 i = 0; i<DATA_STRUCT_ArraySize; i++){
+	for(register u08 i = 0; i<DATA_STRUCT_ArraySize; i++) {
+		Data_Array[i].Data = NULL;
 		Data_Array[i].firstCount = 0;
 		Data_Array[i].lastCount = 0;
-		Data_Array[i].Data = NULL;
 		Data_Array[i].sizeElement = 0;
 		Data_Array[i].sizeAllElements = 0;
 	}
@@ -183,7 +183,7 @@ u08 PutToFrontDataStruct(const void* Elem, const void* Array){
 }
 
 // Положить элемент Elem в конец абстрактной структуры данных Array
-u08 PutToEndDataStruct(const void* Elem, const void* Array){
+u08 PutToEndDataStruct(const void* Elem, const void* Array) {
 	register u08 i = findNumberDataStruct(Array);
 	if(i == DATA_STRUCT_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;    // Если мы не нашли абстрактную структуру данных с указанным идентификтором выходим
 	unlock_t unlock = lock((const void* const)(&Data_Array[i].Data));

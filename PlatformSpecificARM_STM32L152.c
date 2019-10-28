@@ -67,7 +67,7 @@ static void unlock(const void*const resourceId) {
 
 static void empty(const void*const resourceId) {}
 
-unlock_t lock(const void*const resourceId){
+unlock_t lock(const void*const resourceId) {
 	if((__get_CONTROL() & (uint32_t)(1<<7))) {
 	    __disable_irq();
 		return unlock;
@@ -83,14 +83,14 @@ unlock_t lock(const void*const resourceId){
 #endif
 
 static IWDG_HandleTypeDef watchDog;
-void initWatchDog(){
+void initWatchDog() {
 	watchDog.Instance = IWDG;
 	watchDog.Init.Prescaler = IWDG_PRESCALER_128;
 	watchDog.Init.Reload = RELOAD_VALUE;
 	HAL_IWDG_Init(&watchDog);
 }
 
-inline void resetWatchDog(void){
+inline void resetWatchDog(void) {
 	HAL_IWDG_Refresh(&watchDog);
 }
 
