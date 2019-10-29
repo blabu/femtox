@@ -5,7 +5,7 @@ project(${PROJ_NAME})
 
 file(GLOB SRC "${CMAKE_CURRENT_SOURCE_DIR}/*.c*")
 
-add_library(${PROJ_NAME} STATIC ${SRC})
+add_library(${PROJ_NAME} SHARED ${SRC})
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 target_include_directories(${PROJ_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

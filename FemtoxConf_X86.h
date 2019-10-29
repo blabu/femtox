@@ -33,6 +33,7 @@
 #define ENABLE_LOGGING
 //#define NEED_MATRIX
 //#define STANDART_MEMCPY_MEMSET
+#define COMMAND_TASK
 
 #define TASK_LIST_LEN 200U /*Длина очереди задач*/
 #define TIME_LINE_LEN 230U /*Максимальне количество системных таймеров*/
@@ -76,6 +77,10 @@
 
 #ifdef _DYNAMIC_ARRAY
 #define DYNAMIC_ARRAY_SIZE 10
+#endif
+
+#ifdef COMMAND_TASK
+#define COMMAND_TASK_LIST_SIZE 20
 #endif
 
 #ifdef USE_SOFT_UART

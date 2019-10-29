@@ -63,8 +63,10 @@ extern "C" {
  * V1.4.63   - Add compare function for compare to array data (Don't test yet)
  * V1.4.64   - compare to arrays function is work fine
  * V1.4.7	 - Add new linked array datatype. Dont't full tested yet
+ * V1.4.71   - fix some bugs (lock heap in defragmentation)
+ * V1.5.0    - Add command list module
  * */
-const char* const _osVersion = "V1.4.7";
+const char* const _osVersion = "V1.5.0";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
 
 static void TaskManager(void);
@@ -102,6 +104,10 @@ extern void initEventList( void );
 
 #ifdef _DYNAMIC_ARRAY
 void initDynamicArray();
+#endif
+
+#ifdef  COMMAND_TASK
+void initCommandList();
 #endif
 
 #ifdef CLOCK_SERVICE
@@ -146,6 +152,7 @@ extern void initCallBackTask(void);
 #if TIME_LINE_LEN > 0xFE
 #error "Invalid size"
 #endif
+
 
 static volatile IdleTask_t IdleTask=NULL;
 static volatile TaskList_t TaskList[TASK_LIST_LEN];   // Очередь задач - это глобальный масив переменных. Каждый элемент которой состоит из трех переменных.
@@ -248,6 +255,9 @@ void initFemtOS (void) {  // Инициализация менеджера за�
 #endif
 #ifdef CALL_BACK_TASK
 	initCallBackTask();
+#endif
+#ifdef  COMMAND_TASK
+    initCommandList();
 #endif
 }
 

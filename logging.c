@@ -70,6 +70,15 @@ void writeSymb(char symb) {}
 
 #ifdef ENABLE_LOGGING
 
+u32 SizeRx2Buffer() {return 0;}
+void* ReceiveUART2NewPackageLabel = (void*)SizeRx2Buffer;
+void readBufUART2(BaseSize_t size, byte_ptr data) {}
+void setReceiveTimeoutUART2(u16 time) {}
+#define SizeConsoleBuff SizeRx2Buffer
+#define ReceiveConsoleBuff ReceiveUART2NewPackageLabel
+#define readConsoleBuff readBufUART2
+#define setReceiveTimeoutConsole setReceiveTimeoutUART2
+
 #ifdef _X86
 
 #include <stdio.h>
@@ -82,7 +91,6 @@ void writeSymb(char symb) {}
 #endif
 
 //#define TO_FILE
-
 void enableUART2(u32 baud) {}
 
 void disableUART2() {}
@@ -122,6 +130,7 @@ static void sendUART2_buf(u08 c) {
 
 #ifdef ARM_STM32
 #include "UART2.h"
+
 static u08 countEnableLogging = 0;
 static void readCMD(BaseSize_t count, BaseParam_t arg);
 
@@ -135,8 +144,8 @@ void enableLogging(void) {
 //	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,GPIO_PIN_SET);
 #endif// _X86
     enableUART2(57600);
-    setReceiveTimeoutUART2(TICK_PER_SECOND);
-    registerCallBack(readCMD, 0, NULL, ReceiveUART2NewPackageLabel);
+    setReceiveTimeoutConsole(TICK_PER_SECOND);
+    registerCallBack(readCMD, 0, NULL, ReceiveConsoleBuff);
 }
 
 void disableLogging(void){
@@ -283,75 +292,88 @@ void writeLogByteArray(BaseSize_t sizeBytes, byte_ptr array) {
 }
 #endif // ALLOC_MEM_LARGE
 
+static void writeLogStrTask(BaseSize_t arg_n, BaseParam_t str) {
+    if(!arg_n) writeLogStr((string_t)str);
+    else writeLogByteArray(arg_n, (byte_ptr)str);
+}
+
+void commandEngine(string_t command) {
+    if(str1_str2("help", command)) {
+        writeLog2Str("help", " show this help");
+        writeLog2Str("defra", " run defragmentation heap memory");
+        writeLog2Str("sizeMem", " show free heap memory size");
+        writeLog2Str("tasks", " show all free position in task list");
+        writeLog2Str("delayTask", " show all free position in timers list");
+        writeLog2Str("time", " show current time");
+        writeLog2Str("restart", " restart system");
+        writeLog2Str("clearMem", " clear all heap");
+        writeLog2Str("clearCallBack", " clear all call back tasks");
+        writeLog2Str("clearScreen", " clear log screen");
+        writeLogStr("COMMANDS:");
+        forEachCommand( writeLogStrTask, 0, FALSE);
+#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
+        writeLog2Str("showAllBlocks", " show all blocks of memory allocated");
+#endif
+    }
+    else if(str1_str2("defra", command)) {
+        writeLogStr("Defragmentation");
+        SetTask((TaskMng)defragmentation,0,0);
+    }
+    else if(str1_str2("sizeMem", command)) {
+        writeLogWithStr("Free memory size " , getFreeMemmorySize());
+    }
+    else if(str1_str2("tasks", command)) {
+        writeLogWithStr("Free position in task list ", getFreePositionForTask());
+    }
+    else if (str1_str2("time", command)) {
+        writeLogWithStr("Current time in seconds is ", getAllSeconds());
+    }
+    else if(str1_str2("delayTask", command)) {
+        writeLogWithStr("Free position in timers list ", getFreePositionForTimerTask());
+    }
+    else if (str1_str2("clearMem", command)) {
+        writeLogStr("Clear all memory");
+        SetTask((TaskMng)clearAllMemmory,0,NULL);
+    }
+    else if (str1_str2("clearCallBack", command)) {
+        writeLogStr("Clear all calback list");
+        clearAllCallBackList();
+    }
+    else if (str1_str2("restart", command)) {
+        writeLogStr("Reset command receive");
+        ResetFemtOS();
+    }
+    else if (str1_str2("clearScreen", command)) {
+        for(u08 i = 0; i<50; i++) {
+            writeSymb('\n');
+            writeSymb('\r');
+        }
+    }
+#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
+        else if (str1_str2("showAllBlocks", command)) {
+		SetTask((TaskMng)showAllBlocks,0,NULL);
+	}
+#endif
+    else if(execCommand(command) == EVERYTHING_IS_OK) {
+        writeLog2Str("Exec command ", command);
+    }
+    else  {
+        writeLog3Str("ERROR: Undefined command ", command, " type help to see all avaliable command");
+    }
+    execCallBack(commandEngine);
+}
 
 static void readCMD(BaseSize_t count, BaseParam_t arg) {
-	BaseSize_t sz = SizeRx2Buffer();
-	if(!sz) registerCallBack(readCMD, count, arg, ReceiveUART2NewPackageLabel);
+	BaseSize_t sz = SizeConsoleBuff();
+	if(!sz) registerCallBack(readCMD, count, arg, ReceiveConsoleBuff);
 	string_t command = (string_t)allocMemComment(sz, "For command console");
 	if(command == NULL) {
 		writeLogStr("ERROR: Command interface memory error");
 		registerCallBack(readCMD, count, arg, ReceiveUART2NewPackageLabel);
 		return;
 	}
-	readBufUART2(sz, command);
-	if(str1_str2("help", command)) {
-		writeLog2Str("help", " show this help");
-		writeLog2Str("defra", " run defragmentation heap memory");
-		writeLog2Str("sizeMem", " show free heap memory size");
-		writeLog2Str("tasks", " show all free position in task list");
-		writeLog2Str("timers", " show all free position in timers list");
-		writeLog2Str("time", " show current time");
-		writeLog2Str("restart", " restart system");
-		writeLog2Str("clearMem", " clear all heap");
-		writeLog2Str("clearCallBack", " clear all call back tasks");
-		writeLog2Str("clearScreen", " clear log screen");
-
-		#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
-		writeLog2Str("showAllBlocks", " show all blocks of memory allocated");
-		#endif
-	}
-	else if(str1_str2("defra", command)) {
-		writeLogStr("Defragmentation");
-		SetTask((TaskMng)defragmentation,0,0);
-	}
-	else if(str1_str2("sizeMem", command)) {
-		writeLogWithStr("Free memory size " , getFreeMemmorySize());
-	}
-	else if(str1_str2("tasks", command)) {
-		writeLogWithStr("Free position in task list ", getFreePositionForTask());
-	}
-	else if (str1_str2("time", command)) {
-			writeLogWithStr("Current time in seconds is ", getAllSeconds());
-	}
-	else if(str1_str2("timers", command)) {
-		writeLogWithStr("Free position in timers list ", getFreePositionForTimerTask());
-	}
-	else if (str1_str2("clearMem", command)) {
-		writeLogStr("Clear all memory");
-		SetTask((TaskMng)clearAllMemmory,0,NULL);
-	}
-	else if (str1_str2("clearCallBack", command)) {
-		writeLogStr("Clear all calback list");
-		clearAllCallBackList();
-	}
-	else if (str1_str2("restart", command)) {
-		writeLogStr("Reset command receive");
-		ResetFemtOS();
-	}
-	else if(str1_str2("clearScreen", command)) {
-		for(u08 i = 0; i<50; i++) {
-			writeSymb('\n');
-			writeSymb('\r');
-		}
-	}
-	#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
-	else if (str1_str2("showAllBlocks", command)) {
-		SetTask((TaskMng)showAllBlocks,0,NULL);
-	}
-	#endif
-	else  {
-		writeLog3Str("ERROR: Undefined command ", command, " type help to see all avaliable command");
-	}
+    readConsoleBuff(sz, command);
+	commandEngine(command);
 	freeMem((byte_ptr)command);
 	registerCallBack(readCMD, 0, NULL, ReceiveUART2NewPackageLabel);
 }

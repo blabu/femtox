@@ -226,6 +226,14 @@ void disconnectTaskFromSignal(const TaskMng task, const void*const signal);
 void emitSignal(const void*const signal, BaseSize_t arg_n, BaseParam_t arg_p);
 #endif
 
+#ifdef COMMAND_TASK
+u08 delCommand(string_t command);
+u08 addTaskCommand(TaskMng tsk, BaseSize_t arg_n, BaseParam_t arg_p, string_t command);
+u08 execCommand(string_t command);
+void execCommandTask(BaseSize_t  arg_n, string_t command);
+void forEachCommand(TaskMng tsk, BaseSize_t arg_n, bool_t toManager);
+#endif
+
 #ifdef USE_SOFT_UART
 /*
  *  Настраиваем прерывания по достижению события совпадения каждые 26 мкс
