@@ -63,10 +63,10 @@ u08 registerCallBack(const TaskMng task, const BaseSize_t arg_n, const BaseParam
 	unlock_t unlock = lock(callBackList);
 	u08 i = findCallBack(NULL);
 	if(i < CALL_BACK_TASK_LIST_LEN) {
+		labelPointer[i] = (void*)labelPtr;
 		callBackList[i].Task = task;
 		callBackList[i].arg_n = arg_n;
 		callBackList[i].arg_p = arg_p;
-		labelPointer[i] = (void*)labelPtr;
 		unlock(callBackList);
 		return EVERYTHING_IS_OK;
 	}
@@ -105,7 +105,7 @@ void deleteCallBackByTask(TaskMng task) {
 
 void execCallBack(const void*const labelPtr){
 	for(u08 i = 0; i < CALL_BACK_TASK_LIST_LEN; i++){
-		if(labelPointer[i] == labelPtr){
+		if(labelPointer[i] == labelPtr) {
 			if(callBackList[i].Task != NULL) {
 			#ifdef SET_FRONT_TASK_ENABLE
 				SetFrontTask(callBackList[i].Task,callBackList[i].arg_n,callBackList[i].arg_p);

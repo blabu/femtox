@@ -37,6 +37,24 @@ SOFTWARE.
 extern "C" {
 #endif
 
+#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
+#include "logging.h"
+typedef struct {
+	byte_ptr ptr;
+	BaseSize_t size;
+	string_t comment;
+} allocateDescriptor_t;
+#define MAX_DESCRIPTORS 30
+static allocateDescriptor_t descriptor[MAX_DESCRIPTORS];
+static u08 findDescriptor(const byte_ptr pointer) {
+	u08 i = 0;
+	for(;i<MAX_DESCRIPTORS;i++) {
+		if(descriptor[i].ptr == pointer) break;
+	}
+	return i;
+}
+#endif
+
 #ifdef ALLOC_MEM_LARGE
 /*
 Функции работы с кучей. Выделение и удаление памяти в куче.
@@ -61,10 +79,15 @@ static BaseSize_t sizeAllFreeMemmory = HEAP_SIZE;
 
 void initHeap(void){
 	heap[0] = 0;
+#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
+	for(u08 i = 0; i<MAX_DESCRIPTORS; i++) {
+		descriptor[i].ptr = NULL;
+	}
+#endif
 }
 
 BaseSize_t getFreeMemmorySize(void){
-	if(sizeAllFreeMemmory == HEAP_SIZE) {
+	if(sizeAllFreeMemmory >= HEAP_SIZE) {
 		defragmentation();
 	}
     return sizeAllFreeMemmory;
@@ -125,6 +148,9 @@ void clearAllMemmory(void){
     	i += blockSize;
     }
     unlock(heap);
+	#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
+    for(u08 i = 0; i<MAX_DESCRIPTORS; i++) descriptor[i].ptr = NULL;
+	#endif
 }
 
 static byte_ptr alloc(byte_ptr startSize, BaseSize_t size) {
@@ -185,57 +211,81 @@ static byte_ptr _allocMem(const BaseSize_t size) {
 	}
 	return NULL;
 }
+#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
+byte_ptr allocMemComment(const BaseSize_t size, string_t comment) {
+    byte_ptr res = _allocMem(size);
+    if(res == NULL) {
+        defragmentation();
+        res = _allocMem(size);
+    }
+   	u08 i = findDescriptor(NULL);
+   	if(i < MAX_DESCRIPTORS) {descriptor[i].ptr = res; descriptor[i].size = size; descriptor[i].comment = comment;}
+   	else MaximizeErrorHandler("Overflow descriptor list in allocMem");
+    return res;
+}
+void showAllBlocks() {
+	for(u08 i = 0; i<MAX_DESCRIPTORS; i++) {
+		if(descriptor[i].ptr != NULL) {
+			writeLog2Str("Descriptor is busy ", descriptor[i].comment);
+			writeLogWithStr("Descriptor pointer is ", (u32)descriptor[i].ptr);
+			writeLogWithStr("Allocated size ", descriptor[i].size);
+		}
+	}
+}
+#endif
 
 byte_ptr allocMem(const BaseSize_t size) {
     byte_ptr res = _allocMem(size);
     if(res == NULL) {
         defragmentation();
-        return _allocMem(size);
+        res = _allocMem(size);
     }
+#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
+	u08 i = findDescriptor(NULL);
+	if(i < MAX_DESCRIPTORS) {descriptor[i].ptr = res; descriptor[i].size = size;}
+	else MaximizeErrorHandler("Overflow descriptor list in allocMem");
+#endif
     return res;
 }
 
-#ifdef CHECK_ERRORS_FREE_MEMMORY
-// TODO Test it
-void freeMem(const byte_ptr data) {
-	if(data > heap &&
-	   data < heap + HEAP_SIZE)  // Если мы передали валидный указатель
-	{
-	    BaseSize i = 0;
-		while(i<HEAP_SIZE) {
-			BaseSize_t blockSize = getNextBlockSize(heap[i]);
-			u08 length = calculateSize(blockSize);
-			if((i+length) < HEAP_SIZE-1) {
-				if(heap+i+length == data) {
-					unlock_t unlock = lock(heap);
-					free(data);
-					unlock(heap);
-					return;
-				}
-				i+=(blockSize+length);
-			}
-		}
-		MaximizeErrorHandler("Try free memmory with incorrect pointer");
-	} else {
-		MaximizeErrorHandler("Out of bounds when try free memmory");
-	}
-}
-#else
 void freeMem(const byte_ptr data) {
     if(data > heap &&
        data < heap + HEAP_SIZE)  // Если мы передали валидный указатель
     {
+		#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
+    		u08 i = findDescriptor(data);
+    		if(i < MAX_DESCRIPTORS) {
+    			BaseSize_t sz = getCurrentBlockSize(data);
+    			if(sz >= descriptor[i].size && sz - descriptor[i].size < 10) {
+    				descriptor[i].ptr = NULL;
+    			}
+    			else {
+    				writeLog2Str("ERROR in freeMem: ", descriptor[i].comment);
+    				writeLogWithStr("ERROR: allocated memory", descriptor[i].size);
+    				writeLogWithStr("ERROR: try free memory", sz);
+    				MaximizeErrorHandler("Incorrect memory size");
+    			}
+    		}
+    		else {
+    			writeLogWithStr("ERROR:Try freeMem by ptr ", (u32)data);
+    			showAllBlocks();
+    			MaximizeErrorHandler("Undefine descriptor in list for freeMem");
+
+    		}
+		#endif
     	unlock_t unlock = lock(heap);
         free(data);
         unlock(heap);
+    } else if(data != NULL) {
+    	writeLogWithStr("ERROR: Incorrect ptr in freeMem ", (u32)data);
     }
 }
-#endif
 
 void defragmentation(void){
 	BaseSize_t i = 0;
 	BaseSize_t blockSize = 0;
     sizeAllFreeMemmory=HEAP_SIZE;
+    unlock_t unlock = lock(heap);
     while(i < HEAP_SIZE) {   // Пока не закончится куча
     	BaseSize_t currentBlockSize = getNextBlockSize(&heap[i]);
     	u08 blkSz = calculateSize(currentBlockSize);
@@ -251,16 +301,15 @@ void defragmentation(void){
         	BaseSize_t SumBlockSize = (BaseSize_t)(blockSize + currentBlockSize + blkSz + prevBlkSz);
         	SumBlockSize -= calculateSize(SumBlockSize);
         	byte_ptr startBlock = heap+i-blockSize-prevBlkSz; // Находим стартовую позицию составного блока
-           	unlock_t unlock = lock(heap);
            	free(alloc(startBlock,SumBlockSize));
             blockSize = SumBlockSize; // Тперь составной блок это предыдущий блок
             i += currentBlockSize + blkSz;
-            unlock(heap);
             continue;
         }
         i += currentBlockSize + blkSz;
         blockSize = currentBlockSize;
     }
+    unlock(heap);
 }
 
 #endif //ALLOC_MEM_LARGE
@@ -284,7 +333,7 @@ void initHeap(void){
 }
 
 u16 getFreeMemmorySize(void){
-	if(sizeAllFreeMemmory == HEAP_SIZE) {
+	if(sizeAllFreeMemmory >= HEAP_SIZE) {
 		defragmentation();
 	}
     return sizeAllFreeMemmory;
@@ -359,34 +408,14 @@ byte_ptr allocMem(const u08 size) {
         defragmentation();
         return _allocMem(size);
     }
+	#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
+		u08 i = findDescriptor(NULL);
+		if(i < MAX_DESCRIPTORS) {descriptor[i].ptr = res; descriptor[i].size = size;}
+		else MaximizeErrorHandler("Overflow descriptor list in allocMem");
+	#endif
     return res;
 }
 
-#ifdef CHECK_ERRORS_FREE_MEMMORY
-#include "logging.h"
-void freeMem(const byte_ptr data) {
-	if(data > heap &&
-	   data < heap + HEAP_SIZE)  // Если мы передали валидный указатель
-	{
-	    u16 i=0;
-		while(i<HEAP_SIZE) {
-		    if(heap+i+1 > data) break;
-			if(heap+i+1 == data) {
-				unlock_t unlock = lock(heap);
-				*(data-1) &= ~(1<<7); // Очистим флаг занятости данных (не трогая при этом сами данные и их размер)
-				unlock(heap);
-				return;
-			}
-			u08 blockSize = heap[i] & 0x7F;
-			i+=(blockSize+1);
-		}
-		MaximizeErrorHandler("Try free memory with incorrect pointer");
-	} else {
-		writeLogStr("Out of bounds when try free memory");
-	}
-}
-
-#else
 void freeMem(const byte_ptr data) {
     if(data > heap &&
        data < heap + HEAP_SIZE)  // Если мы передали валидный указатель
@@ -396,12 +425,12 @@ void freeMem(const byte_ptr data) {
         unlock(heap);
     }
 }
-#endif
 
 void defragmentation(void){
     u16 i = 0;
     u08 blockSize = 0;
     sizeAllFreeMemmory=HEAP_SIZE;
+    unlock_t unlock = lock(heap);
     while(i < HEAP_SIZE) {   // Пока не закончится куча
         u08 currentBlockSize = heap[i]&0x7F; //Выделяем размер блока (младшие 7 байт)
         if(!currentBlockSize) break;   // Если размер нулевой, значит выделения памяти еще не было
@@ -421,18 +450,17 @@ void defragmentation(void){
             	i += currentBlockSize + 1;
                 continue;
             } else {
-                unlock_t unlock = lock(heap);
                 i -= blockSize+1;
                 heap[i] = 127;
                 i += (127+1);
                 currentBlockSize = SumBlock - (127+1);
                 heap[i] = currentBlockSize;
-                unlock(heap);
             }
         }
         blockSize = currentBlockSize;
         i += blockSize + 1;
     }
+    unlock(heap);
 }
 
 #endif

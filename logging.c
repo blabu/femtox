@@ -123,6 +123,8 @@ static void sendUART2_buf(u08 c) {
 #ifdef ARM_STM32
 #include "UART2.h"
 static u08 countEnableLogging = 0;
+static void readCMD(BaseSize_t count, BaseParam_t arg);
+
 void enableLogging(void) {
     if(countEnableLogging > 0) {
         countEnableLogging++;
@@ -133,6 +135,8 @@ void enableLogging(void) {
 //	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,GPIO_PIN_SET);
 #endif// _X86
     enableUART2(57600);
+    setReceiveTimeoutUART2(TICK_PER_SECOND);
+    registerCallBack(readCMD, 0, NULL, ReceiveUART2NewPackageLabel);
 }
 
 void disableLogging(void){
@@ -168,8 +172,8 @@ void writeLogWithStr(const string_t c_str, u32 n) {
     char str[50];
     if (str1_str2(disableLavel, c_str)) return;
     u08 size = strSize(c_str);
-    if (size > 50) {
-        writeLogStr("Error: too long string");
+    if (size > 39) {
+        writeLogStr("ERROR: too long string");
         return;
     }
     strClear(str);
@@ -256,13 +260,12 @@ void writeLogByteArray(u08 sizeBytes, byte_ptr array){
 }
 #endif // ALLOC_MEM
 #ifdef ALLOC_MEM_LARGE
-
 void writeLogByteArray(BaseSize_t sizeBytes, byte_ptr array) {
     static string_t str = NULL;
     BaseSize_t totalSize = sizeBytes * 2 + sizeBytes + 1;
     if (totalSize > getAllocateMemmorySize((byte_ptr) (str))) {
         freeMem((byte_ptr) str);
-        str = (string_t) allocMem(totalSize); // Выделяем память под строку + под пробелы между символами + байт конца
+        str = (string_t) allocMemComment(totalSize, "For byteArray log"); // Выделяем память под строку + под пробелы между символами + байт конца
     }
     if (str == NULL) {
         writeLogStr("mem err in logging");
@@ -278,8 +281,80 @@ void writeLogByteArray(BaseSize_t sizeBytes, byte_ptr array) {
     str[poz] = '\0';
     writeLogStr(str);
 }
-
 #endif // ALLOC_MEM_LARGE
+
+
+static void readCMD(BaseSize_t count, BaseParam_t arg) {
+	BaseSize_t sz = SizeRx2Buffer();
+	if(!sz) registerCallBack(readCMD, count, arg, ReceiveUART2NewPackageLabel);
+	string_t command = (string_t)allocMemComment(sz, "For command console");
+	if(command == NULL) {
+		writeLogStr("ERROR: Command interface memory error");
+		registerCallBack(readCMD, count, arg, ReceiveUART2NewPackageLabel);
+		return;
+	}
+	readBufUART2(sz, command);
+	if(str1_str2("help", command)) {
+		writeLog2Str("help", " show this help");
+		writeLog2Str("defra", " run defragmentation heap memory");
+		writeLog2Str("sizeMem", " show free heap memory size");
+		writeLog2Str("tasks", " show all free position in task list");
+		writeLog2Str("timers", " show all free position in timers list");
+		writeLog2Str("time", " show current time");
+		writeLog2Str("restart", " restart system");
+		writeLog2Str("clearMem", " clear all heap");
+		writeLog2Str("clearCallBack", " clear all call back tasks");
+		writeLog2Str("clearScreen", " clear log screen");
+
+		#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
+		writeLog2Str("showAllBlocks", " show all blocks of memory allocated");
+		#endif
+	}
+	else if(str1_str2("defra", command)) {
+		writeLogStr("Defragmentation");
+		SetTask((TaskMng)defragmentation,0,0);
+	}
+	else if(str1_str2("sizeMem", command)) {
+		writeLogWithStr("Free memory size " , getFreeMemmorySize());
+	}
+	else if(str1_str2("tasks", command)) {
+		writeLogWithStr("Free position in task list ", getFreePositionForTask());
+	}
+	else if (str1_str2("time", command)) {
+			writeLogWithStr("Current time in seconds is ", getAllSeconds());
+	}
+	else if(str1_str2("timers", command)) {
+		writeLogWithStr("Free position in timers list ", getFreePositionForTimerTask());
+	}
+	else if (str1_str2("clearMem", command)) {
+		writeLogStr("Clear all memory");
+		SetTask((TaskMng)clearAllMemmory,0,NULL);
+	}
+	else if (str1_str2("clearCallBack", command)) {
+		writeLogStr("Clear all calback list");
+		clearAllCallBackList();
+	}
+	else if (str1_str2("restart", command)) {
+		writeLogStr("Reset command receive");
+		ResetFemtOS();
+	}
+	else if(str1_str2("clearScreen", command)) {
+		for(u08 i = 0; i<50; i++) {
+			writeSymb('\n');
+			writeSymb('\r');
+		}
+	}
+	#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
+	else if (str1_str2("showAllBlocks", command)) {
+		SetTask((TaskMng)showAllBlocks,0,NULL);
+	}
+	#endif
+	else  {
+		writeLog3Str("ERROR: Undefined command ", command, " type help to see all avaliable command");
+	}
+	freeMem((byte_ptr)command);
+	registerCallBack(readCMD, 0, NULL, ReceiveUART2NewPackageLabel);
+}
 
 #endif // ENABLE_LOGGING
 

@@ -96,10 +96,10 @@ BaseSize_t strSize(const string_t c_str){
 Размер строки str1 должен уместить str2
 */
 void strCat(string_t c_str1, const string_t c_str2){
-  BaseSize_t i = 0, j=0;
+  BaseSize_t i=0, j=0;
   if(c_str1 == NULL || c_str2 == NULL) return;
   while(c_str1[i] != END_STRING) ++i; // Ищем конец строки 1
-  while(c_str2[j] != END_STRING){
+  while(c_str2[j] != END_STRING) {
     c_str1[i] = c_str2[j];
     ++j;
     ++i;

@@ -162,6 +162,12 @@ globalFlags_t getGlobalFlags(void);
 
 #ifdef ALLOC_MEM_LARGE
 byte_ptr allocMem(const BaseSize_t size);  //size - до 127 размер блока выделяемой памяти
+#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
+byte_ptr allocMemComment(const BaseSize_t size, string_t comment);
+void showAllBlocks();
+#else
+#define allocMemComment(__size, __comment) allocMem((BaseSize_t)__size)
+#endif
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
 void freeMem(const byte_ptr data);  // Освобождение памяти
 void defragmentation(void);         // Дефрагментация памяти

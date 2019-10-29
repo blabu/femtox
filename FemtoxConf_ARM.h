@@ -33,7 +33,7 @@
 //#define NEED_CRC16
 #define ENABLE_LOGGING
 //#define NEED_MATRIX
-#define STANDART_MEMCPY_MEMSET
+//#define STANDART_MEMCPY_MEMSET
 //#define LOAD_STATISTIC /*Сколько времени мы находимся в IDLE процессе в сравнении с полным рабочим временем в секундах*/
 
 #define TASK_LIST_LEN 12U /*Длина очереди задач*/
@@ -58,9 +58,11 @@
 
 #ifdef ALLOC_MEM
 #define HEAP_SIZE 8000UL /*6500*/
+#define DEBUG_CHEK_ALLOCATED_MOMORY /*Проверка алоцированных указателей и освобожденной памяти*/
 #endif
 #ifdef ALLOC_MEM_LARGE
-#define HEAP_SIZE 25*1024U /*TODO было 10000*/
+#define HEAP_SIZE 20*1024U /*TODO было 10000*/
+//#define DEBUG_CHEK_ALLOCATED_MOMORY /*Проверка алоцированных указателей и освобожденной памяти*/
 #endif
 
 #ifdef CALL_BACK_TASK
