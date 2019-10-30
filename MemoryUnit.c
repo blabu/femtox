@@ -88,7 +88,7 @@ void initHeap(void){
 
 BaseSize_t getFreeMemmorySize(void){
 	BaseSize_t s =sizeAllFreeMemmory;
-	while(s != sizeAllFreeMemmory) s =sizeAllFreeMemmory;
+	while(s != sizeAllFreeMemmory) s = sizeAllFreeMemmory;
 	if(s >= HEAP_SIZE) {
 		defragmentation();
 	}
@@ -202,10 +202,12 @@ static byte_ptr _allocMem(const BaseSize_t size) {
 				return res;
 			}
 			// Здесь если блок свободен и размер его больше требуемого
-			BaseSize_t restSize = blockSize-size;  // Вычисляем размер оставшегося блока памяти
-			byte_ptr result = alloc(&heap[i],size);
-			i += size+calculateSize(size);
-			free(alloc(&heap[i],restSize));
+			byte_ptr result = alloc(&heap[i],size); // Выделяем нужный блока памяти
+			BaseSize_t newSizeBlck = size + calculateSize(size); // Вычисляем размер нового куска с учетом его размера
+			i += newSizeBlck; // Вычисляем конец новго выделенного блока
+			BaseSize_t restSize = blockSize + calculateSize(blockSize) - newSizeBlck;  // Вычисляем размер оставшегося СВОБОДНОГО блока памяти
+			restSize -= calculateSize(restSize); // Из него следует предусмотреть место для хранения самого размера будущего свободного блока
+			free(alloc(&heap[i],restSize)); // Освобождаем выделенный кусок
 			unlock(heap);
 			return result;
 		}
