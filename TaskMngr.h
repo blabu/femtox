@@ -148,6 +148,9 @@ void freeMutex(const mutexType mutexNumb);     // Освобождает мью�
 #endif //MUTEX_ENABLE
 
 #ifdef CYCLE_FUNC
+/*
+Задачи которые нужно автоматически выполнять каждые n секунд всегда (или пока ее не удалят)
+*/
 void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t flagToQueue); // toManager == 0(false) выполняется прям в прерывании
 void delCycleTask(BaseSize_t arg_n, CycleFuncPtr_t CallBack);
 #endif //CYCLE_FUNC
@@ -211,6 +214,10 @@ void subOneDayFromDate(Date_t * date);
 #endif
 
 #ifdef CALL_BACK_TASK
+/*
+Колбэк - задача, которая вызывается ОДИН раз при наступлении определенного события. После чего УДАЛЯЕТСЯ из списка.
+На одном и том же событии может быть подписано множество колбеков
+*/
 u08 registerCallBack(const TaskMng task, const BaseSize_t arg_n, const BaseParam_t arg_p, const void*const labelPtr);
 void execCallBack(const void*const labelPtr);
 void execErrorCallBack(const BaseSize_t errorCode, const void*const labelPtr);
@@ -221,12 +228,19 @@ void clearAllCallBackList(void);
 #endif
 
 #ifdef SIGNALS_TASK
+/*
+Сигнал - это метка. В процессе генерации сигнала формируются параметры которые будут переданы все подписанным на сигнал функциям
+При вызове подписанного на сигнал task-а параметры для него передает сигнал, а задача из списка НЕ УДАЛЯЕТСЯ.
+*/
 void connectTaskToSignal(const TaskMng task, const void*const signal);
 void disconnectTaskFromSignal(const TaskMng task, const void*const signal);
 void emitSignal(const void*const signal, BaseSize_t arg_n, BaseParam_t arg_p);
 #endif
 
 #ifdef COMMAND_TASK
+/*
+Функция вызывается по строковой метке. И из списка задача не удаляется
+*/
 u08 delCommand(string_t command);
 u08 addTaskCommand(TaskMng tsk, BaseSize_t arg_n, BaseParam_t arg_p, string_t command);
 u08 execCommand(string_t command);
