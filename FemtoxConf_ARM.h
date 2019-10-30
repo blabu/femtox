@@ -32,12 +32,13 @@
 #define NEED_SHA256
 //#define NEED_CRC16
 #define ENABLE_LOGGING
+#define COMMAND_TASK
 //#define NEED_MATRIX
 //#define STANDART_MEMCPY_MEMSET
 //#define LOAD_STATISTIC /*Сколько времени мы находимся в IDLE процессе в сравнении с полным рабочим временем в секундах*/
 
-#define TASK_LIST_LEN 12U /*Длина очереди задач*/
-#define TIME_LINE_LEN 30U /*Максимальне количество системных таймеров*/
+#define TASK_LIST_LEN 10U /*Длина очереди задач*/
+#define TIME_LINE_LEN 25U /*Максимальне количество системных таймеров*/
 #define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
 #ifdef EVENT_LOOP_TASKS
@@ -45,7 +46,7 @@
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
-#define DATA_STRUCT_ArraySize 42 /*Общее количество всех структур данных*/
+#define DATA_STRUCT_ArraySize 30 /*Общее количество всех структур данных*/
 #endif
 
 #ifdef MUTEX_ENABLE
@@ -61,7 +62,7 @@
 #define DEBUG_CHEK_ALLOCATED_MOMORY /*Проверка алоцированных указателей и освобожденной памяти*/
 #endif
 #ifdef ALLOC_MEM_LARGE
-#define HEAP_SIZE 20*1024U /*TODO было 10000*/
+#define HEAP_SIZE 25*1024U /*TODO было 10000*/
 //#define DEBUG_CHEK_ALLOCATED_MOMORY /*Проверка алоцированных указателей и освобожденной памяти*/
 #endif
 
@@ -80,6 +81,10 @@
 
 #ifdef _DYNAMIC_ARRAY
 #define DYNAMIC_ARRAY_SIZE 2
+#endif
+
+#ifdef COMMAND_TASK
+#define COMMAND_TASK_LIST_SIZE 4
 #endif
 
 #ifdef USE_SOFT_UART

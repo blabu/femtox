@@ -87,10 +87,12 @@ void initHeap(void){
 }
 
 BaseSize_t getFreeMemmorySize(void){
-	if(sizeAllFreeMemmory >= HEAP_SIZE) {
+	BaseSize_t s =sizeAllFreeMemmory;
+	while(s != sizeAllFreeMemmory) s =sizeAllFreeMemmory;
+	if(s >= HEAP_SIZE) {
 		defragmentation();
 	}
-    return sizeAllFreeMemmory;
+    return s;
 }
 
 static BaseSize_t getCurrentBlockSize(byte_ptr startBlock_ptr) {
@@ -247,6 +249,8 @@ byte_ptr allocMem(const BaseSize_t size) {
 #endif
     return res;
 }
+
+void writeLogWithStr(const string_t c_str, u32 n);
 
 void freeMem(const byte_ptr data) {
     if(data > heap &&

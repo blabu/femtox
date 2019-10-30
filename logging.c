@@ -70,10 +70,7 @@ void writeSymb(char symb) {}
 
 #ifdef ENABLE_LOGGING
 
-u32 SizeRx2Buffer() {return 0;}
-void* ReceiveUART2NewPackageLabel = (void*)SizeRx2Buffer;
-void readBufUART2(BaseSize_t size, byte_ptr data) {}
-void setReceiveTimeoutUART2(u16 time) {}
+
 #define SizeConsoleBuff SizeRx2Buffer
 #define ReceiveConsoleBuff ReceiveUART2NewPackageLabel
 #define readConsoleBuff readBufUART2
@@ -82,7 +79,12 @@ void setReceiveTimeoutUART2(u16 time) {}
 #ifdef _X86
 
 #include <stdio.h>
-#include "TaskMngr.h"
+
+u32 SizeRx2Buffer() {return 0;}
+void* ReceiveUART2NewPackageLabel = (void*)SizeRx2Buffer;
+void readBufUART2(BaseSize_t size, byte_ptr data) {}
+void setReceiveTimeoutUART2(u16 time) {}
+
 
 #define LOCAL_MUTEX 1<<7
 
@@ -366,13 +368,14 @@ void commandEngine(string_t command) {
 static void readCMD(BaseSize_t count, BaseParam_t arg) {
 	BaseSize_t sz = SizeConsoleBuff();
 	if(!sz) registerCallBack(readCMD, count, arg, ReceiveConsoleBuff);
-	string_t command = (string_t)allocMemComment(sz, "For command console");
+	string_t command = (string_t)allocMemComment(sz+1, "For command console");
 	if(command == NULL) {
 		writeLogStr("ERROR: Command interface memory error");
 		registerCallBack(readCMD, count, arg, ReceiveUART2NewPackageLabel);
 		return;
 	}
     readConsoleBuff(sz, command);
+    command[sz] = END_STRING;
 	commandEngine(command);
 	freeMem((byte_ptr)command);
 	registerCallBack(readCMD, 0, NULL, ReceiveUART2NewPackageLabel);
