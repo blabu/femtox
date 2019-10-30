@@ -202,14 +202,20 @@ static byte_ptr _allocMem(const BaseSize_t size) {
 				return res;
 			}
 			// Здесь если блок свободен и размер его больше требуемого
-			byte_ptr result = alloc(&heap[i],size); // Выделяем нужный блока памяти
-			BaseSize_t newSizeBlck = size + calculateSize(size); // Вычисляем размер нового куска с учетом его размера
-			i += newSizeBlck; // Вычисляем конец новго выделенного блока
-			BaseSize_t restSize = blockSize + calculateSize(blockSize) - newSizeBlck;  // Вычисляем размер оставшегося СВОБОДНОГО блока памяти
-			restSize -= calculateSize(restSize); // Из него следует предусмотреть место для хранения самого размера будущего свободного блока
-			free(alloc(&heap[i],restSize)); // Освобождаем выделенный кусок
-			unlock(heap);
-			return result;
+            BaseSize_t newSizeBlck = size + calculateSize(size); // Вычисляем размер нового куска с учетом его размера
+            BaseSize_t restSize = blockSize + calculateSize(blockSize) - newSizeBlck;  // Вычисляем размер оставшегося СВОБОДНОГО блока памяти
+            BaseSize_t freeSizeBlck = restSize - calculateSize(restSize); // Из него следует предусмотреть место для хранения самого размера будущего свободного блока
+            while(freeSizeBlck < restSize) {
+                if((calculateSize(freeSizeBlck) + freeSizeBlck) == restSize) {
+                    byte_ptr result = alloc(&heap[i],size); // Выделяем нужный блока памяти
+                    i += newSizeBlck; // Вычисляем конец новго выделенного блока
+                    free(alloc(&heap[i],freeSizeBlck)); // Освобождаем выделенный кусок
+                    unlock(heap);
+                    return result;
+                }
+                freeSizeBlck++;
+            }
+            i += blockSize + calculateSize(blockSize); // Пропускаем этот блок
 		}
 		unlock(heap);
 	}
@@ -252,7 +258,22 @@ byte_ptr allocMem(const BaseSize_t size) {
     return res;
 }
 
+
 void writeLogWithStr(const string_t c_str, u32 n);
+
+bool_t validateMemory() {
+    BaseSize_t i = 0;
+    while(i < HEAP_SIZE) {
+        BaseSize_t blocSize = getNextBlockSize(&heap[i]);
+        if(blocSize) return TRUE;
+        i+=blocSize + calculateSize(blocSize);
+        if(i > HEAP_SIZE) {
+            writeLogWithStr("ERROR: invalid memory block in ", i-blocSize);
+            return FALSE;
+        }
+    }
+    return TRUE;
+}
 
 void freeMem(const byte_ptr data) {
     if(data > heap &&
@@ -302,15 +323,21 @@ void defragmentation(void){
             sizeAllFreeMemmory -= (currentBlockSize + blkSz);
             continue;
         }
-        if(blockSize) { //Если блок памяти свободен
+        if(blockSize) { //Если уже были освобождения подряд
         	u08 prevBlkSz = calculateSize(blockSize);
-        	BaseSize_t SumBlockSize = (BaseSize_t)(blockSize + currentBlockSize + blkSz + prevBlkSz);
-        	SumBlockSize -= calculateSize(SumBlockSize);
-        	byte_ptr startBlock = heap+i-blockSize-prevBlkSz; // Находим стартовую позицию составного блока
-           	free(alloc(startBlock,SumBlockSize));
-            blockSize = SumBlockSize; // Тперь составной блок это предыдущий блок
-            i += currentBlockSize + blkSz;
-            continue;
+        	BaseSize_t SumBlockSize = (BaseSize_t)(blockSize + prevBlkSz) + (BaseSize_t)(currentBlockSize + blkSz);
+        	BaseSize_t  newSumBlocKSize = SumBlockSize - calculateSize(SumBlockSize);
+        	while(newSumBlocKSize < SumBlockSize) {
+        	    if(newSumBlocKSize + calculateSize(newSumBlocKSize) == SumBlockSize) {
+                    byte_ptr startBlock = heap+i-blockSize-prevBlkSz; // Находим стартовую позицию составного блока
+                    free(alloc(startBlock,newSumBlocKSize));
+                    blockSize = newSumBlocKSize; // Тперь составной блок это предыдущий блок
+                    i += currentBlockSize + blkSz;
+                    break;
+                }
+                newSumBlocKSize++;
+        	}
+        	if(newSumBlocKSize < SumBlockSize) continue;
         }
         i += currentBlockSize + blkSz;
         blockSize = currentBlockSize;
