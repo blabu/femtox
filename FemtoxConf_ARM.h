@@ -23,8 +23,8 @@
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
 #define SIGNALS_TASK
-//#define _LIST_STRUCT
-//#define _DYNAMIC_ARRAY
+#define _LIST_STRUCT
+#define _DYNAMIC_ARRAY
 //#define _PWR_SAVE
 //#define NEED_CRYPT
 #define NEED_BASE64
@@ -46,7 +46,7 @@
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
-#define DATA_STRUCT_ArraySize 30 /*Общее количество всех структур данных*/
+#define DATA_STRUCT_ArraySize 35 /*Общее количество всех структур данных*/
 #endif
 
 #ifdef MUTEX_ENABLE
@@ -62,7 +62,7 @@
 #define DEBUG_CHEK_ALLOCATED_MOMORY /*Проверка алоцированных указателей и освобожденной памяти*/
 #endif
 #ifdef ALLOC_MEM_LARGE
-#define HEAP_SIZE 25*1024U /*TODO было 10000*/
+#define HEAP_SIZE 30*1024U /*TODO было 10000*/
 //#define DEBUG_CHEK_ALLOCATED_MOMORY /*Проверка алоцированных указателей и освобожденной памяти*/
 #endif
 
@@ -80,7 +80,7 @@
 #endif
 
 #ifdef _DYNAMIC_ARRAY
-#define DYNAMIC_ARRAY_SIZE 2
+#define DYNAMIC_ARRAY_SIZE 3
 #endif
 
 #ifdef COMMAND_TASK
