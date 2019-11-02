@@ -6,3 +6,5 @@ Debug/*
 .project
 .idea
 .idea/*
+cmake-bui*
+
