@@ -86,7 +86,7 @@ void deleteListNode(ListNode_t* listPtr) {
 		prev->next = next;
 	}
 	freeMem(listPtr->data);
-	freeMem(listPtr);
+	freeMem((byte_ptr)listPtr);
 }
 
 ListNode_t* putToEndList(ListNode_t* list, void* data) {

@@ -70,12 +70,6 @@ void writeSymb(char symb) {}
 
 #ifdef ENABLE_LOGGING
 
-
-#define SizeConsoleBuff SizeRx2Buffer
-#define ReceiveConsoleBuff ReceiveUART2NewPackageLabel
-#define readConsoleBuff readBufUART2
-#define setReceiveTimeoutConsole setReceiveTimeoutUART2
-
 #ifdef _X86
 
 #include <stdio.h>
@@ -132,6 +126,12 @@ static void sendUART2_buf(u08 c) {
 
 #ifdef ARM_STM32
 #include "UART2.h"
+
+#define SizeConsoleBuff SizeRx2Buffer
+#define ReceiveConsoleBuff ReceiveUART2NewPackageLabel
+#define readConsoleBuff readBufUART2
+#define setReceiveTimeoutConsole setReceiveTimeoutUART2
+
 
 static u08 countEnableLogging = 0;
 static void readCMD(BaseSize_t count, BaseParam_t arg);

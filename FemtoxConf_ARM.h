@@ -22,18 +22,18 @@
 #define CLOCK_SERVICE
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
-#define SIGNALS_TASK
-#define _LIST_STRUCT
-#define _DYNAMIC_ARRAY
+//#define SIGNALS_TASK
+//#define _LIST_STRUCT
+//#define _DYNAMIC_ARRAY
 //#define _PWR_SAVE
-//#define NEED_CRYPT
+#define NEED_CRYPT
 #define NEED_BASE64
 #define NEED_RANDOM
 #define NEED_SHA256
-//#define NEED_CRC16
+#define NEED_CRC16
 #define ENABLE_LOGGING
 #define COMMAND_TASK
-//#define NEED_MATRIX
+#define NEED_MATRIX
 //#define STANDART_MEMCPY_MEMSET
 //#define LOAD_STATISTIC /*Сколько времени мы находимся в IDLE процессе в сравнении с полным рабочим временем в секундах*/
 
