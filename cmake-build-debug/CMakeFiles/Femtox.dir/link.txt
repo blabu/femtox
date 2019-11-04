@@ -1,2 +1,0 @@
-/usr/bin/ar qc libFemtox.a  CMakeFiles/Femtox.dir/PlatformSpecificX86.cpp.o
-/usr/bin/ranlib libFemtox.a
