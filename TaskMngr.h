@@ -81,6 +81,8 @@ bool_t compare(const void* block1, const void* block2, const BaseSize_t size);
 void memCpy(void * destination, const void * source, const BaseSize_t num);
 void memSet(void* destination, const BaseSize_t size, const u08 value);
 void shiftLeftArray(BaseParam_t source, BaseSize_t sourceSize, BaseSize_t shiftSize);
+void swapByte(byte_ptr byte1, byte_ptr byte2);
+void swapInt(unsigned int* int1, unsigned int* int2);
 
 #ifdef LOAD_STATISTIC
 u32 getLoadAvarage();
@@ -182,6 +184,7 @@ void clearAllMemmory(void); // Аварийное освобождение па�
 #endif //ALLOC_MEM_LARGE
 #ifdef ALLOC_MEM
 byte_ptr allocMem(const u08 size);  //size - до 127 размер блока выделяемой памяти
+#define allocMemComment(__size, __comment) allocMem((u08)__size)
 #define GET_MEMORY(size,pointer) if(!pointer){pointer = allocMem((u08)size);}
 void freeMem(const byte_ptr data);  // Освобождение памяти
 void freeMemTask(BaseSize_t count, BaseParam_t pointer);

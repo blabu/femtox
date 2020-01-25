@@ -14,9 +14,9 @@
 #define DATA_STRUCT_MANAGER   /*Включаем работу с очередями средствами деспетчера*/
 #define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/
 //#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
-#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
-//#define ALLOC_MEM   /*Включение динамического выделения памяти*/
-#define ALLOC_MEM_LARGE 1   /*Включение динамического выделения памяти без ограничения размера*/
+//#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
+#define ALLOC_MEM   /*Включение динамического выделения памяти*/
+//#define ALLOC_MEM_LARGE 1   /*Включение динамического выделения памяти без ограничения размера*/
 //#define EVENT_LOOP_TASKS
 //#define USE_SOFT_UART
 #define CLOCK_SERVICE
@@ -26,14 +26,14 @@
 //#define _LIST_STRUCT
 //#define _DYNAMIC_ARRAY
 //#define _PWR_SAVE
-#define NEED_CRYPT
-#define NEED_BASE64
-#define NEED_RANDOM
-#define NEED_SHA256
+//#define NEED_CRYPT
+//#define NEED_BASE64
+//#define NEED_RANDOM
+//#define NEED_SHA256
 #define NEED_CRC16
-#define ENABLE_LOGGING
-#define COMMAND_TASK
-#define NEED_MATRIX
+//#define ENABLE_LOGGING
+//#define COMMAND_TASK
+//#define NEED_MATRIX
 //#define STANDART_MEMCPY_MEMSET
 //#define LOAD_STATISTIC /*Сколько времени мы находимся в IDLE процессе в сравнении с полным рабочим временем в секундах*/
 
