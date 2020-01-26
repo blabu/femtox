@@ -23,10 +23,10 @@
  */
 /*
 USAGE
-/*
+ *
  * A small example of jsmn parsing when JSON structure is known and number of
  * tokens is predictable.
-
+ *
 static const char *JSON_STRING =
     "{\"user\": \"johndoe\", \"admin\": false, \"uid\": 1000,\n  "
     "\"groups\": [\"users\", \"wheel\", \"audio\", \"video\"]}";
@@ -153,8 +153,8 @@ typedef struct {
  * the string being parsed now and current position in that string.
  */
 typedef struct {
-  unsigned int pos;     /* offset in the JSON string */
-  unsigned int toknext; /* next token to allocate */
+  BaseSize_t pos;     /* offset in the JSON string */
+  BaseSize_t toknext; /* next token to allocate */
   int toksuper;         /* superior token node, e.g. parent object or array */
 } jsmn_parser;
 
@@ -169,7 +169,7 @@ JSMN_API void jsmn_init(jsmn_parser *parser);
  * a single JSON object.
  */
 JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const BaseSize_t len,
-                        jsmntok_t *tokens, const unsigned int num_tokens);
+                        jsmntok_t *tokens, const u16 num_tokens);
 
 
 #endif /* JSMN_H */

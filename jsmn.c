@@ -47,9 +47,7 @@ static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
                                 const BaseSize_t len, jsmntok_t *tokens,
                                 const BaseSize_t num_tokens) {
   jsmntok_t *token;
-  int start;
-
-  start = parser->pos;
+  int start = parser->pos;
 
   for (; parser->pos < len && js[parser->pos] != '\0'; parser->pos++) {
     switch (js[parser->pos]) {
@@ -69,7 +67,7 @@ static int jsmn_parse_primitive(jsmn_parser *parser, const char *js,
                    /* to quiet a warning from gcc*/
       break;
     }
-    if (js[parser->pos] < 32 || js[parser->pos] >= 127) {
+    if (js[parser->pos] < 32 || js[parser->pos] >= 127) { //Invalid character (support only latin alphabet)
       parser->pos = start;
       return JSMN_ERROR_INVAL;
     }
@@ -106,7 +104,7 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
                              const BaseSize_t num_tokens) {
   jsmntok_t *token;
 
-  int start = parser->pos;
+  BaseSize_t start = parser->pos;
 
   parser->pos++;
 
@@ -149,8 +147,7 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
       /* Allows escaped symbol \uXXXX */
       case 'u':
         parser->pos++;
-        for (i = 0; i < 4 && parser->pos < len && js[parser->pos] != '\0';
-             i++) {
+        for (i = 0; i < 4 && parser->pos < len && js[parser->pos] != '\0'; i++) {
           /* If it isn't a hex character we have an error */
           if (!((js[parser->pos] >= 48 && js[parser->pos] <= 57) ||   /* 0-9 */
                 (js[parser->pos] >= 65 && js[parser->pos] <= 70) ||   /* A-F */
@@ -177,11 +174,11 @@ static int jsmn_parse_string(jsmn_parser *parser, const char *js,
  * Parse JSON string and fill tokens.
  */
 JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const BaseSize_t len,
-                        jsmntok_t *tokens, const unsigned int num_tokens) {
+                        jsmntok_t *tokens, const u16 num_tokens) {
   int r;
   int i;
   jsmntok_t *token;
-  int count = parser->toknext;
+  int count = (int)parser->toknext;
 
   for (; parser->pos < len && js[parser->pos] != '\0'; parser->pos++) {
     char c;
@@ -213,8 +210,8 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const BaseSize_t le
 #endif
       }
       token->type = (c == '{' ? JSMN_OBJECT : JSMN_ARRAY);
-      token->start = parser->pos;
-      parser->toksuper = parser->toknext - 1;
+      token->start = (int)parser->pos;
+      parser->toksuper = (int)parser->toknext - 1;
       break;
     case '}':
     case ']':
@@ -245,7 +242,7 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const BaseSize_t le
         token = &tokens[token->parent];
       }
 #else
-      for (i = parser->toknext - 1; i >= 0; i--) {
+      for (i = (int)parser->toknext - 1; i >= 0; i--) {
         token = &tokens[i];
         if (token->start != -1 && token->end == -1) {
           if (token->type != type) {
@@ -352,7 +349,7 @@ JSMN_API int jsmn_parse(jsmn_parser *parser, const char *js, const BaseSize_t le
   }
 
   if (tokens != NULL) {
-    for (i = parser->toknext - 1; i >= 0; i--) {
+    for (i = (int)parser->toknext - 1; i >= 0; i--) {
       /* Unmatched opened object or array */
       if (tokens[i].start != -1 && tokens[i].end == -1) {
         return JSMN_ERROR_PART;
