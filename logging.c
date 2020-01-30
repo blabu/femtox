@@ -30,9 +30,10 @@ SOFTWARE.
  */
 
 #include "PlatformSpecific.h" // for _X86
+#include "TaskMngr.h"
 #include "MyString.h"
 #include "logging.h"
-#include "TaskMngr.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -132,9 +133,11 @@ static void sendUART2_buf(u08 c) {
 #define readConsoleBuff readBufUART2
 #define setReceiveTimeoutConsole setReceiveTimeoutUART2
 
-
 static u08 countEnableLogging = 0;
+
+#ifdef COMMAND_TASK
 static void readCMD(BaseSize_t count, BaseParam_t arg);
+#endif
 
 void enableLogging(void) {
     if(countEnableLogging > 0) {
@@ -147,7 +150,9 @@ void enableLogging(void) {
 #endif// _X86
     enableUART2(57600);
     setReceiveTimeoutConsole(TICK_PER_SECOND);
+#ifdef COMMAND_TASK
     registerCallBack(readCMD, 0, NULL, ReceiveConsoleBuff);
+#endif
 }
 
 void disableLogging(void){
@@ -180,10 +185,10 @@ void disableLogLevel(string_t level) {
 }
 
 void writeLogWithStr(const string_t c_str, u32 n) {
-    char str[50];
+    char str[80];
     if (str1_str2(disableLavel, c_str)) return;
     u08 size = strSize(c_str);
-    if (size > 39) {
+    if (size > 69) {
         writeLogStr("ERROR: too long string");
         return;
     }
@@ -299,6 +304,7 @@ static void writeLogStrTask(BaseSize_t arg_n, BaseParam_t str) {
     else writeLogByteArray(arg_n, (byte_ptr)str);
 }
 
+#ifdef COMMAND_TASK
 void commandEngine(string_t command) {
     if(str1_str2("help", command)) {
         writeLog2Str("help", " show this help");
@@ -312,7 +318,7 @@ void commandEngine(string_t command) {
         writeLog2Str("clearCallBack", " clear all call back tasks");
         writeLog2Str("clearScreen", " clear log screen");
         writeLogStr("COMMANDS:");
-        forEachCommand( writeLogStrTask, 0, FALSE);
+//        forEachCommand( writeLogStrTask, 0, FALSE);
 #ifdef DEBUG_CHEK_ALLOCATED_MOMORY
         writeLog2Str("showAllBlocks", " show all blocks of memory allocated");
 #endif
@@ -380,7 +386,7 @@ static void readCMD(BaseSize_t count, BaseParam_t arg) {
 	freeMem((byte_ptr)command);
 	registerCallBack(readCMD, 0, NULL, ReceiveUART2NewPackageLabel);
 }
-
+#endif
 #endif // ENABLE_LOGGING
 
 #ifdef __cplusplus

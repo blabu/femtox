@@ -22,7 +22,11 @@ void writeLog4Str(const string_t c_str1, const string_t c_str2, const string_t c
 void writeLogFloat(float data);
 void writeLogU32(u32 data);
 void writeSymb(char symb);
+
+#ifdef COMMAND_TASK
 void commandEngine(string_t command);
+#endif
+
 #ifndef ALLOC_MEM_LARGE
 void writeLogByteArray(u08 sizeBytes, byte_ptr array);
 #else

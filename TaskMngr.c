@@ -185,8 +185,8 @@ static void ClockService(void){
 #endif
 #ifdef CLOCK_SERVICE
 	while(GlobalTick >= TICK_PER_SECOND) {
-		__systemSeconds++;
 		GlobalTick -= TICK_PER_SECOND;
+		__systemSeconds++;
 	}
 #endif
 	unlock((const void* const)(&GlobalTick));

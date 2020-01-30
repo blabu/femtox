@@ -31,7 +31,7 @@
 //#define NEED_RANDOM
 //#define NEED_SHA256
 #define NEED_CRC16
-//#define ENABLE_LOGGING
+#define ENABLE_LOGGING
 //#define COMMAND_TASK
 //#define NEED_MATRIX
 //#define STANDART_MEMCPY_MEMSET
@@ -59,7 +59,7 @@
 
 #ifdef ALLOC_MEM
 #define HEAP_SIZE 8000UL /*6500*/
-#define DEBUG_CHEK_ALLOCATED_MOMORY /*Проверка алоцированных указателей и освобожденной памяти*/
+//#define DEBUG_CHEK_ALLOCATED_MOMORY /*Проверка алоцированных указателей и освобожденной памяти*/
 #endif
 #ifdef ALLOC_MEM_LARGE
 #define HEAP_SIZE 30*1024U /*TODO было 10000*/
