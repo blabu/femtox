@@ -28,9 +28,7 @@ SOFTWARE.
  *  Created on: 28 квіт. 2017 р.
  *      Author: oleksiy.khanin
  */
-
 #include "TaskMngr.h"
-#include "PlatformSpecific.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -247,14 +245,10 @@ Time_t getSecondsFromDate(const Date_t*const date) {
 	return tempSeconds;
 }
 
-void addOneSecondToDate(Date_t* date){
-	if(date->sec < 59) date->sec++;
-	else {date->sec = 0; addOneMinutesToDate(date);}
-}
-
-void addOneMinutesToDate(Date_t* date){
-	if(date->min < 59) date->min++;
-	else {date->min = 0;  addOneHourToDate(date);}
+void addOneDayToDate(Date_t* date) {
+	if(date->day < daysInMounth[date->mon-1]) date->day++;
+	else {date->day = 1; if(date->mon < 12) date->mon++;
+	else {date->mon = 1;  date->year++;}}
 }
 
 void addOneHourToDate(Date_t* date){
@@ -262,10 +256,14 @@ void addOneHourToDate(Date_t* date){
 	else {date->hour = 0; addOneDayToDate(date);}
 }
 
-void addOneDayToDate(Date_t* date) {
-	if(date->day < daysInMounth[date->mon-1]) date->day++;
-	else {date->day = 1; if(date->mon < 12) date->mon++;
-	else {date->mon = 1;  date->year++;}}
+void addOneMinutesToDate(Date_t* date){
+	if(date->min < 59) date->min++;
+	else {date->min = 0;  addOneHourToDate(date);}
+}
+
+void addOneSecondToDate(Date_t* date){
+	if(date->sec < 59) date->sec++;
+	else {date->sec = 0; addOneMinutesToDate(date);}
 }
 
 void subOneDayFromDate(Date_t * date) {

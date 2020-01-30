@@ -7,7 +7,6 @@
 #ifndef FEMTOXTYPES_X86_H_
 #define FEMTOXTYPES_X86_H_
 
-#ifdef _X86
 #include "FemtoxConf.h"
 
 #ifndef NULL
@@ -58,8 +57,6 @@ typedef struct {
 	u16 year;
 } Date_t;
 
-#include "FemtoxConf.h"
-
 #if MUTEX_SIZE <= 8
 typedef u08 mutexType;
 #elif MUTEX_SIZE <= 16
@@ -81,7 +78,5 @@ typedef struct node {
 #ifdef _DYNAMIC_ARRAY
 
 #endif
-
-#endif //_X86
 
 #endif /* FEMTOXTYPES_X86_H_ */
