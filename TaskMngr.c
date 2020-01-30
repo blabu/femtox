@@ -635,6 +635,19 @@ void shiftLeftArray(BaseParam_t source, BaseSize_t sourceSize, BaseSize_t shiftS
 	}
 }
 
+void swapByte(byte_ptr byte1, byte_ptr byte2) {
+  unsigned char temp = *byte1;
+  *byte1 = *byte2;
+  *byte2 = temp;
+}
+
+
+void swapInt(unsigned int* int1, unsigned int* int2) {
+  unsigned int temp = *int1;
+  *int1 = *int2;
+  *int2 = temp;
+}
+
 #ifdef __cplusplus
 }
 #endif
