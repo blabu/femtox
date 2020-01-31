@@ -61,7 +61,7 @@ void initEventList(void) {
 void EventManager( void ) {
     for(u08 i = 0; i<EVENT_LIST_SIZE; i++) {
         if(EventList[i].Predicat == NULL) break;        // При первом
-        if(EventList[i].Predicat()) {
+        if(EventList[i].Predicat())  {
 		#ifdef SET_FRONT_TASK_ENABLE
         	SetFrontTask((TaskMng)EventList[i].CallBack,0,0);
 		#else
@@ -73,9 +73,8 @@ void EventManager( void ) {
 
 bool_t CreateEvent(Predicat_t condition, CycleFuncPtr_t effect) {// Регистрирует новое событие в списке событий
     u08 i = 0;
-    unlock_t unlock = lock((const void*const)EventList);
-    for(;i < EVENT_LIST_SIZE; i++)
-    {
+    const unlock_t unlock = lock((const void*const)EventList);
+    for(;i < EVENT_LIST_SIZE; i++) {
         if(EventList[i].Predicat == NULL) break; // find empty event task
     }
     if(i < EVENT_LIST_SIZE) {
@@ -91,18 +90,15 @@ bool_t CreateEvent(Predicat_t condition, CycleFuncPtr_t effect) {// Регист
 void delEvent(Predicat_t condition){
     u08 i = 0;
     u08 countDeletedEvent = 0;
-    unlock_t unlock = lock((const void*const)EventList);
-    for(;i<EVENT_LIST_SIZE;i++)     // Выполняем поиск нашего события
-    {
+    const unlock_t unlock = lock((const void*const)EventList);
+    for(;i<EVENT_LIST_SIZE;i++) {     // Выполняем поиск нашего события
         if(EventList[i].Predicat == NULL) break;    // Если дошли до пустого, а значит последнего выходим из цикла
-        if(EventList[i].Predicat == condition) // find event
-        {
+        if(EventList[i].Predicat == condition) {// find event
             EventList[i].Predicat = NULL;   // Удаляем событие
             countDeletedEvent++;            // и увеличиваем счетчик удаленных событий на один
             continue;
         }
-        if(countDeletedEvent)  // Если факт того что задача была удалена установлен
-        {
+        if(countDeletedEvent){  // Если факт того что задача была удалена установлен
             EventList[i-countDeletedEvent].CallBack = EventList[i].CallBack;  // Переносим текущее событие на место удаленного
             EventList[i-countDeletedEvent].Predicat = EventList[i].Predicat;  // Переносим текущее
             EventList[i].Predicat = NULL;   // А текущее место освобождаем

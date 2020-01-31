@@ -36,8 +36,8 @@ void initCommandList() {
 }
 
 u08 delCommand(string_t command) {
-    unlock_t lck = lock((void*)commandList);
-    u08 pos = findTaskByCommand(command);
+    const unlock_t lck = lock((void*)commandList);
+    const u08 pos = findTaskByCommand(command);
     if(pos == COMMAND_TASK_LIST_SIZE) {lck((void*)commandList); return NOT_FOUND_DATA_STRUCT_ERROR;}
     commandList[pos] = NULL;
     lck((void*)commandList);
@@ -45,8 +45,8 @@ u08 delCommand(string_t command) {
 }
 
 u08 addTaskCommand(TaskMng tsk, BaseSize_t arg_n, BaseParam_t arg_p, string_t command) {
-    unlock_t lck = lock((void*)commandList);
-    u08 pos = findFree();
+    const unlock_t lck = lock((void*)commandList);
+    const u08 pos = findFree();
     if(pos == COMMAND_TASK_LIST_SIZE) {
         lck((void*)commandList);
         return OVERFLOW_OR_EMPTY_ERROR;
@@ -60,8 +60,8 @@ u08 addTaskCommand(TaskMng tsk, BaseSize_t arg_n, BaseParam_t arg_p, string_t co
 }
 
 u08 execCommand(string_t command) {
-    unlock_t lck = lock((void*)commandList);
-    u08 pos = findTaskByCommand(command);
+    const unlock_t lck = lock((void*)commandList);
+    const u08 pos = findTaskByCommand(command);
     if(pos == COMMAND_TASK_LIST_SIZE) {
         lck((void*)commandList);
         return NOT_FOUND_DATA_STRUCT_ERROR;
@@ -76,8 +76,8 @@ u08 execCommand(string_t command) {
 }
 
 void execCommandTask(BaseSize_t  arg_n, string_t command) {
-    unlock_t lck = lock((void*)commandList);
-    u08 pos = findTaskByCommand(command);
+    const unlock_t lck = lock((void*)commandList);
+    const u08 pos = findTaskByCommand(command);
     if(pos == COMMAND_TASK_LIST_SIZE) {
         lck((void*)commandList);
         return;
@@ -91,7 +91,7 @@ void execCommandTask(BaseSize_t  arg_n, string_t command) {
 
 void forEachCommand(TaskMng tsk, BaseSize_t arg_n, bool_t toManager) {
     if(tsk == NULL) return;
-    unlock_t lck = lock((void*)commandList);
+    const unlock_t lck = lock((void*)commandList);
     for(u08 i = 0; i<COMMAND_TASK_LIST_SIZE; i++) {
         if(commandList[i] != NULL) {
             if(toManager) SetTask(tsk,arg_n,(BaseParam_t)commandList[i]);

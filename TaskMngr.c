@@ -65,8 +65,10 @@ extern "C" {
  * V1.4.7	 - Add new linked array datatype. Dont't full tested yet
  * V1.4.71   - fix some bugs (lock heap in defragmentation)
  * V1.5.0    - Add command list module
+ * V1.5.1    - Add json don't tested yet
+ * V1.5.2    - add const qualifier in local variables
  * */
-const char* const _osVersion = "V1.5.0";
+const char* const _osVersion = "V1.5.2";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
 
 static void TaskManager(void);
@@ -167,14 +169,14 @@ u32 getTick(void) {
 	u32 time_res = 0;
 	while(time_res != GlobalTick) time_res = (u32)GlobalTick;
 #ifdef CLOCK_SERVICE
-	Time_t sec = getAllSeconds();
+	const Time_t sec = getAllSeconds();
 	time_res += sec*TICK_PER_SECOND;
 #endif
 	return time_res;
 }
 
 static void ClockService(void){
-	unlock_t unlock = lock((const void* const)(&GlobalTick));
+	const unlock_t unlock = lock((const void* const)(&GlobalTick));
 #ifdef _PWR_SAVE
 	GlobalTick += _minTimeOut;
 #else
@@ -193,20 +195,20 @@ static void ClockService(void){
 }
 
 void SetIdleTask(const IdleTask_t Task){
-	unlock_t unlock = lock(SetIdleTask);
+	const unlock_t unlock = lock(SetIdleTask);
 	IdleTask = (IdleTask_t)Task;
 	unlock(SetIdleTask);
 }
 
 static void Idle(void) { // Функция включает режим пониженного электропотребления микроконтроллера. При этом перестает работать ядро.
 #ifdef LOAD_STATISTIC
-	 u32 startTick = getTick();
+	 const u32 startTick = getTick();
 #endif
 	if(IdleTask != NULL) IdleTask();
 #ifdef LOAD_STATISTIC
-	u32 stopTick = getTick();
+	const u32 stopTick = getTick();
 	if(stopTick > startTick) {
-		unlock_t unlock = lock(&idleTicks);
+		const unlock_t unlock = lock(&idleTicks);
 		idleTicks += stopTick-startTick;
 		unlock(&idleTicks);
 	}
@@ -299,9 +301,9 @@ void TimerISR(void) {
 	isrCounter = 0;
 #endif
 	ClockService();
-	u32 minTimerService = TimerService();	// Пересчет всех системных таймеров из очереди, вернет минимальный таймер
+	const u32 minTimerService = TimerService();	// Пересчет всех системных таймеров из очереди, вернет минимальный таймер
 #ifdef CYCLE_FUNC
-	u32 minCycleService = CycleService(); // Вернет минимальное время из циклических задач
+	const u32 minCycleService = CycleService(); // Вернет минимальное время из циклических задач
 	if(minTimerService && minCycleService) {
 		if(minTimerService < minCycleService) _minTimeOut = minTimerService;
 		else _minTimeOut = minCycleService;
@@ -333,7 +335,7 @@ static volatile u08 countEnd = 0;      // Указатель на КОНЕЦ о�
 Берем количество параметров из глобального стека и передаем взятой функции, которая берет свои параметры из глобального стека.
  */
 static void TaskManager(void) {
-	unlock_t unlock = lock((const void* const)TaskList);
+	const unlock_t unlock = lock((const void* const)TaskList);
 	if(countBegin != countEnd) { // Если очередь не пустая
 	// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
 		TaskMng Func_point = TaskList[countBegin].Task; // countBegin - указывает на начало очереди на рабочую задачу
@@ -349,8 +351,8 @@ static void TaskManager(void) {
 }
 
 void SetTask(const TaskMng New_Task, const BaseSize_t n, const BaseParam_t data) {
-	unlock_t unlock = lock((void*)TaskList);
-	register u08 count = (countEnd < TASK_LIST_LEN-1)? countEnd+1:0; //Кольцевой буфер
+	const unlock_t unlock = lock((void*)TaskList);
+	const u08 count = (countEnd < TASK_LIST_LEN-1)? countEnd+1:0; //Кольцевой буфер
 	if(count != countBegin){ // Если после добавления задачи countEnd не догонит countBegin значит очередь не переполнена
 	// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
 		TaskList[countEnd].Task = New_Task; // Если очередь не переполнится добавляем элемент в очередь
@@ -380,8 +382,8 @@ u08 getFreePositionForTask(void){
 
 #ifdef SET_FRONT_TASK_ENABLE
 void SetFrontTask (const TaskMng New_Task, const BaseSize_t n, const BaseParam_t data){ // Функция помещает в НАЧАЛО очереди задачу New_Task
-	unlock_t unlock = lock((const void* const)TaskList);
-	register u08 count = (countBegin)? countBegin-1:TASK_LIST_LEN-1; // Определяем указатель начала очереди куда должны вставить новую задачку
+	const unlock_t unlock = lock((const void* const)TaskList);
+	const u08 count = (countBegin)? countBegin-1:TASK_LIST_LEN-1; // Определяем указатель начала очереди куда должны вставить новую задачку
 	if(count != countEnd) {   // Если очередь еще не переполнена
 	// Необходимо помнить про конвеерный способ выборки команд в микроконтроллере (if - как можно чаще должен быть истиной)
 		countBegin = count;
@@ -411,7 +413,7 @@ void delAllTask(void) {
 static u08 _lastTimerIndex = 0; // Указывает на индекс следующего СВОБОДНОГО таймера
 #ifdef _PWR_SAVE
 static u32 TimerService (void) {
-	unlock_t unlock = lock((void*)MainTime);
+	const unlock_t unlock = lock((void*)MainTime);
 	u08 index = 0;
 	u32 tempMinTime = 0;
 	while(index < _lastTimerIndex) {  // Перебираем всю очередь таймеров
@@ -435,7 +437,7 @@ static u32 TimerService (void) {
 }
 #else // Класический таймер. Без регулирования скорости работы таймер ОС
 static void TimerService (void) {
-	unlock_t unlock = lock((void*)MainTime);
+	const unlock_t unlock = lock((void*)MainTime);
 	u08 index = 0;
 	while(index < _lastTimerIndex) {  // Перебираем всю очередь таймеров
 		if(MainTime[index] > 1) {  // Если таймер еще не дотикал (наиболее вероятно)
@@ -470,7 +472,7 @@ void SetTimerTask(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data
             }
         }
 #endif
-        unlock_t unlock = lock((void*)MainTime);
+        const unlock_t unlock = lock((void*)MainTime);
 		MainTimer[_lastTimerIndex].Task = TPTR;
 		MainTimer[_lastTimerIndex].arg_n = n;
 		MainTimer[_lastTimerIndex].arg_p = data;
@@ -496,7 +498,7 @@ static u08 findTimer(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t d
 }
 
 bool_t updateTimer(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data, const Time_t New_Time) {
-	u08 index = findTimer(TPTR,n,data);
+	const u08 index = findTimer(TPTR,n,data);
 	if(index < _lastTimerIndex) {
 		unlock_t unlock = lock((void*)MainTime);
 		MainTime[index] = New_Time;
@@ -507,7 +509,7 @@ bool_t updateTimer(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t dat
 }
 
 void delTimerTask(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data) {
-	u08 index = findTimer(TPTR,n,data);
+	const u08 index = findTimer(TPTR,n,data);
 	if(index < _lastTimerIndex){
 		unlock_t unlock = lock((void*)MainTime);
 		_lastTimerIndex--;
@@ -533,16 +535,16 @@ u08 getFreePositionForTimerTask(void) {
 //destination - адрес в памяти КУДА копируем source - адрес в памяти ОТКУДА копируем n - количество БАЙТ копируемых
 void memCpy(void* destination, const void* source, const BaseSize_t num) {
 #if ARCH == 64
-		BaseSize_t blocks = num>>3;		// 8-мь байт копируются за один раз
-		BaseSize_t last = num & 0x07; // остаток
+		const BaseSize_t blocks = num>>3;		// 8-мь байт копируются за один раз
+		const BaseSize_t last = num & 0x07; // остаток
 		for(BaseSize_t i = 0; i<blocks; i++) {
 			*((u64*)destination) = *((u64*)source);
 			destination = (void*)((byte_ptr)destination + 8);
 			source = (void*)((byte_ptr)source + 8);
 		}
 #elif ARCH == 32
-	BaseSize_t blocks = num>>2;		// 4-ре байта копируются за один раз
-	BaseSize_t last = num & 0x03; // остаток
+	const BaseSize_t blocks = num>>2;		// 4-ре байта копируются за один раз
+	const BaseSize_t last = num & 0x03; // остаток
 	for(BaseSize_t i = 0; i<blocks; i++) {
 		*((u32*)destination) = *((u32*)source);
 		destination = (void*)((byte_ptr)destination + 4);
@@ -558,18 +560,18 @@ void memCpy(void* destination, const void* source, const BaseSize_t num) {
 
 void memSet(void* destination, const BaseSize_t size, const u08 value) {
 #if ARCH == 64
-	BaseSize_t blocks = size>>3; // 8 байт копируются за один раз
-	BaseSize_t last = size & 0x07;      // остаток
-	u64 val = (u64)value<<56 | (u64)value<<48 | (u64)value<<40 | (u64)value<<32 |
+	const BaseSize_t blocks = size>>3; // 8 байт копируются за один раз
+	const BaseSize_t last = size & 0x07;      // остаток
+	const u64 val = (u64)value<<56 | (u64)value<<48 | (u64)value<<40 | (u64)value<<32 |
 			  (u32)value<<24 | (u32)value<<16 | (u16)value<<8 | value;
 	for(BaseSize_t i = 0; i<blocks; i++) {
 		*((u64*)destination) = val;
 		destination = (void*)((byte_ptr)destination + 8);
 	}
 #elif ARCH == 32
-	BaseSize_t blocks = size>>2; // 4-ре байта копируются за один раз
-	BaseSize_t last = size & 0x03;      // остаток
-	u32 val = (u32)value<<24 | (u32)value<<16 | (u16)value<<8 | value;
+	const BaseSize_t blocks = size>>2; // 4-ре байта копируются за один раз
+	const BaseSize_t last = size & 0x03;      // остаток
+	const u32 val = (u32)value<<24 | (u32)value<<16 | (u16)value<<8 | value;
 	for(BaseSize_t i = 0; i<blocks; i++) {
 		*((u32*)destination) = val;
 		destination = (void*)((byte_ptr)destination + 4);
@@ -595,8 +597,8 @@ void memCpy(void* destination, const void* source, const BaseSize_t num) {
 
 bool_t compare(const void* block1, const void* block2, const BaseSize_t size) {
 #if ARCH == 64
-	BaseSize_t blocks = size>>3; // 8 байт копируются за один раз
-	BaseSize_t last = size & 0x07;      // остаток
+	const BaseSize_t blocks = size>>3; // 8 байт копируются за один раз
+	const BaseSize_t last = size & 0x07;      // остаток
 	for(BaseSize_t i = 0; i<blocks; i++) {
 		if(*((u64*)block1) == *((u64*)block2)) {
 			block1 = (void*)((byte_ptr)block1 + 8);
@@ -605,8 +607,8 @@ bool_t compare(const void* block1, const void* block2, const BaseSize_t size) {
 		else return FALSE;
 	}
 #elif ARCH == 32
-	BaseSize_t blocks = size>>2; // 4-ре байта проверяются за один раз
-	BaseSize_t last = size & 0x03;      // остаток
+	const BaseSize_t blocks = size>>2; // 4-ре байта проверяются за один раз
+	const BaseSize_t last = size & 0x03;      // остаток
 	for(BaseSize_t i = 0; i<blocks; i++) {
 		if(*((u32*)block1) == *((u32*)block2)) {
 			block1 = (void*)((byte_ptr)block1 + 4);
@@ -636,14 +638,14 @@ void shiftLeftArray(BaseParam_t source, BaseSize_t sourceSize, BaseSize_t shiftS
 }
 
 void swapByte(byte_ptr byte1, byte_ptr byte2) {
-  unsigned char temp = *byte1;
+  const unsigned char temp = *byte1;
   *byte1 = *byte2;
   *byte2 = temp;
 }
 
 
 void swapInt(unsigned int* int1, unsigned int* int2) {
-  unsigned int temp = *int1;
+  const unsigned int temp = *int1;
   *int1 = *int2;
   *int2 = temp;
 }

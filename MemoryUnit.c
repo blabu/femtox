@@ -87,7 +87,7 @@ void initHeap(void){
 }
 
 BaseSize_t getFreeMemmorySize(void){
-	BaseSize_t s =sizeAllFreeMemmory;
+	BaseSize_t s = sizeAllFreeMemmory;
 	while(s != sizeAllFreeMemmory) s = sizeAllFreeMemmory;
 	if(s >= HEAP_SIZE) {
 		defragmentation();
@@ -137,9 +137,9 @@ static u08 calculateSize(BaseSize_t blockSize) {
 
 void clearAllMemmory(void){
 	BaseSize_t i = 0;
-    unlock_t unlock = lock(heap);
+    const unlock_t unlock = lock(heap);
     while(i < HEAP_SIZE) {
-    	BaseSize_t blockSize = getNextBlockSize(&heap[i]);
+    	const BaseSize_t blockSize = getNextBlockSize(&heap[i]);
     	if(!blockSize) break;
     	BaseSize_t temp = blockSize;
     	while(temp) {
@@ -183,9 +183,9 @@ static void free(byte_ptr startBlock) {
 static byte_ptr _allocMem(const BaseSize_t size) {
 	if(size > 0) {
 		BaseSize_t i = 0;
-		unlock_t unlock = lock(heap);
+		const unlock_t unlock = lock(heap);
 		while((i+size) < HEAP_SIZE) {
-			BaseSize_t blockSize = getNextBlockSize(&heap[i]);
+			const BaseSize_t blockSize = getNextBlockSize(&heap[i]);
 			if(!blockSize) {
 				byte_ptr res = alloc(&heap[i],size);
 				unlock(heap);
@@ -202,8 +202,8 @@ static byte_ptr _allocMem(const BaseSize_t size) {
 				return res;
 			}
 			// Здесь если блок свободен и размер его больше требуемого
-            BaseSize_t newSizeBlck = size + calculateSize(size); // Вычисляем размер нового куска с учетом его размера
-            BaseSize_t restSize = blockSize + calculateSize(blockSize) - newSizeBlck;  // Вычисляем размер оставшегося СВОБОДНОГО блока памяти
+            const BaseSize_t newSizeBlck = size + calculateSize(size); // Вычисляем размер нового куска с учетом его размера
+            const BaseSize_t restSize = blockSize + calculateSize(blockSize) - newSizeBlck;  // Вычисляем размер оставшегося СВОБОДНОГО блока памяти
             BaseSize_t freeSizeBlck = restSize - calculateSize(restSize); // Из него следует предусмотреть место для хранения самого размера будущего свободного блока
             while(freeSizeBlck < restSize) {
                 if((calculateSize(freeSizeBlck) + freeSizeBlck) == restSize) {
@@ -228,11 +228,12 @@ byte_ptr allocMemComment(const BaseSize_t size, string_t comment) {
         defragmentation();
         res = _allocMem(size);
     }
-   	u08 i = findDescriptor(NULL);
+   	const u08 i = findDescriptor(NULL);
    	if(i < MAX_DESCRIPTORS) {descriptor[i].ptr = res; descriptor[i].size = size; descriptor[i].comment = comment;}
    	else MaximizeErrorHandler("Overflow descriptor list in allocMem");
     return res;
 }
+
 void showAllBlocks() {
 	for(u08 i = 0; i<MAX_DESCRIPTORS; i++) {
 		if(descriptor[i].ptr != NULL) {
@@ -251,7 +252,7 @@ byte_ptr allocMem(const BaseSize_t size) {
         res = _allocMem(size);
     }
 #ifdef DEBUG_CHEK_ALLOCATED_MOMORY
-	u08 i = findDescriptor(NULL);
+	const u08 i = findDescriptor(NULL);
 	if(i < MAX_DESCRIPTORS) {descriptor[i].ptr = res; descriptor[i].size = size;}
 	else MaximizeErrorHandler("Overflow descriptor list in allocMem");
 #endif
@@ -264,7 +265,7 @@ void writeLogWithStr(const string_t c_str, u32 n);
 bool_t validateMemory() {
     BaseSize_t i = 0;
     while(i < HEAP_SIZE) {
-        BaseSize_t blocSize = getNextBlockSize(&heap[i]);
+        const BaseSize_t blocSize = getNextBlockSize(&heap[i]);
         if(blocSize) return TRUE;
         i+=blocSize + calculateSize(blocSize);
         if(i > HEAP_SIZE) {
@@ -280,9 +281,9 @@ void freeMem(const byte_ptr data) {
        data < heap + HEAP_SIZE)  // Если мы передали валидный указатель
     {
 		#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
-    		u08 i = findDescriptor(data);
+    		const u08 i = findDescriptor(data);
     		if(i < MAX_DESCRIPTORS) {
-    			BaseSize_t sz = getCurrentBlockSize(data);
+    			const BaseSize_t sz = getCurrentBlockSize(data);
     			if(sz >= descriptor[i].size && sz - descriptor[i].size < 10) {
     				descriptor[i].ptr = NULL;
     			}
@@ -300,7 +301,7 @@ void freeMem(const byte_ptr data) {
 
     		}
 		#endif
-    	unlock_t unlock = lock(heap);
+    	const unlock_t unlock = lock(heap);
         free(data);
         unlock(heap);
     } else if(data != NULL) {
@@ -312,10 +313,10 @@ void defragmentation(void){
 	BaseSize_t i = 0;
 	BaseSize_t blockSize = 0;
     sizeAllFreeMemmory=HEAP_SIZE;
-    unlock_t unlock = lock(heap);
+    const unlock_t unlock = lock(heap);
     while(i < HEAP_SIZE) {   // Пока не закончится куча
-    	BaseSize_t currentBlockSize = getNextBlockSize(&heap[i]);
-    	u08 blkSz = calculateSize(currentBlockSize);
+    	const BaseSize_t currentBlockSize = getNextBlockSize(&heap[i]);
+    	const u08 blkSz = calculateSize(currentBlockSize);
         if(!currentBlockSize) break;   // Если размер нулевой, значит выделения памяти еще не было
         if(heap[i] & (1<<7)) {   // Если блок памяти занят
             blockSize = 0;
@@ -324,8 +325,8 @@ void defragmentation(void){
             continue;
         }
         if(blockSize) { //Если уже были освобождения подряд
-        	u08 prevBlkSz = calculateSize(blockSize);
-        	BaseSize_t SumBlockSize = (BaseSize_t)(blockSize + prevBlkSz) + (BaseSize_t)(currentBlockSize + blkSz);
+        	const u08 prevBlkSz = calculateSize(blockSize);
+        	const BaseSize_t SumBlockSize = (BaseSize_t)(blockSize + prevBlkSz) + (BaseSize_t)(currentBlockSize + blkSz);
         	BaseSize_t  newSumBlocKSize = SumBlockSize - calculateSize(SumBlockSize);
         	while(newSumBlocKSize < SumBlockSize) {
         	    if(newSumBlocKSize + calculateSize(newSumBlocKSize) == SumBlockSize) {
@@ -385,7 +386,7 @@ u16 getAllocateMemmorySize(const byte_ptr data) {
 
 void clearAllMemmory(void){
 	u16 i = 0;
-    unlock_t unlock = lock(heap);
+    const unlock_t unlock = lock(heap);
     while(i < HEAP_SIZE) {
     	u08 blockSize = heap[i] & 0x7F;
     	if(!blockSize) break;
@@ -401,10 +402,10 @@ void clearAllMemmory(void){
 static byte_ptr _allocMem(const u08 size) { //size - до 127 размер блока выделяемой памяти
 	if(size < 128 && size) {
 		u16 i = 0;  // Поиск свободного места начнем с нулевого элемента, максимум определен размером u16
-		unlock_t unlock = lock(heap);
+		const unlock_t unlock = lock(heap);
 		while((i+size) < HEAP_SIZE) // Пока мы можем выделить тот объем памяти который у нас попросили
 		{
-			u08 blockSize = heap[i] & 0x7F;  // Вычисляем размер следующего блока памяти
+			const u08 blockSize = heap[i] & 0x7F;  // Вычисляем размер следующего блока памяти
 			if(!blockSize) {    // Если память здесь еще не выделялась
 				heap[i] = (1<<7) + size;    // Выделяем нужный объем памяти
 				break;
@@ -453,7 +454,7 @@ void freeMem(const byte_ptr data) {
     if(data > heap &&
        data < heap + HEAP_SIZE)  // Если мы передали валидный указатель
     {
-    	unlock_t unlock = lock(heap);
+    	const unlock_t unlock = lock(heap);
         *(data-1) &= ~(1<<7); // Очистим флаг занятости данных (не трогая при этом сами данные и их размер)
         unlock(heap);
     }
@@ -463,7 +464,7 @@ void defragmentation(void){
     u16 i = 0;
     u08 blockSize = 0;
     sizeAllFreeMemmory=HEAP_SIZE;
-    unlock_t unlock = lock(heap);
+    const unlock_t unlock = lock(heap);
     while(i < HEAP_SIZE) {   // Пока не закончится куча
         u08 currentBlockSize = heap[i]&0x7F; //Выделяем размер блока (младшие 7 байт)
         if(!currentBlockSize) break;   // Если размер нулевой, значит выделения памяти еще не было
@@ -476,9 +477,7 @@ void defragmentation(void){
         if(blockSize) { //Если блок памяти свободен
             u08 SumBlock = (u08)(blockSize + currentBlockSize + 1);
             if(SumBlock <= 127) { // TODO Если SumBlock == 127 нет смысла его перезаписывать
-            	unlock_t unlock = lock(heap);
             	heap[i - (blockSize+1)] = SumBlock;
-            	unlock(heap);
             	blockSize = SumBlock;
             	i += currentBlockSize + 1;
                 continue;

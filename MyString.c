@@ -376,7 +376,7 @@ bool_t isAsciiOrNumb(const char symb) {
 }
 
 void shiftStringLeft(BaseSize_t poz, const string_t c_str){
-  BaseSize_t size = strSize(c_str);
+  const BaseSize_t size = strSize(c_str);
   BaseSize_t i=0;
   while(poz<size){
     c_str[i]=c_str[poz];
@@ -420,7 +420,7 @@ void doubleToString(double data, string_t c_str, u08 precision) {
 // Заполняет строку одним символом справа
 // Например: исходная строка "113" после выполнения этой функции строка может быть "00113"
 void fillRightStr(u16 size, const string_t str, char symb) {
-	s16 s = size - strSize(str);
+	const s16 s = size - strSize(str);
 	if(s <= 0) return;
 	shiftStringRight(s,str);
 	for(s16 i = 0; i<s; i++) {

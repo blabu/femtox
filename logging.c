@@ -299,12 +299,13 @@ void writeLogByteArray(BaseSize_t sizeBytes, byte_ptr array) {
 }
 #endif // ALLOC_MEM_LARGE
 
+#ifdef COMMAND_TASK
+
 static void writeLogStrTask(BaseSize_t arg_n, BaseParam_t str) {
     if(!arg_n) writeLogStr((string_t)str);
     else writeLogByteArray(arg_n, (byte_ptr)str);
 }
 
-#ifdef COMMAND_TASK
 void commandEngine(string_t command) {
     if(str1_str2("help", command)) {
         writeLog2Str("help", " show this help");

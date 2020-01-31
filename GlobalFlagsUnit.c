@@ -40,13 +40,13 @@ extern "C" {
 volatile static globalFlags_t GlobalFlags = 0;
 
 void setFlags(globalFlags_t flagMask) {
-	unlock_t unlock = lock((void*)(&GlobalFlags));
+	const unlock_t unlock = lock((void*)(&GlobalFlags));
 	GlobalFlags |= flagMask;
 	unlock((void*)(&GlobalFlags));
 }
 
 void clearFlags(globalFlags_t flagMask) {
-	unlock_t unlock = lock((void*)(&GlobalFlags));
+	const unlock_t unlock = lock((void*)(&GlobalFlags));
 	GlobalFlags &= ~flagMask;
 	unlock((void*)(&GlobalFlags));
 }

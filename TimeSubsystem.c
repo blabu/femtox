@@ -153,7 +153,7 @@ u08 getMinutes(void){
 }
 
 u08 getHour(void){
-    Time_t sec = getAllSeconds();
+    const Time_t sec = getAllSeconds();
 	u08 nowHour = getHourFromSec(sec);
 #if TIME_INDEX!=0
 	nowHour += timeCorrectSummer;
@@ -238,7 +238,7 @@ Time_t getSecondsFromDate(const Date_t*const date) {
 	const u08 tCorrectSummer = 0;
 #endif
 	year -= 1970;
-	Time_t tempSeconds = (Time_t)year*SECONDS_IN_YEAR +
+	const Time_t tempSeconds = (Time_t)year*SECONDS_IN_YEAR +
 						 ((u32)getDayInYearFromDate(date) + dayOffset)*SECONDS_IN_DAY +
 						 (u32)(date->hour)*3600UL + (u32)(date->min)*60UL + date->sec -
 /*Корректировка времени*/tCorrectSummer*3600UL;

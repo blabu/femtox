@@ -60,7 +60,7 @@ void initCycleTask(void) {
 }
 
 void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t flagToQueue) {
-	unlock_t unlock = lock((void*)Timers_Array);
+	const unlock_t unlock = lock((void*)Timers_Array);
     for(register u08 i = 0; i<TIMERS_ARRAY_SIZE; i++){
         if(Timers_Array[i].value) continue; // Если таймер уже занят (не нулевой) переходим к следющему
         Timers_Array[i].Call_Back = CallBack;  // Запоминаем новый колбэк
@@ -73,7 +73,7 @@ void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t flagToQueue) {
 }
 
 void delCycleTask(BaseSize_t arg_n, CycleFuncPtr_t CallBack) {
-	unlock_t unlock = lock((void*)Timers_Array);
+	const unlock_t unlock = lock((void*)Timers_Array);
 	u08 countDeletedTask = 0;  // Количество удаленных задач
     for(register u08 i = 0; i<TIMERS_ARRAY_SIZE; i++) {
         if(!Timers_Array[i].value) break; // Если наткнулись на пустой таймер выходим из цикла(дальше искать нет смысла)
@@ -99,7 +99,7 @@ void delCycleTask(BaseSize_t arg_n, CycleFuncPtr_t CallBack) {
 #ifdef _PWR_SAVE
 extern volatile u32 _minTimeOut;
 u32 CycleService(void) {
-	unlock_t unlock = lock((void*)Timers_Array);
+	const unlock_t unlock = lock((void*)Timers_Array);
     register u08 i = 0;
     u32 tempMinTickCount = 0;
     while(Timers_Array[i].value) // Перебираем массив таймеров пока не встретили пустышку
@@ -124,7 +124,7 @@ u32 CycleService(void) {
 }
 #else
 void CycleService(void) {
-	unlock_t unlock = lock((void*)Timers_Array);
+	const unlock_t unlock = lock((void*)Timers_Array);
     register u08 i = 0;
     while(Timers_Array[i].value) // Перебираем массив таймеров пока не встретили пустышку
     {
