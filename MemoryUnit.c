@@ -296,7 +296,6 @@ void freeMem(const byte_ptr data) {
     		}
     		else {
     			writeLogWithStr("ERROR:Try freeMem by ptr ", (u32)data);
-    			showAllBlocks();
     			MaximizeErrorHandler("Undefine descriptor in list for freeMem");
 
     		}
@@ -499,6 +498,7 @@ void defragmentation(void){
 
 void freeMemTask(BaseSize_t count, BaseParam_t pointer) {
 	freeMem((byte_ptr)pointer);
+	execCallBack(freeMemTask);
 }
 
 #ifdef __cplusplus

@@ -301,10 +301,10 @@ void writeLogByteArray(BaseSize_t sizeBytes, byte_ptr array) {
 
 #ifdef COMMAND_TASK
 
-static void writeLogStrTask(BaseSize_t arg_n, BaseParam_t str) {
-    if(!arg_n) writeLogStr((string_t)str);
-    else writeLogByteArray(arg_n, (byte_ptr)str);
-}
+//static void writeLogStrTask(BaseSize_t arg_n, BaseParam_t str) {
+//    if(!arg_n) writeLogStr((string_t)str);
+//    else writeLogByteArray(arg_n, (byte_ptr)str);
+//}
 
 void commandEngine(string_t command) {
     if(str1_str2("help", command)) {
@@ -360,7 +360,7 @@ void commandEngine(string_t command) {
     }
 #ifdef DEBUG_CHEK_ALLOCATED_MOMORY
         else if (str1_str2("showAllBlocks", command)) {
-		SetTask((TaskMng)showAllBlocks,0,NULL);
+//		SetTask((TaskMng)showAllBlocks,0,NULL);
 	}
 #endif
     else if(execCommand(command) == EVERYTHING_IS_OK) {

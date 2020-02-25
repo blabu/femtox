@@ -37,6 +37,8 @@ extern "C" {
 
 #ifdef _LIST_STRUCT
 
+#define LIST_DEBUG
+
 ListNode_t* createNewList(void* data){
 	ListNode_t* res = (ListNode_t*)allocMem(sizeof(ListNode_t));
 	if(res == NULL) return res; // Memmory allocate error
@@ -66,13 +68,18 @@ void deleteList(ListNode_t* listPtr) {
 	if(listPtr == NULL) return;
 	ListNode_t* temp = findHead(listPtr);
 	while(temp->next != NULL) {
+#ifdef LIST_DEBUG
+		writeLogStr("TRACE: Delete list node and data in it");
+#endif
 		freeMem(temp->data);
 		temp = temp->next;
 		freeMem((byte_ptr)temp->prev);
 	}
+#ifdef LIST_DEBUG
+	writeLogStr("TRACE: Delete last of list node and data in it");
+#endif
 	freeMem((byte_ptr)temp->data);
 	freeMem((byte_ptr)temp);
-	freeMem((byte_ptr)listPtr);
 }
 
 void deleteListNode(ListNode_t* listPtr) {
@@ -91,12 +98,16 @@ void deleteListNode(ListNode_t* listPtr) {
 
 ListNode_t* putToEndList(ListNode_t* list, void* data) {
 	if(list == NULL || data == NULL) {
+#ifdef LIST_DEBUG
 		writeLogStr("ERROR putToEndList Incorrect input value");
+#endif
 		return NULL;
 	}
 	ListNode_t* newNode = (ListNode_t*)allocMem(sizeof(ListNode_t));
 	if(newNode == NULL) {
+#ifdef LIST_DEBUG
 		writeLogStr("ERROR putToEndList Memory error");
+#endif
 		return NULL;
 	}
 	list = findTail(list);
@@ -109,12 +120,16 @@ ListNode_t* putToEndList(ListNode_t* list, void* data) {
 
 ListNode_t* putToFrontList(ListNode_t* list, void* data) {
 	if(list == NULL || data == NULL){
+#ifdef LIST_DEBUG
 		writeLogStr("ERROR putToFrontList Incorrect input value");
+#endif
 		return NULL;
 	}
 	ListNode_t* newNode = (ListNode_t*)allocMem(sizeof(ListNode_t));
 	if(newNode == NULL) {
+#ifdef LIST_DEBUG
 		writeLogStr("ERROR putToFrontList Memory error");
+#endif
 		return NULL;
 	}
 	list = findHead(list);
@@ -137,7 +152,9 @@ ListNode_t* getFromEndList(ListNode_t* list, void** result){
 		freeMem((byte_ptr)tail);
 		return prev;
 	}
+#ifdef LIST_DEBUG
 	writeLogStr("ERROR getFromEndList Incorrect input value");
+#endif
 	return NULL;
 }
 
@@ -153,26 +170,28 @@ ListNode_t* getFromFrontList(ListNode_t* list, void** result){
 		freeMem((byte_ptr)head);
 		return next;
 	}
+#ifdef LIST_DEBUG
    	writeLogStr("ERROR getFromFrontList Incorrect input value");
+#endif
    	return NULL;
 }
 
-void* peekFromFrontList(ListNode_t* list) {
+ListNode_t* peekFromFrontList(ListNode_t* list) {
 	if(list != NULL) {
 		ListNode_t *head = findHead(list);
 		if(head != NULL) {
-			return head->data;
+			return head;
 		}
 		return NULL;
 	}
 	return NULL;
 }
 
-void* peekFromEndList(ListNode_t* list) {
+ListNode_t* peekFromEndList(ListNode_t* list) {
 	if(list != NULL) {
 		ListNode_t *tail = findTail(list);
 		if(tail != NULL) {
-			return tail->data;
+			return tail;
 		}
 		return NULL;
 	}
