@@ -76,7 +76,9 @@ void toStringDec(s64 data, string_t c_str);
 bool_t isDigitDec(const char symb);
 bool_t isDigit(const char symb);
 bool_t isAsciiOrNumb(const char symb);
-#define isalnum(cczz) isAsciiOrNumb((const char)cczz)
+#ifndef _X86
+//#define isalnum(cczz) isAsciiOrNumb((const char)cczz)
+#endif
 
 void toStringUnsignDec(u64 data, string_t c_str);
 

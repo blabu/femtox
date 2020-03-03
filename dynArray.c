@@ -102,13 +102,21 @@ u08 PutToFrontArray(const void *Elem, const void *identifier) {
     if (a == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
     ListNode_t* head = peekFromFrontList(a->base);
     if (head == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
-    if(head->data == NULL) return UNDEFINED_BEHAVIOR;
+    if(head->data == NULL) {
+		#ifdef DEBUG_DYNAMIC_ARRAY
+    	writeLogStr("ERROR: Undefine behavior in PutToFrontArray");
+		#endif
+    	return UNDEFINED_BEHAVIOR;
+    }
     if (PutToFrontDataStruct(Elem, head->data) != EVERYTHING_IS_OK) {
         byte_ptr newNode = allocMem(a->deltaDataRice * (a->sizeBaseElement));
         if (newNode == NULL) return NO_MEMORY_ERROR;
         u08 res = CreateDataStruct(newNode, a->sizeBaseElement, a->deltaDataRice);
         if (res != EVERYTHING_IS_OK) {
             freeMem(newNode);
+			#ifdef DEBUG_DYNAMIC_ARRAY
+            writeLogStr("ERROR: Can not create new struct in PutToFrontArray");
+			#endif
             return res;
         }
         res = PutToFrontDataStruct(Elem, newNode);
@@ -129,13 +137,21 @@ u08 PutToEndArray(const void *Elem, const void *identifier) {
     if (a == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
     ListNode_t* head = peekFromEndList(a->base);
     if (head == NULL) return NOT_FOUND_DATA_STRUCT_ERROR;
-    if(head->data == NULL) return UNDEFINED_BEHAVIOR;
+    if(head->data == NULL) {
+		#ifdef DEBUG_DYNAMIC_ARRAY
+    	writeLogStr("ERROR: Undefine behavior in PutToEndArray");
+		#endif
+    	return UNDEFINED_BEHAVIOR;
+    }
     if (PutToEndDataStruct(Elem, head->data) != EVERYTHING_IS_OK) {
         byte_ptr newNode = allocMem(a->deltaDataRice * (a->sizeBaseElement));
         if (newNode == NULL) return NO_MEMORY_ERROR;
         u08 res = CreateDataStruct(newNode, a->sizeBaseElement, a->deltaDataRice);
         if (res != EVERYTHING_IS_OK) {
             freeMem(newNode);
+			#ifdef DEBUG_DYNAMIC_ARRAY
+            writeLogStr("ERROR: Can not create new struct in PutToEndArray");
+			#endif
             return res;
         }
         res = PutToEndDataStruct(Elem, newNode);
@@ -157,16 +173,22 @@ u08 GetFromFrontArray(void *returnValue, const void *identifier) {
     for (ListNode_t* head = peekFromFrontList(a->base); head != NULL && head->data != NULL; head = peekFromFrontList(a->base)) {
         if(GetFromFrontDataStruct(returnValue, head->data) == EVERYTHING_IS_OK) return EVERYTHING_IS_OK;
         if(head->next != NULL) {
-#ifdef DEBUG_DYNAMIC_ARRAY
+			#ifdef DEBUG_DYNAMIC_ARRAY
         	writeLogStr("TRACE: Delete old list node and data struct from front");
-#endif
+			#endif
         	a->base = head->next;
         	delDataStruct(head->data);
         	deleteListNode(head);
         } else {
+			#ifdef DEBUG_DYNAMIC_ARRAY
+        	writeLogStr("TRACE: Struct is empty");
+			#endif
         	return OVERFLOW_OR_EMPTY_ERROR;
         }
     }
+	#ifdef DEBUG_DYNAMIC_ARRAY
+    writeLogStr("ERROR: Undefine behavior in GetFromFrontArray");
+	#endif
     return UNDEFINED_BEHAVIOR;
 }
 
@@ -176,16 +198,22 @@ u08 GetFromEndArray(void *returnValue, const void *identifier) {
     for (ListNode_t* head = peekFromEndList(a->base); head != NULL && head->data != NULL; head = peekFromEndList(a->base)) {
         if (GetFromEndDataStruct(returnValue, head) == EVERYTHING_IS_OK) return EVERYTHING_IS_OK;
         if(head->prev != NULL) {
-#ifdef DEBUG_DYNAMIC_ARRAY
+			#ifdef DEBUG_DYNAMIC_ARRAY
         	writeLogStr("TRACE: Delete old list node and data struct from end");
-#endif
+			#endif
         	a->base = head->prev;
         	delDataStruct(head->data);
         	deleteListNode(head);
         } else {
+			#ifdef DEBUG_DYNAMIC_ARRAY
+        	writeLogStr("TRACE: Struct is empty");
+			#endif
         	 return OVERFLOW_OR_EMPTY_ERROR;
         }
     }
+	#ifdef DEBUG_DYNAMIC_ARRAY
+    writeLogStr("ERROR: Undefine behavior in GetFromEndArray");
+	#endif
     return UNDEFINED_BEHAVIOR;
 }
 

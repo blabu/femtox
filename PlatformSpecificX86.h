@@ -13,7 +13,7 @@ void resetWatchDog();
 unlock_t lock(const void*const resourceId);
 
 #define WATCH_DOG_ON  initWatchDog()/*Генерируем Reset*/
-#define TICK_PER_SECOND 1ULL /*Колличество тиков в секунду*/
+#define TICK_PER_SECOND 1000ULL /*Колличество тиков в секунду*/
 
 void _init_Timer(void);	// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
 

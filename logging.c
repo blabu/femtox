@@ -360,7 +360,7 @@ void commandEngine(string_t command) {
     }
 #ifdef DEBUG_CHEK_ALLOCATED_MOMORY
         else if (str1_str2("showAllBlocks", command)) {
-//		SetTask((TaskMng)showAllBlocks,0,NULL);
+		SetTask((TaskMng)showAllBlocks,0,NULL);
 	}
 #endif
     else if(execCommand(command) == EVERYTHING_IS_OK) {

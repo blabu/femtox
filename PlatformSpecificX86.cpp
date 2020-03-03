@@ -61,7 +61,7 @@ static unlock_t lock1(const void* const resourceId) {
 }
 
 
-#define RESOURCE_LIST 25
+#define RESOURCE_LIST 250
 
 #if RESOURCE_LIST > 0xFE
 #error "Resource size list must be less"
@@ -131,8 +131,10 @@ static void __timer() {
 		TimerISR();
 		dT += (std::chrono::steady_clock::now() - tStart);
 		if(dT < timeBase) {
+			tStart = std::chrono::steady_clock::now();
 			std::this_thread::sleep_for( (timeBase-dT) );
-			dT = std::chrono::nanoseconds(0);
+			auto dT2 = std::chrono::steady_clock::now() - tStart;
+			dT = dT2-(timeBase-dT);
 		}
 		else {
 			writeSymb('?');

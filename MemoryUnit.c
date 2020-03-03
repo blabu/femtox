@@ -44,10 +44,10 @@ typedef struct {
 	BaseSize_t size;
 	string_t comment;
 } allocateDescriptor_t;
-#define MAX_DESCRIPTORS 30
+#define MAX_DESCRIPTORS 3000
 static allocateDescriptor_t descriptor[MAX_DESCRIPTORS];
-static u08 findDescriptor(const byte_ptr pointer) {
-	u08 i = 0;
+static u16 findDescriptor(const byte_ptr pointer) {
+	u16 i = 0;
 	for(;i<MAX_DESCRIPTORS;i++) {
 		if(descriptor[i].ptr == pointer) break;
 	}
@@ -80,7 +80,7 @@ static BaseSize_t sizeAllFreeMemmory = HEAP_SIZE;
 void initHeap(void){
 	heap[0] = 0;
 #ifdef DEBUG_CHEK_ALLOCATED_MOMORY
-	for(u08 i = 0; i<MAX_DESCRIPTORS; i++) {
+	for(u16 i = 0; i<MAX_DESCRIPTORS; i++) {
 		descriptor[i].ptr = NULL;
 	}
 #endif
@@ -151,7 +151,7 @@ void clearAllMemmory(void){
     }
     unlock(heap);
 	#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
-    for(u08 i = 0; i<MAX_DESCRIPTORS; i++) descriptor[i].ptr = NULL;
+    for(u16 i = 0; i<MAX_DESCRIPTORS; i++) descriptor[i].ptr = NULL;
 	#endif
 }
 
@@ -228,14 +228,17 @@ byte_ptr allocMemComment(const BaseSize_t size, string_t comment) {
         defragmentation();
         res = _allocMem(size);
     }
-   	const u08 i = findDescriptor(NULL);
+   	const u16 i = findDescriptor(NULL);
    	if(i < MAX_DESCRIPTORS) {descriptor[i].ptr = res; descriptor[i].size = size; descriptor[i].comment = comment;}
-   	else MaximizeErrorHandler("Overflow descriptor list in allocMem");
+   	else {
+   		MaximizeErrorHandler("Overflow descriptor list in allocMem");
+   		showAllBlocks();
+   	}
     return res;
 }
 
 void showAllBlocks() {
-	for(u08 i = 0; i<MAX_DESCRIPTORS; i++) {
+	for(u16 i = 0; i<MAX_DESCRIPTORS; i++) {
 		if(descriptor[i].ptr != NULL) {
 			writeLog2Str("Descriptor is busy ", descriptor[i].comment);
 			writeLogWithStr("Descriptor pointer is ", (u32)descriptor[i].ptr);
@@ -252,7 +255,7 @@ byte_ptr allocMem(const BaseSize_t size) {
         res = _allocMem(size);
     }
 #ifdef DEBUG_CHEK_ALLOCATED_MOMORY
-	const u08 i = findDescriptor(NULL);
+	const u16 i = findDescriptor(NULL);
 	if(i < MAX_DESCRIPTORS) {descriptor[i].ptr = res; descriptor[i].size = size;}
 	else MaximizeErrorHandler("Overflow descriptor list in allocMem");
 #endif
@@ -281,7 +284,7 @@ void freeMem(const byte_ptr data) {
        data < heap + HEAP_SIZE)  // Если мы передали валидный указатель
     {
 		#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
-    		const u08 i = findDescriptor(data);
+    		const u16 i = findDescriptor(data);
     		if(i < MAX_DESCRIPTORS) {
     			const BaseSize_t sz = getCurrentBlockSize(data);
     			if(sz >= descriptor[i].size && sz - descriptor[i].size < 10) {
@@ -442,7 +445,7 @@ byte_ptr allocMem(const u08 size) {
         return _allocMem(size);
     }
 	#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
-		u08 i = findDescriptor(NULL);
+		u16 i = findDescriptor(NULL);
 		if(i < MAX_DESCRIPTORS) {descriptor[i].ptr = res; descriptor[i].size = size;}
 		else MaximizeErrorHandler("Overflow descriptor list in allocMem");
 	#endif
