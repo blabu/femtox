@@ -28,6 +28,7 @@ typedef enum {FALSE=0, TRUE = !FALSE} bool_t;
 
 typedef unsigned char* byte_ptr;
 typedef unsigned int  BaseSize_t; // Первый аргумент для задачи в диспетчере
+#define MAX_BASE_SIZE_VALUE 0xFFFFFFFF
 typedef void* BaseParam_t;  // Второй аргумент для задачи в диспетчере
 
 typedef void(*unlock_t)(const void* const resourceId);

@@ -46,7 +46,7 @@
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
-#define DATA_STRUCT_ArraySize   200 /*Общее количество всех структур данных*/
+#define DATA_STRUCT_ArraySize   2000 /*Общее количество всех структур данных*/
 #endif
 
 #ifdef MUTEX_ENABLE
@@ -62,7 +62,7 @@
 #define CHECK_ERRORS_FREE_MEMMORY
 #endif
 #ifdef ALLOC_MEM_LARGE
-#define HEAP_SIZE 80000UL /*6500*/
+#define HEAP_SIZE 40000UL /*6500*/
 #define DEBUG_CHEK_ALLOCATED_MOMORY
 #endif
 
