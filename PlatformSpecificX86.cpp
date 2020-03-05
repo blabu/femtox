@@ -72,7 +72,8 @@ struct {
 	void* resourceId;	// Уникальный идентификатор ресурса
 }resourceMutexList[RESOURCE_LIST]; // Очередь на ресурсы
 static std::mutex mt; // Мьютекс защищающий очередь
-static void unlock(const void*const resourceId) {
+
+void unlock(const void*const resourceId) {
 	std::lock_guard<std::mutex> l(mt);
 	for(u16 i=0; i<RESOURCE_LIST; i++) {
 		if(resourceMutexList[i].resourceId == resourceId) {
@@ -80,6 +81,7 @@ static void unlock(const void*const resourceId) {
 			return;
 		}
 	}
+	writeLogStr((string_t)"WARN: Undefined unlock resource");
 }
 
 static void empty(const void* const resourceId) {}
@@ -109,7 +111,7 @@ static unlock_t lock2(const void*const resourceId) {
 		resourceMutexList[saveIndex].mt.lock();
 		return unlock;
 	}
-	writeLogStr((string_t)"WARN, Never be here mutex list overflow error");
+	writeLogStr((string_t)"WARN: Never be here mutex list overflow error");
 	return empty;
 }
 

@@ -345,8 +345,8 @@ static void TaskManager(void) {
 		unlock((void*)TaskList);
 		Func_point(n,a);
 	} else {
-		unlock((const void* const)TaskList); // Если очередь пустая включаем прерывания
-		Idle();           // И выполняем функция простоя
+		unlock((const void* const)TaskList);
+		Idle();
 	}
 }
 
@@ -437,7 +437,7 @@ static u32 TimerService (void) {
 }
 #else // Класический таймер. Без регулирования скорости работы таймер ОС
 static void TimerService (void) {
-	const unlock_t unlock = lock((void*)MainTime);
+	const unlock_t unlock = lock((const void*const)MainTime);
 	u08 index = 0;
 	while(index < _lastTimerIndex) {  // Перебираем всю очередь таймеров
 		if(MainTime[index] > 1) {  // Если таймер еще не дотикал (наиболее вероятно)

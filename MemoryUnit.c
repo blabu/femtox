@@ -221,6 +221,7 @@ static byte_ptr _allocMem(const BaseSize_t size) {
 	}
 	return NULL;
 }
+
 #ifdef DEBUG_CHEK_ALLOCATED_MOMORY
 byte_ptr allocMemComment(const BaseSize_t size, string_t comment) {
     byte_ptr res = _allocMem(size);
@@ -262,8 +263,9 @@ byte_ptr allocMem(const BaseSize_t size) {
     return res;
 }
 
-
+#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
 void writeLogWithStr(const string_t c_str, u32 n);
+#endif
 
 bool_t validateMemory() {
     BaseSize_t i = 0;
@@ -272,7 +274,9 @@ bool_t validateMemory() {
         if(blocSize) return TRUE;
         i+=blocSize + calculateSize(blocSize);
         if(i > HEAP_SIZE) {
+			#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
             writeLogWithStr("ERROR: invalid memory block in ", i-blocSize);
+			#endif
             return FALSE;
         }
     }
