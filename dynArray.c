@@ -69,10 +69,10 @@ u08 CreateArray(const void *const identifier, const BaseSize_t sizeElement, cons
         freeMem(data);
         return res;
     }
-    const unlock_t lc = lock((const void*const)allArrays);
+    volatile const unlock_t unlock = lock((const void*const)allArrays);
     DynamicArray_t *arr = findArray(NULL);
     if (arr == NULL) {
-    	lc((const void*const)allArrays);
+    	unlock((const void*const)allArrays);
     	delDataStruct(data);
     	freeMem(data);
         return NOT_FOUND_DATA_STRUCT_ERROR;
@@ -81,7 +81,7 @@ u08 CreateArray(const void *const identifier, const BaseSize_t sizeElement, cons
     arr->base = createNewList((void *)data);
     arr->sizeBaseElement = sizeElement;
     arr->deltaDataRice = dataRice;
-    lc((const void*const)allArrays);
+    unlock((const void*const)allArrays);
     return EVERYTHING_IS_OK;
 }
 

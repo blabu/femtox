@@ -73,7 +73,7 @@ struct {
 }resourceMutexList[RESOURCE_LIST]; // Очередь на ресурсы
 static std::mutex mt; // Мьютекс защищающий очередь
 
-void unlock(const void*const resourceId) {
+static void unlock(const void*const resourceId) {
 	std::lock_guard<std::mutex> l(mt);
 	for(u16 i=0; i<RESOURCE_LIST; i++) {
 		if(resourceMutexList[i].resourceId == resourceId) {
@@ -121,7 +121,8 @@ unlock_t lock(const void*const resourceId) {
 	// lock1 - неэффективный по скорости, но надежный и простой на все ресурсы ОДИН примитив синхронизации
 	// lock2 - эффективный по скорости (для каждого ресурса свой мьютекс) Но сложнее, занимает больше места
 	// lock3 - пустішка для проверки скорости
-	return lock2(resourceId);
+	auto l = lock2(resourceId);
+	return l;
 }
 
 
