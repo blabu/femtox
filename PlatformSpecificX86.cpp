@@ -14,15 +14,12 @@
 #include <chrono>
 static std::thread* timerThread;
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 #include "PlatformSpecific.h"
 #include "TaskMngr.h"
 #include "logging.h"
-#ifdef __cplusplus
 }
-#endif
+
 
 extern void TimerISR();
 
@@ -72,7 +69,6 @@ static void unlock(const void*const resourceId) {
 	} catch(const std::out_of_range&) {
 		writeLogStr("ERROR: Undefined resource id message");
 	}
-	writeLogStr((string_t)"WARN: Undefined unlock resource");
 }
 
 static void empty(const void* const resourceId) {}
@@ -93,8 +89,7 @@ unlock_t lock(const void*const resourceId) {
 	// lock1 - неэффективный по скорости, но надежный и простой на все ресурсы ОДИН примитив синхронизации
 	// lock2 - эффективный по скорости (для каждого ресурса свой мьютекс) Но сложнее, занимает больше места
 	// lock3 - пустішка для проверки скорости
-	auto l = lock2(resourceId);
-	return l;
+	return lock2(resourceId);
 }
 
 

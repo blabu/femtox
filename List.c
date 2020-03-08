@@ -28,12 +28,13 @@ SOFTWARE.
  *  Created on: 17 жовт. 2017 р.
  *      Author: oleksiy.khanin
  */
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include "List.h"
 #include "logging.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #ifdef _LIST_STRUCT
 

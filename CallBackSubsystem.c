@@ -32,11 +32,9 @@ SOFTWARE.
 #include "TaskMngr.h"
 #include "PlatformSpecific.h"
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 #ifdef CALL_BACK_TASK
 #if CALL_BACK_TASK_LIST_LEN > 0xFE
 #error "incompatible size"

@@ -25,6 +25,8 @@ SOFTWARE.
 #include "dynArray.h"
 #include "List.h"
 #include "logging.h"
+#include "PlatformSpecific.h"
+
 #ifdef _DYNAMIC_ARRAY
 #define DEBUG_DYNAMIC_ARRAY
 
