@@ -9,19 +9,17 @@
 #elif __unix
 #include <thread>
 #include <mutex>
+#include <map>
 #endif
 #include <chrono>
 static std::thread* timerThread;
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 #include "PlatformSpecific.h"
 #include "TaskMngr.h"
 #include "logging.h"
-#ifdef __cplusplus
 }
-#endif
+
 
 extern void TimerISR();
 
@@ -60,25 +58,16 @@ static unlock_t lock1(const void* const resourceId) {
 	return unLCK;
 }
 
+std::map<const void*const, std::mutex> resourceMutexList;
 
-#define RESOURCE_LIST 250
-
-#if RESOURCE_LIST > 0x7FFF
-#error "Resource size list must be less"
-#endif
-
-struct {
-	std::mutex mt;  // Мьютекс защищающий определенный ресурс
-	void* resourceId;	// Уникальный идентификатор ресурса
-}resourceMutexList[RESOURCE_LIST]; // Очередь на ресурсы
 static std::mutex mt; // Мьютекс защищающий очередь
+
 static void unlock(const void*const resourceId) {
 	std::lock_guard<std::mutex> l(mt);
-	for(u16 i=0; i<RESOURCE_LIST; i++) {
-		if(resourceMutexList[i].resourceId == resourceId) {
-			resourceMutexList[i].mt.unlock();
-			return;
-		}
+	try {
+		resourceMutexList.at(resourceId).unlock();
+	} catch(const std::out_of_range&) {
+		writeLogStr("ERROR: Undefined resource id message");
 	}
 }
 
@@ -88,29 +77,10 @@ static unlock_t lock3(const void*const resourceId) {
 	return empty;
 }
 
-static s16 findLock(const void*const resourceId) {
-	s16 saveIndex = -1;
-	std::lock_guard<std::mutex> l(mt);
-	for(u16 i=0; i<RESOURCE_LIST; i++) {
-		if(resourceMutexList[i].resourceId == resourceId) {
-			return i;
-		}
-		if(saveIndex<0 && resourceMutexList[i].resourceId == NULL) saveIndex = i;
-	}
-	if(saveIndex >= 0) {
-		resourceMutexList[saveIndex].resourceId = (void*)resourceId;
-	}
-	return saveIndex;
-}
-
 static unlock_t lock2(const void*const resourceId) {
-	s16 saveIndex = findLock(resourceId);
-	if(saveIndex >= 0) { // Еще ни разу не залоченный ресурс
-		resourceMutexList[saveIndex].mt.lock();
-		return unlock;
-	}
-	writeLogStr((string_t)"WARN, Never be here mutex list overflow error");
-	return empty;
+	std::lock_guard<std::mutex> l(mt);
+	resourceMutexList[resourceId].lock();
+	return unlock;
 }
 
 
@@ -131,8 +101,10 @@ static void __timer() {
 		TimerISR();
 		dT += (std::chrono::steady_clock::now() - tStart);
 		if(dT < timeBase) {
+			tStart = std::chrono::steady_clock::now();
 			std::this_thread::sleep_for( (timeBase-dT) );
-			dT = std::chrono::nanoseconds(0);
+			auto dT2 = std::chrono::steady_clock::now() - tStart;
+			dT = dT2-(timeBase-dT);
 		}
 		else {
 			writeSymb('?');
@@ -143,10 +115,6 @@ static void __timer() {
 
 void _init_Timer(void) {// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
 	writeLogStr((string_t)"start init timer");
-	std::lock_guard<std::mutex> l(mt);
-	for(u16 i=0; i<RESOURCE_LIST; i++) {
-		resourceMutexList[i].resourceId = NULL;
-	}
 	timerThread = new std::thread(__timer);
 }
 

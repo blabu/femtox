@@ -5,8 +5,8 @@
  *      Author: oleksiy.khanin
  */
 
-#ifndef PLATFORMSPECIFIC_H_
-#define PLATFORMSPECIFIC_H_
+//#ifndef PLATFORMSPECIFIC_H_
+//#define PLATFORMSPECIFIC_H_
 
 #include "platform.h"
 
@@ -23,4 +23,4 @@
 #include "PlatformSpecificSceleton.h"
 #endif
 
-#endif /* PLATFORMSPECIFIC_H_ */
+//#endif /* PLATFORMSPECIFIC_H_ */
