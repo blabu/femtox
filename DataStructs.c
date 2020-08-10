@@ -44,7 +44,7 @@ extern "C" {
 //------------------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------
 #ifdef DATA_STRUCT_MANAGER
-#if DATA_STRUCT_ArraySize > MAX_BASE_SIZE_VALUE
+#if DATA_STRUCT_ArraySize > 0xFFFF
 #error "incompatible size"
 #endif
 typedef struct
@@ -85,7 +85,7 @@ u08 CreateDataStruct(const void* D, const BaseSize_t sizeElement, const BaseSize
 		if(Data_Array[i].Data == NULL) break;
 	}
 	if(i == DATA_STRUCT_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;
-	unlock_t unlock = lock((const void* const)(&Data_Array[i].Data));
+	const unlock_t unlock = lock((const void* const)(&Data_Array[i].Data));
 	Data_Array[i].Data = (void*)D; // Адрес начала
 	Data_Array[i].sizeElement = sizeElement; // размер одного элемента в байтах
 	Data_Array[i].sizeAllElements = sizeAll; // Размер всей очереди в элементах
@@ -99,7 +99,7 @@ u08 CreateDataStruct(const void* D, const BaseSize_t sizeElement, const BaseSize
 u08 delDataStruct(const void* Data) { // Удаляем из массива абстрактную структуру данных с заданным идентификатором
 	BaseSize_t i = findNumberDataStruct(Data);
 	if(i == DATA_STRUCT_ArraySize) return NOT_FOUND_DATA_STRUCT_ERROR;  // Если такой не существует в массиве, выдаем ошибку
-	unlock_t unlock = lock((const void* const)(&Data_Array[i].Data));
+	const unlock_t unlock = lock((const void* const)(&Data_Array[i].Data));
 	Data_Array[i].Data = NULL;    // Если абстрактная структура данных есть удаляем ее
 	unlock((const void* const)(&Data_Array[i].Data));
 	return EVERYTHING_IS_OK;

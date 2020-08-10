@@ -26,13 +26,16 @@ SOFTWARE.
 #include "List.h"
 #include "logging.h"
 #ifdef _DYNAMIC_ARRAY
+#ifndef _LIST_STRUCT
+#error "Can not work with dynamic array without list"
+#endif
 #define DEBUG_DYNAMIC_ARRAY
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#if DYNAMIC_ARRAY_SIZE > MAX_BASE_SIZE_VALUE
+#if DYNAMIC_ARRAY_SIZE > 0xFFFF
 #error "Incorrect size"
 #endif
 
@@ -329,7 +332,7 @@ BaseSize_t getCurrentSizeArray(const void *const identifier) {
 }
 
 bool_t isEmptyArray(const void *const identifier) {
-	const unlock_t lc = lock((void*)identifier);
+	const unlock_t lc = lock(identifier);
     DynamicArray_t *a = findArray(identifier);
     if (a == NULL) {
 #ifdef DEBUG_DYNAMIC_ARRAY
@@ -351,7 +354,7 @@ void clearArray(const void *const identifier) {
 #ifdef DEBUG_DYNAMIC_ARRAY
     writeLogStr("TRACE: Clear dynamic array");
 #endif
-    const unlock_t lc = lock((void*)identifier);
+    const unlock_t lc = lock(identifier);
     DynamicArray_t *a = findArray(identifier);
     if (a == NULL) {lc((void*)identifier); return;}
     ListNode_t *l = a->base = findHead(a->base);
@@ -372,7 +375,7 @@ void forEachArray(const void *const identifier, TaskMng tsk) {
 #ifdef DEBUG_DYNAMIC_ARRAY
     writeLogStr("TRACE: For each dynamic array");
 #endif
-    const unlock_t lc = lock((void*)identifier);
+    const unlock_t lc = lock(identifier);
     DynamicArray_t *a = findArray(identifier);
     if (a == NULL) {lc((void*)identifier); return;}
     ListNode_t *l = a->base = findHead(a->base);

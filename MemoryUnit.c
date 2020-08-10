@@ -475,7 +475,7 @@ void defragmentation(void){
         }
         if(blockSize) { //Если блок памяти свободен
             u08 SumBlock = (u08)(blockSize + currentBlockSize + 1);
-            if(SumBlock <= 127) { // TODO Если SumBlock == 127 нет смысла его перезаписывать
+            if(SumBlock <= 127) { //Если SumBlock == 127 нет смысла его перезаписывать
             	heap[i - (blockSize+1)] = SumBlock;
             	blockSize = SumBlock;
             	i += currentBlockSize + 1;

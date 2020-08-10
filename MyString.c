@@ -50,6 +50,15 @@ s16 findStr(const string_t small, const string_t big){
     return -1;
 }
 
+bool_t startWith(const string_t str, const string_t starts) {
+	BaseSize_t i = 0;
+	while(starts[i] != END_STRING) {
+		if(str[i] != starts[i]) return FALSE;
+		i++;
+	}
+	return TRUE;
+}
+
 bool_t str1_str2(const string_t small, const string_t big){ // Функция возвращает TRUE если small является подстрокой big
   if(findStr(small,big)<0) return FALSE;
   return TRUE;

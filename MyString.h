@@ -10,6 +10,8 @@
 // Если не нашли FALSE
 bool_t str1_str2(const string_t small, const string_t big);
 
+bool_t startWith(const string_t str, const string_t starts);
+
 bool_t strCompare(const string_t str1, const string_t str2);
 
 // small - строка, которую ищут

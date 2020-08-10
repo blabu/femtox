@@ -15,21 +15,21 @@
 #define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/
 //#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
 //#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
-//#define ALLOC_MEM   /*Включение динамического выделения памяти*/
-#define ALLOC_MEM_LARGE 1   /*Включение динамического выделения памяти без ограничения размера*/
+#define ALLOC_MEM   /*Включение динамического выделения памяти*/
+//#define ALLOC_MEM_LARGE 1   /*Включение динамического выделения памяти без ограничения размера*/
 //#define EVENT_LOOP_TASKS
 //#define USE_SOFT_UART
 #define CLOCK_SERVICE
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
 //#define SIGNALS_TASK
-#define _LIST_STRUCT
-#define _DYNAMIC_ARRAY
+//#define _LIST_STRUCT
+//#define _DYNAMIC_ARRAY
 //#define _PWR_SAVE
-#define NEED_CRYPT
-#define NEED_BASE64
-#define NEED_RANDOM
-#define NEED_SHA256
+//#define NEED_CRYPT
+//#define NEED_BASE64
+//#define NEED_RANDOM
+//#define NEED_SHA256
 #define NEED_CRC16
 #define ENABLE_LOGGING
 #define COMMAND_TASK
@@ -46,7 +46,7 @@
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
-#define DATA_STRUCT_ArraySize 35 /*Общее количество всех структур данных*/
+#define DATA_STRUCT_ArraySize 50 /*Общее количество всех структур данных*/
 #endif
 
 #ifdef MUTEX_ENABLE
@@ -62,7 +62,7 @@
 //#define DEBUG_CHEK_ALLOCATED_MOMORY /*Проверка алоцированных указателей и освобожденной памяти*/
 #endif
 #ifdef ALLOC_MEM_LARGE
-#define HEAP_SIZE 30*1024U /*TODO было 10000*/
+#define HEAP_SIZE 10*1024U /*TODO было 10000*/
 #define DEBUG_CHEK_ALLOCATED_MOMORY /*Проверка алоцированных указателей и освобожденной памяти*/
 #endif
 

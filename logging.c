@@ -142,6 +142,7 @@ static void readCMD(BaseSize_t count, BaseParam_t arg);
 void enableLogging(void) {
     if(countEnableLogging > 0) {
         countEnableLogging++;
+        writeLogStr("LOG: Fake enable logging");
         return;
     }
     countEnableLogging = 1;
@@ -150,6 +151,7 @@ void enableLogging(void) {
 #endif// _X86
     enableUART2(57600);
     setReceiveTimeoutConsole(TICK_PER_SECOND);
+    writeLogStr("LOG: Enable logging");
 #ifdef COMMAND_TASK
     registerCallBack(readCMD, 0, NULL, ReceiveConsoleBuff);
 #endif
@@ -158,10 +160,12 @@ void enableLogging(void) {
 void disableLogging(void){
     if(countEnableLogging > 0) countEnableLogging--;//---------------------------------------
     if(!countEnableLogging) {
-        disableUART2();
+       disableUART2();
 #ifndef _X86
 //		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,GPIO_PIN_RESET);
 #endif// _X86
+    } else {
+    	writeLogStr("LOG: Fake disable logging");
     }
 }
 #endif
@@ -181,6 +185,7 @@ static void sendUART3_buf(u08 byte) {}
 static string_t disableLavel = NULL;
 
 void disableLogLevel(string_t level) {
+	writeLog2Str((string_t)"LOG: Disable log level ", level);
     disableLavel = level;
 }
 
@@ -210,6 +215,7 @@ void writeLog2Str(const string_t c_str1, const string_t c_str2) {
     sendCOM2_buf(0, (byte_ptr) c_str1);
     sendCOM2_buf(0, (byte_ptr) c_str2);
     sendCOM2_buf(0, (byte_ptr) "\r\n");
+    changeCallBackLabel(writeLog2Str,sendCOM2_buf);
 }
 
 void writeLog3Str(const string_t c_str1, const string_t c_str2, const string_t c_str3) {
@@ -305,6 +311,9 @@ void writeLogByteArray(BaseSize_t sizeBytes, byte_ptr array) {
 //    if(!arg_n) writeLogStr((string_t)str);
 //    else writeLogByteArray(arg_n, (byte_ptr)str);
 //}
+#include "UART1.h"
+#include "UART3.h"
+#include "GSM_SIM900.h"
 
 void commandEngine(string_t command) {
     if(str1_str2("help", command)) {
@@ -318,38 +327,42 @@ void commandEngine(string_t command) {
         writeLog2Str("clearMem", " clear all heap");
         writeLog2Str("clearCallBack", " clear all call back tasks");
         writeLog2Str("clearScreen", " clear log screen");
-        writeLogStr("COMMANDS:");
+        writeLog2Str("EnableModem", " enable modem (case sensitive)");
+        writeLog2Str("DisableModem", " disable modem (case sensitive)");
+        writeLog2Str("sendUART1=custom", " send custom command into uart1");
+        writeLog2Str("sendUART3=custom", " send custom command into uart2");
+        writeLogStr("LOG: COMMANDS:");
 //        forEachCommand( writeLogStrTask, 0, FALSE);
 #ifdef DEBUG_CHEK_ALLOCATED_MOMORY
         writeLog2Str("showAllBlocks", " show all blocks of memory allocated");
 #endif
     }
     else if(str1_str2("defra", command)) {
-        writeLogStr("Defragmentation");
+        writeLogStr("LOG: Defragmentation");
         SetTask((TaskMng)defragmentation,0,0);
     }
     else if(str1_str2("sizeMem", command)) {
         writeLogWithStr("Free memory size " , getFreeMemmorySize());
     }
     else if(str1_str2("tasks", command)) {
-        writeLogWithStr("Free position in task list ", getFreePositionForTask());
+        writeLogWithStr("LOG: Free position in task list ", getFreePositionForTask());
     }
     else if (str1_str2("time", command)) {
-        writeLogWithStr("Current time in seconds is ", getAllSeconds());
+        writeLogWithStr("LOG: Current time in seconds is ", getAllSeconds());
     }
     else if(str1_str2("delayTask", command)) {
-        writeLogWithStr("Free position in timers list ", getFreePositionForTimerTask());
+        writeLogWithStr("LOG: Free position in timers list ", getFreePositionForTimerTask());
     }
     else if (str1_str2("clearMem", command)) {
-        writeLogStr("Clear all memory");
+        writeLogStr("LOG: Clear all memory");
         SetTask((TaskMng)clearAllMemmory,0,NULL);
     }
     else if (str1_str2("clearCallBack", command)) {
-        writeLogStr("Clear all calback list");
+        writeLogStr("LOG: Clear all callback list");
         clearAllCallBackList();
     }
     else if (str1_str2("restart", command)) {
-        writeLogStr("Reset command receive");
+        writeLogStr("LOG: Reset command receive");
         ResetFemtOS();
     }
     else if (str1_str2("clearScreen", command)) {
@@ -357,6 +370,24 @@ void commandEngine(string_t command) {
             writeSymb('\n');
             writeSymb('\r');
         }
+    }
+    else if(str1_str2("EnableModem", command)) {
+    	SetTask((TaskMng)OnOffSIM,ONgsm,NULL);
+    	registerCallBack((TaskMng)writeLog2Str,(BaseSize_t)'\0', "LOG: Modem enabled", OnOffSIM);
+    }
+    else if(str1_str2("DisableModem", command)) {
+    	SetTask((TaskMng)OnOffSIM,OFFgsm,NULL);
+    	registerCallBack((TaskMng)writeLog2Str,(BaseSize_t)'\0', "LOG: Modem enabled", OnOffSIM);
+    }
+    else if(startWith(command, "sendUART1=")) {
+    	s16 n = findSymb('=', command);
+    	byte_ptr answer = allocMem(70);
+    	strClear(answer);
+    	setReceiveTimeoutUART1(TICK_PER_SECOND<<2);
+    	registerCallBack(readBufUART1, 70, answer, sendCOM1_buf);
+    	registerCallBack(writeLog2Str, (BaseSize_t)END_STRING, answer, readBufUART1);
+    	registerCallBack(freeMemTask,0,answer,writeLog2Str);
+    	sendCOM1_buf(0, command+n+1);
     }
 #ifdef DEBUG_CHEK_ALLOCATED_MOMORY
         else if (str1_str2("showAllBlocks", command)) {
@@ -373,7 +404,7 @@ void commandEngine(string_t command) {
 }
 
 static void readCMD(BaseSize_t count, BaseParam_t arg) {
-	BaseSize_t sz = SizeConsoleBuff();
+	BaseSize_t sz = `();
 	if(!sz) registerCallBack(readCMD, count, arg, ReceiveConsoleBuff);
 	string_t command = (string_t)allocMemComment(sz+1, "For command console");
 	if(command == NULL) {

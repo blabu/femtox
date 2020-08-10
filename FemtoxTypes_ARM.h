@@ -34,7 +34,6 @@ typedef unsigned int  BaseSize_t; // Первый аргумент для зад
 typedef void* BaseParam_t;  // Второй аргумент для задачи в диспетчере
 extern const BaseSize_t _MAX_BASE_SIZE;
 
-
 typedef void(*unlock_t)(const void* const resourceId);
 typedef void (*IdleTask_t)(void);      // Указатель на функцию обработки холостого хода void funcIDLE(void)
 typedef void (*CycleFuncPtr_t)(void);  // Указатель на функцию void func(void). Для циклического выполнения в прерывании таймера
