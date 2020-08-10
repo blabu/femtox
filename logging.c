@@ -404,7 +404,7 @@ void commandEngine(string_t command) {
 }
 
 static void readCMD(BaseSize_t count, BaseParam_t arg) {
-	BaseSize_t sz = `();
+	BaseSize_t sz = SizeRx2Buffer();
 	if(!sz) registerCallBack(readCMD, count, arg, ReceiveConsoleBuff);
 	string_t command = (string_t)allocMemComment(sz+1, "For command console");
 	if(command == NULL) {
