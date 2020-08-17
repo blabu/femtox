@@ -307,13 +307,11 @@ void writeLogByteArray(BaseSize_t sizeBytes, byte_ptr array) {
 
 #ifdef COMMAND_TASK
 
-//static void writeLogStrTask(BaseSize_t arg_n, BaseParam_t str) {
-//    if(!arg_n) writeLogStr((string_t)str);
-//    else writeLogByteArray(arg_n, (byte_ptr)str);
-//}
-#include "UART1.h"
-#include "UART3.h"
-#include "GSM_SIM900.h"
+static TaskMng customCommandHandler = (TaskMng)NULL;
+
+void SetCommandHandler(TaskMng handler) {
+	customCommandHandler = handler;
+}
 
 void commandEngine(string_t command) {
     if(str1_str2("help", command)) {
@@ -327,12 +325,9 @@ void commandEngine(string_t command) {
         writeLog2Str("clearMem", " clear all heap");
         writeLog2Str("clearCallBack", " clear all call back tasks");
         writeLog2Str("clearScreen", " clear log screen");
-        writeLog2Str("EnableModem", " enable modem (case sensitive)");
-        writeLog2Str("DisableModem", " disable modem (case sensitive)");
-        writeLog2Str("sendUART1=custom", " send custom command into uart1");
-        writeLog2Str("sendUART3=custom", " send custom command into uart2");
-        writeLogStr("LOG: COMMANDS:");
-//        forEachCommand( writeLogStrTask, 0, FALSE);
+        if(customCommandHandler != NULL) {
+        	customCommandHandler(0,"help");
+        }
 #ifdef DEBUG_CHEK_ALLOCATED_MOMORY
         writeLog2Str("showAllBlocks", " show all blocks of memory allocated");
 #endif
@@ -349,6 +344,11 @@ void commandEngine(string_t command) {
     }
     else if (str1_str2("time", command)) {
         writeLogWithStr("LOG: Current time in seconds is ", getAllSeconds());
+        char str[18];
+        strClear(str);
+        const Date_t d = getDateFromSeconds(getAllSeconds(),TRUE);
+        dateToString(str,&d);
+        writeLog2Str("Current date and time: ", str);
     }
     else if(str1_str2("delayTask", command)) {
         writeLogWithStr("LOG: Free position in timers list ", getFreePositionForTimerTask());
@@ -371,24 +371,6 @@ void commandEngine(string_t command) {
             writeSymb('\r');
         }
     }
-    else if(str1_str2("EnableModem", command)) {
-    	SetTask((TaskMng)OnOffSIM,ONgsm,NULL);
-    	registerCallBack((TaskMng)writeLog2Str,(BaseSize_t)'\0', "LOG: Modem enabled", OnOffSIM);
-    }
-    else if(str1_str2("DisableModem", command)) {
-    	SetTask((TaskMng)OnOffSIM,OFFgsm,NULL);
-    	registerCallBack((TaskMng)writeLog2Str,(BaseSize_t)'\0', "LOG: Modem enabled", OnOffSIM);
-    }
-    else if(startWith(command, "sendUART1=")) {
-    	s16 n = findSymb('=', command);
-    	byte_ptr answer = allocMem(70);
-    	strClear(answer);
-    	setReceiveTimeoutUART1(TICK_PER_SECOND<<2);
-    	registerCallBack(readBufUART1, 70, answer, sendCOM1_buf);
-    	registerCallBack(writeLog2Str, (BaseSize_t)END_STRING, answer, readBufUART1);
-    	registerCallBack(freeMemTask,0,answer,writeLog2Str);
-    	sendCOM1_buf(0, command+n+1);
-    }
 #ifdef DEBUG_CHEK_ALLOCATED_MOMORY
         else if (str1_str2("showAllBlocks", command)) {
 		SetTask((TaskMng)showAllBlocks,0,NULL);
@@ -396,6 +378,11 @@ void commandEngine(string_t command) {
 #endif
     else if(execCommand(command) == EVERYTHING_IS_OK) {
         writeLog2Str("Exec command ", command);
+    }
+    else if(customCommandHandler != NULL) {
+    	changeCallBackLabel(commandEngine, customCommandHandler);
+    	SetTask(customCommandHandler,0, command);
+    	return;
     }
     else  {
         writeLog3Str("ERROR: Undefined command ", command, " type help to see all avaliable command");

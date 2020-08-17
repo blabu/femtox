@@ -62,7 +62,7 @@
 //#define DEBUG_CHEK_ALLOCATED_MOMORY /*Проверка алоцированных указателей и освобожденной памяти*/
 #endif
 #ifdef ALLOC_MEM_LARGE
-#define HEAP_SIZE 10*1024U /*TODO было 10000*/
+#define HEAP_SIZE 25*1024U /*TODO было 10000*/
 #define DEBUG_CHEK_ALLOCATED_MOMORY /*Проверка алоцированных указателей и освобожденной памяти*/
 #endif
 

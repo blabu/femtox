@@ -24,7 +24,7 @@ void writeLogU32(u32 data);
 void writeSymb(char symb);
 
 #ifdef COMMAND_TASK
-void commandEngine(string_t command);
+void SetCommandHandler(TaskMng handler);
 #endif
 
 #ifndef ALLOC_MEM_LARGE

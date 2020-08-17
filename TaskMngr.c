@@ -66,7 +66,7 @@ extern "C" {
  * V1.4.71   - fix some bugs (lock heap in defragmentation)
  * V1.5.0    - Add command list module
  * V1.5.1    - Add json don't tested yet
- * V1.5.2    - add const qualifier in local variables
+ * V1.5.2    - Add const qualifier in local variables
  * */
 const char* const _osVersion = "V1.5.2";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
