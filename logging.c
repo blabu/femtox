@@ -337,18 +337,20 @@ void commandEngine(string_t command) {
         SetTask((TaskMng)defragmentation,0,0);
     }
     else if(str1_str2("sizeMem", command)) {
-        writeLogWithStr("Free memory size " , getFreeMemmorySize());
+        writeLogWithStr("Free memory size: " , getFreeMemmorySize());
+        writeLogWithStr("Heap size is: " , HEAP_SIZE);
     }
     else if(str1_str2("tasks", command)) {
         writeLogWithStr("LOG: Free position in task list ", getFreePositionForTask());
     }
     else if (str1_str2("time", command)) {
-        writeLogWithStr("LOG: Current time in seconds is ", getAllSeconds());
         char str[18];
         strClear(str);
-        const Date_t d = getDateFromSeconds(getAllSeconds(),TRUE);
+        const time_t t = getAllSeconds();
+        const Date_t d = getDateFromSeconds(t, TRUE);
         dateToString(str,&d);
-        writeLog2Str("Current date and time: ", str);
+        writeLogWithStr("LOG: Current time in seconds is ", t);
+        writeLogTempString(str);
     }
     else if(str1_str2("delayTask", command)) {
         writeLogWithStr("LOG: Free position in timers list ", getFreePositionForTimerTask());

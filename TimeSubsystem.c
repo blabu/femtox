@@ -330,6 +330,7 @@ void setDate(string_t date) {
 void dateToString(char out[18], Date_t* date) {
 	if(out == NULL || date == NULL) return;
 	char temp[3]; temp[0] = 0;
+	out[0]=0;
 	u16 year = date->year%100;
 	toStringUnsignDec(year,temp);
 	while(strSize(temp) < 2) { temp[2] = 0; temp[1] = temp[0]; temp[0] = '0';}
