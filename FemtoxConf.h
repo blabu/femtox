@@ -12,7 +12,7 @@
 
 #include "platform.h"
 #ifdef ARM_STM32
-#include "FemtoxConf_ARM.h"
+#include "FemtoxConf_STM32L152RD.h"
 #endif
 #ifdef _X86
 #include "FemtoxConf_X86.h"

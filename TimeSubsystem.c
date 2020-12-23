@@ -327,7 +327,7 @@ void setDate(string_t date) {
 	setSeconds(tempSeconds);
 }
 //"YY.MM.DD hh:mm:ss"
-void dateToString(char out[18], Date_t* date) {
+void dateToString(char out[18], Date_t*const date) {
 	if(out == NULL || date == NULL) return;
 	char temp[3]; temp[0] = 0;
 	out[0]=0;

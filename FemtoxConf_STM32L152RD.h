@@ -37,7 +37,7 @@
 //#define STANDART_MEMCPY_MEMSET
 //#define LOAD_STATISTIC /*Сколько времени мы находимся в IDLE процессе в сравнении с полным рабочим временем в секундах*/
 
-#define TASK_LIST_LEN 10U /*Длина очереди задач*/
+#define TASK_LIST_LEN 8U /*Длина очереди задач*/
 #define TIME_LINE_LEN 25U /*Максимальне количество системных таймеров*/
 #define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
@@ -46,7 +46,7 @@
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
-#define DATA_STRUCT_ArraySize 50 /*Общее количество всех структур данных*/
+#define DATA_STRUCT_ArraySize 25 /*Общее количество всех структур данных*/
 #endif
 
 #ifdef MUTEX_ENABLE
@@ -68,7 +68,7 @@
 
 #ifdef CALL_BACK_TASK
 //#define CHECK_ERRORS_CALLBACK
-#define CALL_BACK_TASK_LIST_LEN 35
+#define CALL_BACK_TASK_LIST_LEN 25
 #endif
 
 #ifdef SIGNALS_TASK

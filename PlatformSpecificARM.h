@@ -3,9 +3,7 @@
 #include "platform.h"
 #ifdef ARM_STM32
 #include "stm32l1xx_hal.h"
-#include "stm32l152xe.h"
-//#include "stm32f1xx_hal.h"
-//#include "stm32f1xx.h"
+#include "stm32l1xx.h"
 #include "cmsis_gcc.h"
 
 #include "FemtoxTypes.h"

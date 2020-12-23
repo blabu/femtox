@@ -26,7 +26,7 @@ SOFTWARE.
 #include "PlatformSpecificARM.h"
 #include "TaskMngr.h"
 #include "stm32l1xx_hal.h"
-#include "stm32l152xe.h"
+#include "stm32l1xx.h"
 
 #ifdef MAXIMIZE_OVERFLOW_ERROR
 #ifdef ENABLE_LOGGING
