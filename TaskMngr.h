@@ -28,6 +28,8 @@ extern const char* const _osVersion;
 #define DWordLowWord(Register)                     ((uint16_t)((Register) & 0xFFFF))
 #define DWordMergeWords(H,L)                       ((uint32_t)(((uint32_t)(H) << 16 ) | (L) ) )
 
+#define SWAP(__x, __y, T) do { T tmp = (__x); (__x) = (__y); (__y) = tmp; } while(0)
+#define IS_ODD( num )                              ((num) & 1)
 #define CLIP(X, Max, Min)                          (((X) < (Min)) ? (Min) : (((X) > (Max)) ? (Max) : (X)))
 #define CLIPUpper(X, Max)                          (((X) > (Max)) ? (Max) : (X))
 #define CLIPLower(X, Min)                          (((X) < (Min)) ? (Min) : (X))

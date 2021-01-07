@@ -12,12 +12,13 @@
 #include <map>
 #endif
 #include <chrono>
+
 static std::thread* timerThread;
 
 extern "C" {
-#include "PlatformSpecific.h"
-#include "TaskMngr.h"
-#include "logging.h"
+	#include "PlatformSpecific.h"
+	#include "TaskMngr.h"
+	#include "logging.h"
 }
 
 
@@ -67,7 +68,7 @@ static void unlock(const void*const resourceId) {
 	try {
 		resourceMutexList.at(resourceId).unlock();
 	} catch(const std::out_of_range&) {
-		writeLogStr("ERROR: Undefined resource id message");
+		writeLogStr((string_t)"ERROR: Undefined resource id message");
 	}
 }
 
@@ -92,11 +93,11 @@ unlock_t lock(const void*const resourceId) {
 	return lock2(resourceId);
 }
 
-
 static void __timer() {
 	const std::chrono::nanoseconds timeBase =  std::chrono::nanoseconds(1000000000ULL/TICK_PER_SECOND);
 	std::chrono::nanoseconds dT = std::chrono::nanoseconds(0);
 	while(1) {
+		writeSymb('*');
 		auto tStart = std::chrono::steady_clock::now();
 		TimerISR();
 		dT += (std::chrono::steady_clock::now() - tStart);
@@ -106,7 +107,7 @@ static void __timer() {
 			auto dT2 = std::chrono::steady_clock::now() - tStart;
 			dT = dT2-(timeBase-dT);
 		}
-		else {
+		else { // Произошел пропуск прерывания
 			writeSymb('?');
 			dT -= timeBase;
 		}
@@ -114,7 +115,7 @@ static void __timer() {
 }
 
 void _init_Timer(void) {// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
-	writeLogStr((string_t)"start init timer");
+	writeLogStr((string_t)"Start init timer");
 	timerThread = new std::thread(__timer);
 }
 
@@ -126,7 +127,5 @@ void _init_Timer(void) {// Инициализация таймера 0, наст
  */
 void _initTimerSoftUart() {}
 
-void initProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK) {
-
-}
+void initProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK) {}
 #endif

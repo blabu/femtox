@@ -37,48 +37,101 @@ extern "C" {
 #endif
 #ifdef ALLOCATE_ENABLE
 
-void rotate90RightSqrtMatr(BaseSize_t size, BaseParam_t matr)
-{
-  if(size>11) return;
-  byte_ptr copy = allocMem(size*size);
+void rotate90RightSqrtMatr(BaseSize_t size, BaseParam_t matr){
+  #ifdef ALLOC_MEM
+    if(size>11) return;
+  #endif
+  BaseSize_t matrSize = size*size;
+  byte_ptr copy = allocMem(matrSize);
   byte_ptr original = (byte_ptr)matr;
-  for(BaseSize_t i=0; i<size;i++)
-    for(BaseSize_t j=0; j<size;j++)
-    {
-      copy[j*size + i] = original[j*size + i];
-    }
-  for(BaseSize_t i=0,k=size-1; i<size; i++,k--)
-  {
-    for(BaseSize_t j=0; j<size;j++)
-    {
-    	original[k*size+j] = copy[j*size + i];
+  memCpy(copy, original, matrSize);
+  for(BaseSize_t i=0; i<size; i++) {
+    BaseSize_t row = i*size;
+    for(BaseSize_t j=0, k=size-1; j<size; j++,k--) {
+    	original[row+j] = copy[k*size + i];
     }
   }
   freeMem(copy);
 }
 
-void rotate90LeftSqrtMatr(BaseSize_t size, BaseParam_t matr)
-{
-  if(size>11) return;
-  byte_ptr copy = allocMem(size*size);
+void rotate90LeftSqrtMatr(BaseSize_t size, BaseParam_t matr){
+  #ifdef ALLOC_MEM
+    if(size>11) return;
+  #endif
+  BaseSize_t matrSize = size*size;
+  byte_ptr copy = allocMem(matrSize);
   byte_ptr original = (byte_ptr)matr;
-  for(BaseSize_t i=0; i<size;i++)
-    for(BaseSize_t j=0; j<size;j++)
-    {
-      copy[j*size + i] = original[j*size + i];
-    }
-  for(BaseSize_t i=0,k=size-1; i<size; i++,k--)
-  {
-    for(BaseSize_t j=0; j<size;j++)
-    {
-    	original[k*size+j]=copy[j*size + i];
+  memCpy(copy, original, matrSize);
+  for(BaseSize_t i=0,k=size-1; i<size; i++,k--) {
+    BaseSize_t row = k*size;
+    for(BaseSize_t j=0; j<size;j++) {
+    	original[row+j]=copy[j*size + i];
     }
   }
   freeMem(copy);
 }
 
-#endif
+void transpositionMatr(BaseSize_t sizeX, BaseSize_t sizeY, BaseParam_t matr) {
+  BaseSize_t size = sizeX * sizeY;
+  #ifdef ALLOC_MEM
+    if(size > 127) return;
+  #endif
+  byte_ptr resMatr = allocMem(size);
+  if(resMatr == NULL) return;
+  byte_ptr origin = (byte_ptr)matr;
+  for(BaseSize_t i = 0; i<sizeX; i++) {
+    BaseSize_t row = i*sizeY;
+    for(BaseSize_t j = 0; j<sizeY; j++) {
+      BaseSize_t col = j*sizeX;
+      resMatr[col + i] = origin[row + j];
+    }
+  }
+  memCpy(matr, resMatr, size);
+  freeMem(resMatr);
+}
+
+#endif //ALLOCATE_ENABLE
+#endif //NEED_MATRIX
+
+s32 arduinoMap(s32 val, s32 fromLow, s32 fromHight, s32 toLow, s32 toHight) {
+    if(val < fromLow) return toLow;
+    if(val > fromHight) return toHight;
+    s32 deltaFrom = fromHight-fromLow;
+    s32 deltaTo = toHight - toLow;
+    if (deltaTo > deltaFrom) {
+        s32 k = (s32)(deltaTo/deltaFrom);
+        return (val-fromLow) * k + toLow;
+    } else if(deltaTo < deltaFrom){
+        s32 k = (s32)(deltaFrom/deltaTo);
+        return (val-fromLow) / k + toLow;
+    }
+    return val;
+}
+
+// beta - must be from 0 to 10
+Filter_t getNewFilter(u08 beta) {
+    Filter_t f = {.smoothData = 0, .beta = beta};
+    return f;
+}
+
+// source https://kiritchatterjee.wordpress.com/2014/11/10/a-simple-digital-low-pass-filter-in-c/
+// формула y[i] = b*x[i] + (1-b)*y[i-1]
+// где b < 1
+// y[i] = y[i-1] + b*x[i] - b*y[i-1]
+// y[i] = y[i-1] + b*(x[i]-y[i-1])
+// y[i] = y[i-1] - b*(y[i-1]-x[i])
+// Если b < 1 , этот коэфициент можно представить как 1/a
+// Где a > 1 (b=0.1 тогда a = 10), это нужно для целочисленных вычислений
+// Тогда формула преобретет вид
+// y[i] = y[i-1] - (y[i-1]-x[i])/a
+// res = a*y[i] = a*y[i-1] - y[i-1] - x[i]
+// и результат работы фильтра y[i] = res/a 
+s64 filterFirstOrder(Filter_t *f, s64 val) {
+    f->smoothData = (f->smoothData << f->beta) - f->smoothData;
+    f->smoothData += val;
+    return f->smoothData >>= f->beta;
+}
+
 #ifdef __cplusplus
 }
-#endif
 #endif

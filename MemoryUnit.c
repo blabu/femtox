@@ -232,7 +232,7 @@ byte_ptr allocMemComment(const BaseSize_t size, string_t comment) {
    	const u16 i = findDescriptor(NULL);
    	if(i < MAX_DESCRIPTORS) {descriptor[i].ptr = res; descriptor[i].size = size; descriptor[i].comment = comment;}
    	else {
-   		MaximizeErrorHandler("Overflow descriptor list in allocMem");
+   		MaximizeErrorHandler((const string_t)"Overflow descriptor list in allocMem");
    		showAllBlocks();
    	}
     return res;
@@ -241,9 +241,9 @@ byte_ptr allocMemComment(const BaseSize_t size, string_t comment) {
 void showAllBlocks() {
 	for(u16 i = 0; i<MAX_DESCRIPTORS; i++) {
 		if(descriptor[i].ptr != NULL) {
-			writeLog2Str("Descriptor is busy ", descriptor[i].comment);
-			writeLogWithStr("Descriptor pointer is ", (u32)descriptor[i].ptr);
-			writeLogWithStr("Allocated size ", descriptor[i].size);
+			writeLog2Str((string_t)"Descriptor is busy ", (string_t)descriptor[i].comment);
+			writeLogWithStr((string_t)"Descriptor pointer is ", (u32)descriptor[i].ptr);
+			writeLogWithStr((string_t)"Allocated size ", (u32)descriptor[i].size);
 		}
 	}
 }

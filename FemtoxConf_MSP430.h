@@ -42,6 +42,7 @@
 //#define NEED_CRC16
 //#define ENABLE_LOGGING
 //#define NEED_MATRIX
+#define MATH_SUBSYSTEM
 #define STANDART_MEMCPY_MEMSET
 
 #define TASK_LIST_LEN 4U /*Длина очереди задач*/

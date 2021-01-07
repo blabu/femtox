@@ -33,6 +33,7 @@
 #define NEED_CRC16
 #define ENABLE_LOGGING
 #define COMMAND_TASK
+#define MATH_SUBSYSTEM
 //#define NEED_MATRIX
 //#define STANDART_MEMCPY_MEMSET
 //#define LOAD_STATISTIC /*Сколько времени мы находимся в IDLE процессе в сравнении с полным рабочим временем в секундах*/
