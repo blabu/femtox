@@ -38,7 +38,7 @@
 //#define STANDART_MEMCPY_MEMSET
 //#define LOAD_STATISTIC /*Сколько времени мы находимся в IDLE процессе в сравнении с полным рабочим временем в секундах*/
 
-#define TASK_LIST_LEN 8U /*Длина очереди задач*/
+#define TASK_LIST_LEN 10U /*Длина очереди задач*/
 #define TIME_LINE_LEN 25U /*Максимальне количество системных таймеров*/
 #define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
