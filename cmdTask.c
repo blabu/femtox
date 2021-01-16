@@ -2,8 +2,8 @@
 // Created by blabu on 29.10.2019.
 //
 /**/
+#include <String.h>
 #include "TaskMngr.h"
-#include "MyString.h"
 #include "PlatformSpecific.h"
 
 #ifdef COMMAND_TASK

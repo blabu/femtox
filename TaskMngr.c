@@ -67,8 +67,9 @@ extern "C" {
  * V1.5.0    - Add command list module
  * V1.5.1    - Add json don't tested yet
  * V1.5.2    - Add const qualifier in local variables
+ * V1.5.3    - Add enableLogging and disableLogging= standart command
  * */
-const char* const _osVersion = "V1.5.2";
+const char* const _osVersion = "V1.5.3";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
 
 static void TaskManager(void);

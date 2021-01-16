@@ -61,7 +61,7 @@ NOTE:   String length must be evenly divisible by 16byte (str_len % 16 == 0)
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "MyString.h" // CBC mode, for memset
+#include <String.h> // CBC mode, for memset
 #include "crypt.h"
 
 #ifdef NEED_CRYPT

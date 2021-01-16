@@ -29,9 +29,9 @@ SOFTWARE.
  *      Author: oleksiy.khanin
  */
 
+#include <String.h>
 #include "PlatformSpecific.h" // for _X86
 #include "TaskMngr.h"
-#include "MyString.h"
 #include "logging.h"
 
 
@@ -185,8 +185,10 @@ static void sendUART3_buf(u08 byte) {}
 static string_t disableLavel = NULL;
 
 void disableLogLevel(string_t level) {
-	writeLog2Str((string_t)"LOG: Disable log level ", level);
-    disableLavel = level;
+	if(level != NULL) {
+		writeLog2Str((string_t)"LOG: Disable log level ", level);
+	}
+	disableLavel = level;
 }
 
 void writeLogWithStr(const string_t c_str, u32 n) {
@@ -325,6 +327,8 @@ void commandEngine(string_t command) {
         writeLog2Str("clearMem", " clear all heap");
         writeLog2Str("clearCallBack", " clear all call back tasks");
         writeLog2Str("clearScreen", " clear log screen");
+        writeLog2Str("disbleLog=filtered_string", " disable all logs that contains filtered string. If nothing. Disable all logs");
+        writeLog2Str("enableLog", " enable logging");
         if(customCommandHandler != NULL) {
         	customCommandHandler(0,"help");
         }
@@ -348,7 +352,7 @@ void commandEngine(string_t command) {
         strClear(str);
         const time_t t = getAllSeconds();
         const Date_t d = getDateFromSeconds(t, TRUE);
-        dateToString(str,&d);
+        dateToString(str,(Date_t*)&d);
         writeLogWithStr("LOG: Current time in seconds is ", t);
         writeLogTempString(str);
     }
@@ -372,6 +376,23 @@ void commandEngine(string_t command) {
             writeSymb('\n');
             writeSymb('\r');
         }
+    }else if(str1_str2("enableLog", command)) {
+    	enableLogging();
+    	disableLogLevel(NULL);
+    } else if(startWith(command, "disbleLog=")) {
+    	static string_t commandCopy = NULL;
+    	BaseSize_t i = strSplit('=', command);
+    	if(i == 2) {
+    		freeMem((byte_ptr)commandCopy);
+    		commandCopy = (string_t)allocMem(strSize(command+strSize(command)+1));
+    		if(commandCopy != NULL) {
+    			strClear(commandCopy);
+    			strCat(commandCopy, command+strSize(command)+1);
+    			disableLogLevel(commandCopy);
+    		}
+    	} else {
+    		disableLogging();
+    	}
     }
 #ifdef DEBUG_CHEK_ALLOCATED_MOMORY
         else if (str1_str2("showAllBlocks", command)) {
@@ -394,7 +415,10 @@ void commandEngine(string_t command) {
 
 static void readCMD(BaseSize_t count, BaseParam_t arg) {
 	BaseSize_t sz = SizeRx2Buffer();
-	if(!sz) registerCallBack(readCMD, count, arg, ReceiveConsoleBuff);
+	if(!sz) {
+		registerCallBack(readCMD, count, arg, ReceiveConsoleBuff);
+		return;
+	}
 	string_t command = (string_t)allocMemComment(sz+1, "For command console");
 	if(command == NULL) {
 		writeLogStr("ERROR: Command interface memory error");

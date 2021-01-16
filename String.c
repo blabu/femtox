@@ -23,7 +23,7 @@ SOFTWARE.
  * */
 
 // Файл работы со строками
-#include "MyString.h"
+#include <String.h>
 #include "TaskMngr.h"
 
 #ifdef __cplusplus

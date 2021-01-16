@@ -299,7 +299,7 @@ s08 compareDates(const Date_t*const date1, const Date_t*const date2){
 	return 0;
 }
 
-#include "MyString.h"
+#include <String.h>
 // input date must have format YY.MM.DD hh:mm:ss
 void setDate(string_t date) {
 	char tempStr[4];
