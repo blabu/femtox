@@ -39,6 +39,14 @@ void resetWatchDog(void){
 	HAL_IWDG_Refresh(&watchDog);
 }
 
+static void unlock(const void*const resourceId) {
+    __enable_irq();
+}
+
+unlock_t lock(const void*const resourceId) {
+	__disable_irq();
+	return unlock;
+}
 
 #include "config.h"
 static TIM_HandleTypeDef TIM2InitStruct;

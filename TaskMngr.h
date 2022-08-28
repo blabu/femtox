@@ -244,14 +244,22 @@ void emitSignal(const void*const signal, BaseSize_t arg_n, BaseParam_t arg_p);
 #endif
 
 #ifdef COMMAND_TASK
-/*
-Функция вызывается по строковой метке. И из списка задача не удаляется
-*/
+typedef void (*cmdHandler_t)(TaskMng task, string_t command, string_t description);
+
 u08 delCommand(string_t command);
-u08 addTaskCommand(TaskMng tsk, BaseSize_t arg_n, BaseParam_t arg_p, string_t command);
-u08 execCommand(string_t command);
-void execCommandTask(BaseSize_t  arg_n, string_t command);
-void forEachCommand(TaskMng tsk, BaseSize_t arg_n, bool_t toManager);
+
+//Register task witch will be run when find command in the input string
+u08 addTaskCommand(TaskMng tsk, string_t command, string_t description);
+
+//Parse input (split by space)
+//Run task with associated command and arguments
+//Task parameters number of subcommnads and subcommands separated by END_STRING symbol
+u08 execCommand(string_t input);
+
+u08 execWithSubCommand(string_t command, BaseSize_t subCmdCount, string_t subCommands);
+
+void forEachCommand(cmdHandler_t handler);
+
 #endif
 
 #ifdef USE_SOFT_UART

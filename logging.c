@@ -75,10 +75,10 @@ void writeSymb(char symb) {}
 
 #include <stdio.h>
 
-u32 SizeRx2Buffer() {return 0;}
-void* ReceiveUART2NewPackageLabel = (void*)SizeRx2Buffer;
-void readBufUART2(BaseSize_t size, byte_ptr data) {}
-void setReceiveTimeoutUART2(u16 time) {}
+u32 sizeRx3Buffer() {return 0;}
+void* ReceiveUART3NewPackageLabel = (void*)sizeRx1Buffer;
+void readBufUART3(BaseSize_t size, byte_ptr data) {}
+void setReceiveTimeoutUART3(u16 time) {}
 
 
 #define LOCAL_MUTEX 1<<7
@@ -88,9 +88,9 @@ void setReceiveTimeoutUART2(u16 time) {}
 #endif
 
 //#define TO_FILE
-void enableUART2(u32 baud) {}
+void enableUART3(u32 baud) {}
 
-void disableUART2() {}
+void disableUART3() {}
 
 #ifdef TO_FILE
 FILE* file;
@@ -104,8 +104,8 @@ void enableLogging() {
     F_OPEN(&file, (string_t) "log.txt", (string_t) "wt");
 }
 
-static void sendCOM2_buf(u08 size, byte_ptr data) {
-    GET_MUTEX(LOCAL_MUTEX, sendCOM2_buf, size, data);
+static void sendCOM3_buf(u08 size, byte_ptr data) {
+    GET_MUTEX(LOCAL_MUTEX, sendCOM3_buf, size, data);
     if (size == 0) fprintf_s(file, "%s", data);
     else {
         for (u08 i = 0; i < size; i++) {
@@ -116,8 +116,8 @@ static void sendCOM2_buf(u08 size, byte_ptr data) {
     FREE_MUTEX(LOCAL_MUTEX);
 }
 
-static void sendUART2_buf(u08 c) {
-    GET_MUTEX(LOCAL_MUTEX, sendUART2_buf, c, NULL);
+static void sendUART3_buf(u08 c) {
+    GET_MUTEX(LOCAL_MUTEX, sendUART3_buf, c, NULL);
     fprintf_s(file, "%c", c);
     fflush(file);
     FREE_MUTEX(LOCAL_MUTEX);
@@ -126,16 +126,16 @@ static void sendUART2_buf(u08 c) {
 #endif
 
 #ifdef ARM_STM32
-#include "UART2.h"
+#include <UART3.h>
 
-#define SizeConsoleBuff SizeRx2Buffer
-#define ReceiveConsoleBuff ReceiveUART2NewPackageLabel
-#define readConsoleBuff readBufUART2
-#define setReceiveTimeoutConsole setReceiveTimeoutUART2
+#define sizeConsoleBuff sizeRx3Buffer
+#define ReceiveConsoleBuff ReceiveUART3NewPackageLabel
+#define readConsoleBuff readBufUART3
+#define setReceiveTimeoutConsole setReceiveTimeoutUART3
 
 static u08 countEnableLogging = 0;
 
-#ifdef COMMAND_TASK
+#ifdef SIGNALS_TASK
 static void readCMD(BaseSize_t count, BaseParam_t arg);
 #endif
 
@@ -146,21 +146,18 @@ void enableLogging(void) {
         return;
     }
     countEnableLogging = 1;
-#ifndef _X86
-//	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,GPIO_PIN_SET);
-#endif// _X86
-    enableUART2(57600);
+    enableUART3(115200);
     setReceiveTimeoutConsole(TICK_PER_SECOND);
     writeLogStr("LOG: Enable logging");
-#ifdef COMMAND_TASK
-    registerCallBack(readCMD, 0, NULL, ReceiveConsoleBuff);
+#ifdef SIGNALS_TASK
+    connectTaskToSignal(readCMD, ReceiveConsoleBuff);
 #endif
 }
 
 void disableLogging(void){
     if(countEnableLogging > 0) countEnableLogging--;//---------------------------------------
     if(!countEnableLogging) {
-       disableUART2();
+       disableUART3();
 #ifndef _X86
 //		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,GPIO_PIN_RESET);
 #endif// _X86
@@ -171,10 +168,10 @@ void disableLogging(void){
 #endif
 
 #ifdef SOFT_UART_FOR_LOGGING
-static void enableUART2(u32 i) {enableSoftUART(TRUE,FALSE);}
-static void disableUART2(){disableSoftUART();}
-static void sendCOM2_buf(u08 u, byte_ptr buf){ sendUART_str(0,(string_t)buf); }
-static void sendUART2_buf(u08 byte) {sendUART_byte(0, byte);}
+static void enableUART3(u32 i) {enableSoftUART(TRUE,FALSE);}
+static void disableUART3(){disableSoftUART();}
+static void sendCOM3_buf(u08 u, byte_ptr buf){ sendUART_str(0,(string_t)buf); }
+static void sendUART3_buf(u08 byte) {sendUART_byte(0, byte);}
 #endif
 
 #ifdef MSP430
@@ -208,40 +205,50 @@ void writeLogWithStr(const string_t c_str, u32 n) {
 
 void writeLogStr(const string_t c_str) {
     if (str1_str2(disableLavel, c_str)) return;
-    sendCOM2_buf(0, (byte_ptr) c_str);
-    sendCOM2_buf(0, (byte_ptr) "\r\n");
+    changeCallBackLabel(writeLogStr,sendCOM3_buf);
+    sendCOM3_buf(0, (byte_ptr) c_str);
+    sendCOM3_buf(0, (byte_ptr) "\r\n");
 }
 
 void writeLog2Str(const string_t c_str1, const string_t c_str2) {
     if (str1_str2(disableLavel, c_str1)) return;
-    sendCOM2_buf(0, (byte_ptr) c_str1);
-    sendCOM2_buf(0, (byte_ptr) c_str2);
-    sendCOM2_buf(0, (byte_ptr) "\r\n");
-    changeCallBackLabel(writeLog2Str,sendCOM2_buf);
+    changeCallBackLabel(writeLog2Str,sendCOM3_buf);
+    sendCOM3_buf(0, (byte_ptr) c_str1);
+    sendUART3_buf(' ');
+    sendCOM3_buf(0, (byte_ptr) c_str2);
+    sendCOM3_buf(0, (byte_ptr) "\r\n");
 }
 
 void writeLog3Str(const string_t c_str1, const string_t c_str2, const string_t c_str3) {
     if (str1_str2(disableLavel, c_str1)) return;
-    sendCOM2_buf(0, (byte_ptr) c_str1);
-    sendCOM2_buf(0, (byte_ptr) c_str2);
-    sendCOM2_buf(0, (byte_ptr) c_str3);
-    sendCOM2_buf(0, (byte_ptr) "\r\n");
+    changeCallBackLabel(writeLog3Str,sendCOM3_buf);
+    sendCOM3_buf(0, (byte_ptr) c_str1);
+    sendUART3_buf(' ');
+    sendCOM3_buf(0, (byte_ptr) c_str2);
+    sendUART3_buf(' ');
+    sendCOM3_buf(0, (byte_ptr) c_str3);
+    sendCOM3_buf(0, (byte_ptr) "\r\n");
 }
 
 void writeLog4Str(const string_t c_str1, const string_t c_str2, const string_t c_str3, const string_t c_str4) {
     if (str1_str2(disableLavel, c_str1)) return;
-    sendCOM2_buf(0, (byte_ptr) c_str1);
-    sendCOM2_buf(0, (byte_ptr) c_str2);
-    sendCOM2_buf(0, (byte_ptr) c_str3);
-    sendCOM2_buf(0, (byte_ptr) c_str4);
-    sendCOM2_buf(0, (byte_ptr) "\r\n");
+    changeCallBackLabel(writeLog4Str,sendCOM3_buf);
+    sendCOM3_buf(0, (byte_ptr) c_str1);
+    sendUART3_buf(' ');
+    sendCOM3_buf(0, (byte_ptr) c_str2);
+    sendUART3_buf(' ');
+    sendCOM3_buf(0, (byte_ptr) c_str3);
+    sendUART3_buf(' ');
+    sendCOM3_buf(0, (byte_ptr) c_str4);
+    sendCOM3_buf(0, (byte_ptr) "\r\n");
 }
 
 void writeLogTempString(const string_t tempStr) {
     if (str1_str2(disableLavel, tempStr)) return;
     u08 size = strSize(tempStr);
-    for (u08 i = 0; i < size; i++) sendUART2_buf(tempStr[i]);
-    sendCOM2_buf(0, (byte_ptr) "\r\n");
+    for (u08 i = 0; i < size; i++) sendUART3_buf(tempStr[i]);
+    changeCallBackLabel(writeLogTempString,sendCOM3_buf);
+    sendCOM3_buf(0, (byte_ptr) "\r\n");
 }
 
 void writeLogFloat(float data) {
@@ -251,13 +258,13 @@ void writeLogFloat(float data) {
 }
 
 void writeLogU32(u32 data) {
-    char tempStr[12];
+    char tempStr[14];
     toStringDec(data, tempStr);
     writeLogTempString(tempStr);
 }
 
 void writeSymb(char symb) {
-    sendUART2_buf((u08) symb);
+    sendUART3_buf((u08) symb);
 }
 
 #ifdef ALLOC_MEM
@@ -269,7 +276,10 @@ void writeLogByteArray(u08 sizeBytes, byte_ptr array){
         str = (string_t)allocMem(totalSize); // Выделяем память под строку + под пробелы между символами + байт конца
     }
     if(str == NULL){
-        writeLogStr("mem err in logging");
+        writeLogStr("ERROR: mem err in logging");
+		#ifdef CALL_BACK_TASK
+        execCallBack(writeLogByteArray);
+		#endif
         return;
     }
     u08 poz = 0;
@@ -280,6 +290,9 @@ void writeLogByteArray(u08 sizeBytes, byte_ptr array){
         poz++;
     }
     str[poz] = '\0';
+	#ifdef CALL_BACK_TASK
+	changeCallBackLabel(writeLogByteArray, writeLogStr);
+	#endif
     writeLogStr(str);
 }
 #endif // ALLOC_MEM
@@ -292,7 +305,7 @@ void writeLogByteArray(BaseSize_t sizeBytes, byte_ptr array) {
         str = (string_t) allocMemComment(totalSize, "For byteArray log"); // Выделяем память под строку + под пробелы между символами + байт конца
     }
     if (str == NULL) {
-        writeLogStr("mem err in logging");
+        writeLogStr("ERROR: mem err in logging");
         return;
     }
     BaseSize_t poz = 0;
@@ -309,127 +322,157 @@ void writeLogByteArray(BaseSize_t sizeBytes, byte_ptr array) {
 
 #ifdef COMMAND_TASK
 
-static TaskMng customCommandHandler = (TaskMng)NULL;
-
-void SetCommandHandler(TaskMng handler) {
-	customCommandHandler = handler;
+static void sizeMemHandler() {
+	writeLogWithStr("LOG: Free memory size: " , getFreeMemmorySize());
+	writeLogWithStr("LOG: Heap size is: " , HEAP_SIZE);
+	execCallBack(sizeMemHandler);
 }
 
-void commandEngine(string_t command) {
-    if(str1_str2("help", command)) {
-        writeLog2Str("help", " show this help");
-        writeLog2Str("defra", " run defragmentation heap memory");
-        writeLog2Str("sizeMem", " show free heap memory size");
-        writeLog2Str("tasks", " show all free position in task list");
-        writeLog2Str("delayTask", " show all free position in timers list");
-        writeLog2Str("time", " show current time");
-        writeLog2Str("restart", " restart system");
-        writeLog2Str("clearMem", " clear all heap");
-        writeLog2Str("clearCallBack", " clear all call back tasks");
-        writeLog2Str("clearScreen", " clear log screen");
-        writeLog2Str("disbleLog=filtered_string", " disable all logs that contains filtered string. If nothing. Disable all logs");
-        writeLog2Str("enableLog", " enable logging");
-        if(customCommandHandler != NULL) {
-        	customCommandHandler(0,"help");
-        }
-#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
-        writeLog2Str("showAllBlocks", " show all blocks of memory allocated");
-#endif
-    }
-    else if(str1_str2("defra", command)) {
-        writeLogStr("LOG: Defragmentation");
-        SetTask((TaskMng)defragmentation,0,0);
-    }
-    else if(str1_str2("sizeMem", command)) {
-        writeLogWithStr("Free memory size: " , getFreeMemmorySize());
-        writeLogWithStr("Heap size is: " , HEAP_SIZE);
-    }
-    else if(str1_str2("tasks", command)) {
-        writeLogWithStr("LOG: Free position in task list ", getFreePositionForTask());
-    }
-    else if (str1_str2("time", command)) {
-        char str[18];
-        strClear(str);
-        const time_t t = getAllSeconds();
-        const Date_t d = getDateFromSeconds(t, TRUE);
-        dateToString(str,(Date_t*)&d);
-        writeLogWithStr("LOG: Current time in seconds is ", t);
-        writeLogTempString(str);
-    }
-    else if(str1_str2("delayTask", command)) {
-        writeLogWithStr("LOG: Free position in timers list ", getFreePositionForTimerTask());
-    }
-    else if (str1_str2("clearMem", command)) {
-        writeLogStr("LOG: Clear all memory");
-        SetTask((TaskMng)clearAllMemmory,0,NULL);
-    }
-    else if (str1_str2("clearCallBack", command)) {
-        writeLogStr("LOG: Clear all callback list");
-        clearAllCallBackList();
-    }
-    else if (str1_str2("restart", command)) {
-        writeLogStr("LOG: Reset command receive");
-        ResetFemtOS();
-    }
-    else if (str1_str2("clearScreen", command)) {
-        for(u08 i = 0; i<50; i++) {
-            writeSymb('\n');
-            writeSymb('\r');
-        }
-    }else if(str1_str2("enableLog", command)) {
-    	enableLogging();
-    	disableLogLevel(NULL);
-    } else if(startWith(command, "disbleLog=")) {
-    	static string_t commandCopy = NULL;
-    	BaseSize_t i = strSplit('=', command);
-    	if(i == 2) {
-    		freeMem((byte_ptr)commandCopy);
-    		commandCopy = (string_t)allocMem(strSize(command+strSize(command)+1));
-    		if(commandCopy != NULL) {
-    			strClear(commandCopy);
-    			strCat(commandCopy, command+strSize(command)+1);
-    			disableLogLevel(commandCopy);
-    		}
-    	} else {
-    		disableLogging();
-    	}
-    }
-#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
-        else if (str1_str2("showAllBlocks", command)) {
-		SetTask((TaskMng)showAllBlocks,0,NULL);
-	}
-#endif
-    else if(execCommand(command) == EVERYTHING_IS_OK) {
-        writeLog2Str("Exec command ", command);
-    }
-    else if(customCommandHandler != NULL) {
-    	changeCallBackLabel(commandEngine, customCommandHandler);
-    	SetTask(customCommandHandler,0, command);
-    	return;
-    }
-    else  {
-        writeLog3Str("ERROR: Undefined command ", command, " type help to see all avaliable command");
-    }
-    execCallBack(commandEngine);
+static void tasksHandler(){
+	writeLogWithStr("LOG: Free position in task list ", getFreePositionForTask());
+	writeLogWithStr("LOG: Free position in timers list ", getFreePositionForTimerTask());
+	execCallBack(tasksHandler);
 }
 
-static void readCMD(BaseSize_t count, BaseParam_t arg) {
-	BaseSize_t sz = SizeRx2Buffer();
-	if(!sz) {
-		registerCallBack(readCMD, count, arg, ReceiveConsoleBuff);
+static void timeHandler() {
+	char str[18];
+	strClear(str);
+	const Time_t t = getAllSeconds();
+	const Date_t d = getDateFromSeconds(t, TRUE);
+	dateToString(str,(Date_t*)&d);
+	writeLogWithStr("LOG: Current time in seconds is ", t);
+	writeLogTempString(str);
+	execCallBack(timeHandler);
+}
+
+static void clearScreenHandler() {
+    for(u08 i = 0; i<50; i++) {
+        writeSymb('\n');
+        writeSymb('\r');
+    }
+    execCallBack(clearScreenHandler);
+}
+
+static void enableLogHandler() {
+	enableLogging();
+	disableLogLevel(NULL);
+	execCallBack(enableLogHandler);
+}
+
+static void disableLogHandler(BaseSize_t n, string_t subcmds) {
+	if(n > 1) {
+		writeLogStr("ERROR: this command support only one subcommand");
+		execCallBack(disableLogHandler);
 		return;
 	}
-	string_t command = (string_t)allocMemComment(sz+1, "For command console");
+	if(!n) {
+		writeLogStr("DEBUG: Disable logging after 1 second. Bye bye...");
+		SetTimerTask((TaskMng)disableLogging,0,NULL, TICK_PER_SECOND);
+		execCallBack(disableLogHandler);
+		return;
+	}
+	string_t commandCopy = (string_t)allocMem(strSize(subcmds)+1);
+	if(commandCopy != NULL) {
+		strClear(commandCopy);
+		strCat(commandCopy, subcmds);
+		freeMem((byte_ptr)disableLavel);
+		writeLog2Str("LOG: Disable log level ", commandCopy);
+		disableLavel = commandCopy;
+	}
+	execCallBack(disableLogHandler);
+}
+
+static void setTimeHandler(BaseSize_t n, BaseParam_t timeStr) {
+	if(n != 1) {
+		writeLogStr("ERROR: This command should has exact one parameter \"unix timestamp\" in dec format");
+		writeLogWithStr("But get ", n);
+		return;
+	}
+	u32 time = (u32)toIntDec(timeStr);
+	writeLogWithStr("DEBUG: Set current system time ", time);
+	setSeconds(time);
+}
+
+static void _helpHandler(TaskMng _h, string_t cmd, string_t description) {
+	writeLog3Str("LOG: ", cmd, description);
+}
+static void helpHandler() {
+	forEachCommand(_helpHandler);
+	execCallBack(helpHandler);
+}
+
+static void echoHandler(BaseSize_t n, string_t arguments) {
+	for(BaseSize_t i = 0; i<n; i++) {
+		writeLogStr(arguments);
+		arguments += strSize(arguments)+1;
+	}
+	execCallBack(echoHandler);
+}
+
+static void execHandler(BaseSize_t n, string_t commands) {
+	for(BaseSize_t i = 0; i<n; i++) {
+		execCommand(commands);
+		commands += strSize(commands)+1;
+	}
+	execCallBack(execHandler);
+}
+
+void cronjobWrapper(BaseSize_t n, BaseParam_t args)  {
+	changeCallBackLabel(cronjobWrapper, execWithSubCommand);
+	execWithSubCommand(args, n-1, args+strSize(args)+1);
+}
+
+static void cronjobHandler(BaseSize_t n, string_t args) {
+	if(n < 2) {
+		writeLogStr("ERROR: This command should has more then one parameter first it is delay time in seconds and second parameter is a command");
+		return;
+	}
+	Time_t delay = (Time_t)toIntDec(args);
+	SetTimerTask(cronjobWrapper, n-1, args+strSize(args)+1, delay*TICK_PER_SECOND);
+	changeCallBackLabel(cronjobHandler, cronjobWrapper);
+}
+static void clearAllTaskHandler() {
+	delAllTimerTask();
+	delAllTask();
+}
+
+void initStandardConsoleCommands() {
+	writeLogStr("INFO: Commands are initialize. Please type \"help\" to get more information about commands ");
+	addTaskCommand((TaskMng)helpHandler, "help", "Show this help message");
+	addTaskCommand((TaskMng)defragmentation, "defra", "Run defragmentation heap memory");
+	addTaskCommand((TaskMng)sizeMemHandler, "sizeMem", "Show free heap memory size");
+	addTaskCommand((TaskMng)tasksHandler, "tasks", "Show all free position in task list, show all free position in timers list");
+	addTaskCommand((TaskMng)timeHandler, "time", "Show current time");
+	addTaskCommand(setTimeHandler, "setTime", "set a new current system time in seconds (unix timestamp). Example: \"setTime 1656794245\"");
+	addTaskCommand((TaskMng)clearAllMemmory, "clearMem", "Clear all heap. WARNING! may be destroy application");
+	addTaskCommand((TaskMng)clearAllCallBackList, "clearCallBack","Clear all call back tasks. WARNING! may be destroy application");
+	addTaskCommand((TaskMng)clearAllTaskHandler, "clearTask", "Clear all task from task list and timer list (analog restart system, but more safety)");
+	addTaskCommand((TaskMng)ResetFemtOS, "restart", "Restart system. Dangerous operation");
+	addTaskCommand((TaskMng)clearScreenHandler, "clearScreen", "Clear log screen");
+	addTaskCommand((TaskMng)enableLogHandler, "enableLog", "Enable logging, reset all log filters. Most verbosity logs");
+	addTaskCommand((TaskMng)disableLogHandler, "disableLog", "Disable all logs that contains filtered word. If nothing. Disable all logs and console will be also disabled (can not inserted any command through console). Example \"disableLog LOG\"");
+	addTaskCommand((TaskMng)echoHandler, "echo", "Print arguments to the console. Example: \"echo Hello world\"");
+	addTaskCommand((TaskMng)execHandler, "exec", "Try exec a list of command from the argument. All command should not have arguments in this case. Example: \"exec sizeMem time tasks\"");
+	addTaskCommand((TaskMng)cronjobHandler, "cronjob", "Execute any commnad (second parameter) with arguments (third and more parameter) and time delay (first parameter). Example: \"cronjob 10 echo hello world\"");
+#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
+	addTaskCommand((TaskMng)showAllBlocks, "showAllBlocks", "show all blocks of memory allocated with associated description");
+#endif
+}
+
+static void readCMD(BaseSize_t sz, BaseParam_t data) {
+	static string_t command = NULL;
+	freeMem((byte_ptr)command);
+	command = (string_t)allocMemComment(sz+1, "For command console");
 	if(command == NULL) {
 		writeLogStr("ERROR: Command interface memory error");
-		registerCallBack(readCMD, count, arg, ReceiveUART2NewPackageLabel);
+		clearRX3();
 		return;
 	}
     readConsoleBuff(sz, command);
     command[sz] = END_STRING;
-	commandEngine(command);
-	freeMem((byte_ptr)command);
-	registerCallBack(readCMD, 0, NULL, ReceiveUART2NewPackageLabel);
+    if(execCommand(command) == NOT_FOUND_DATA_STRUCT_ERROR) {
+    	writeLog3Str("ERROR: Undefined command",command,". Please type \"help\" to find out command list");
+    }
 }
 #endif
 #endif // ENABLE_LOGGING
