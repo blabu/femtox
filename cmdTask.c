@@ -12,8 +12,11 @@
 #warning "ERROR COMAND_TASK_LIST_SIZE must be less 0xFF"
 #endif
 
-static TaskList_t tasks[COMMAND_TASK_LIST_SIZE];
+static TaskMng tasks[COMMAND_TASK_LIST_SIZE];
 string_t commandList[COMMAND_TASK_LIST_SIZE];
+string_t commandDescription[COMMAND_TASK_LIST_SIZE];
+
+void (*commandHandler)(TaskMng task, string_t command, string_t description);
 
 static u08 findTaskByCommand(string_t cmd) {
     u08 i = 0;
@@ -44,7 +47,7 @@ u08 delCommand(string_t command) {
     return EVERYTHING_IS_OK;
 }
 
-u08 addTaskCommand(TaskMng tsk, BaseSize_t arg_n, BaseParam_t arg_p, string_t command) {
+u08 addTaskCommand(TaskMng tsk, string_t command, string_t description) {
     const unlock_t lck = lock((void*)commandList);
     const u08 pos = findFree();
     if(pos == COMMAND_TASK_LIST_SIZE) {
@@ -52,50 +55,47 @@ u08 addTaskCommand(TaskMng tsk, BaseSize_t arg_n, BaseParam_t arg_p, string_t co
         return OVERFLOW_OR_EMPTY_ERROR;
     }
     commandList[pos] = command;
-    tasks[pos].Task = tsk;
-    tasks[pos].arg_n = arg_n;
-    tasks[pos].arg_p = arg_p;
+    commandDescription[pos] = description;
+    tasks[pos] = tsk;
     lck((void*)commandList);
     return EVERYTHING_IS_OK;
 }
 
-u08 execCommand(string_t command) {
+u08 execWithSubCommand(string_t command, BaseSize_t subCmdCount, string_t subCommands) {
     const unlock_t lck = lock((void*)commandList);
     const u08 pos = findTaskByCommand(command);
     if(pos == COMMAND_TASK_LIST_SIZE) {
         lck((void*)commandList);
+        execCallBack(execWithSubCommand);
         return NOT_FOUND_DATA_STRUCT_ERROR;
     }
-    if(tasks[pos].Task != NULL) {
+    if(tasks[pos] != NULL) {
         lck((void*)commandList);
-        SetTask(tasks[pos].Task,tasks[pos].arg_n, tasks[pos].arg_p);
+        SetTask(tasks[pos], subCmdCount, (BaseParam_t)subCommands);
+        changeCallBackLabel(execWithSubCommand, tasks[pos]);
         return EVERYTHING_IS_OK;
     }
     lck((void*)commandList);
+    execCallBack(execWithSubCommand);
     return NULL_PTR_ERROR;
 }
 
-void execCommandTask(BaseSize_t  arg_n, string_t command) {
-    const unlock_t lck = lock((void*)commandList);
-    const u08 pos = findTaskByCommand(command);
-    if(pos == COMMAND_TASK_LIST_SIZE) {
-        lck((void*)commandList);
-        return;
-    }
-    if(tasks[pos].Task != NULL) {
-        lck((void*)commandList);
-        SetTask(tasks[pos].Task,tasks[pos].arg_n, tasks[pos].arg_p);
-    }
-    lck((void*)commandList);
+u08 execCommand(string_t input) {
+	BaseSize_t n = strSplit(' ', input);
+	if(!n) {
+		execCallBack(execCommand);
+		return NULL_PTR_ERROR;
+	}
+	changeCallBackLabel(execCommand, execWithSubCommand);
+	return execWithSubCommand(input, n-1, input+strSize(input)+1);
 }
 
-void forEachCommand(TaskMng tsk, BaseSize_t arg_n, bool_t toManager) {
-    if(tsk == NULL) return;
+void forEachCommand(cmdHandler_t handler) {
+    if(handler == NULL) return;
     const unlock_t lck = lock((void*)commandList);
     for(u08 i = 0; i<COMMAND_TASK_LIST_SIZE; i++) {
         if(commandList[i] != NULL) {
-            if(toManager) SetTask(tsk,arg_n,(BaseParam_t)commandList[i]);
-            else tsk(arg_n,(BaseParam_t)commandList[i]);
+        	handler(tasks[i], commandList[i], commandDescription[i]);
         }
     }
     lck((void*)commandList);
