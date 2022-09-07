@@ -126,12 +126,16 @@ static void sendUART3_buf(u08 c) {
 #endif
 
 #ifdef ARM_STM32
-#include <UART3.h>
+#include <usbd_cdc_if.h>
 
-#define sizeConsoleBuff sizeRx3Buffer
-#define ReceiveConsoleBuff ReceiveUART3NewPackageLabel
-#define readConsoleBuff readBufUART3
-#define setReceiveTimeoutConsole setReceiveTimeoutUART3
+#define ReceiveConsoleBuff ReceiveUSBPackageLabel
+#define readConsoleBuff readUSB
+#define setReceiveTimeoutConsole setReceiveTimeoutUSB
+#define _sendData writeUSB
+#define _sendByte writeSymbUSB
+#define _clearData clearUSB
+#define _enableData(baud)
+#define _disableData()
 
 static u08 countEnableLogging = 0;
 
@@ -146,8 +150,8 @@ void enableLogging(void) {
         return;
     }
     countEnableLogging = 1;
-    enableUART3(115200);
-    setReceiveTimeoutConsole(TICK_PER_SECOND);
+    _enableData(115200);
+    setReceiveTimeoutConsole(TICK_PER_SECOND>>1);
     writeLogStr("LOG: Enable logging");
 #ifdef SIGNALS_TASK
     connectTaskToSignal(readCMD, ReceiveConsoleBuff);
@@ -157,10 +161,7 @@ void enableLogging(void) {
 void disableLogging(void){
     if(countEnableLogging > 0) countEnableLogging--;//---------------------------------------
     if(!countEnableLogging) {
-       disableUART3();
-#ifndef _X86
-//		HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,GPIO_PIN_RESET);
-#endif// _X86
+    	_disableData();
     } else {
     	writeLogStr("LOG: Fake disable logging");
     }
@@ -189,66 +190,63 @@ void disableLogLevel(string_t level) {
 }
 
 void writeLogWithStr(const string_t c_str, u32 n) {
-    char str[80];
+    char str[20];
     if (str1_str2(disableLavel, c_str)) return;
-    u08 size = strSize(c_str);
-    if (size > 69) {
-        writeLogStr("ERROR: too long string");
-        return;
-    }
     strClear(str);
-    strCat(str, c_str);
-    strCat(str, " ");
-    toStringDec((s64) n, (str + size + 1));
-    writeLogTempString(str);
+    toStringDec((s64)n, str);
+    _sendData(0, (byte_ptr)c_str);
+    u08 size = strSize(str);
+    for (u08 i = 0; i < size; i++) _sendByte(str[i]);
+    _sendByte('/r');
+    _sendByte('/n');
 }
 
 void writeLogStr(const string_t c_str) {
     if (str1_str2(disableLavel, c_str)) return;
-    changeCallBackLabel(writeLogStr,sendCOM3_buf);
-    sendCOM3_buf(0, (byte_ptr) c_str);
-    sendCOM3_buf(0, (byte_ptr) "\r\n");
+    changeCallBackLabel(writeLogStr,_sendData);
+    _sendData(0, (byte_ptr) c_str);
+    _sendData(0, (byte_ptr) "\r\n");
 }
 
 void writeLog2Str(const string_t c_str1, const string_t c_str2) {
     if (str1_str2(disableLavel, c_str1)) return;
-    changeCallBackLabel(writeLog2Str,sendCOM3_buf);
-    sendCOM3_buf(0, (byte_ptr) c_str1);
-    sendUART3_buf(' ');
-    sendCOM3_buf(0, (byte_ptr) c_str2);
-    sendCOM3_buf(0, (byte_ptr) "\r\n");
+    changeCallBackLabel(writeLog2Str,_sendData);
+    _sendData(0, (byte_ptr) c_str1);
+    _sendByte(' ');
+    _sendData(0, (byte_ptr) c_str2);
+    _sendData(0, (byte_ptr) "\r\n");
 }
 
 void writeLog3Str(const string_t c_str1, const string_t c_str2, const string_t c_str3) {
     if (str1_str2(disableLavel, c_str1)) return;
-    changeCallBackLabel(writeLog3Str,sendCOM3_buf);
-    sendCOM3_buf(0, (byte_ptr) c_str1);
-    sendUART3_buf(' ');
-    sendCOM3_buf(0, (byte_ptr) c_str2);
-    sendUART3_buf(' ');
-    sendCOM3_buf(0, (byte_ptr) c_str3);
-    sendCOM3_buf(0, (byte_ptr) "\r\n");
+    changeCallBackLabel(writeLog3Str,_sendData);
+    _sendData(0, (byte_ptr) c_str1);
+    _sendByte(' ');
+    _sendData(0, (byte_ptr) c_str2);
+    _sendByte(' ');
+    _sendData(0, (byte_ptr) c_str3);
+    _sendData(0, (byte_ptr) "\r\n");
 }
 
 void writeLog4Str(const string_t c_str1, const string_t c_str2, const string_t c_str3, const string_t c_str4) {
     if (str1_str2(disableLavel, c_str1)) return;
-    changeCallBackLabel(writeLog4Str,sendCOM3_buf);
-    sendCOM3_buf(0, (byte_ptr) c_str1);
-    sendUART3_buf(' ');
-    sendCOM3_buf(0, (byte_ptr) c_str2);
-    sendUART3_buf(' ');
-    sendCOM3_buf(0, (byte_ptr) c_str3);
-    sendUART3_buf(' ');
-    sendCOM3_buf(0, (byte_ptr) c_str4);
-    sendCOM3_buf(0, (byte_ptr) "\r\n");
+    changeCallBackLabel(writeLog4Str,_sendData);
+    _sendData(0, (byte_ptr) c_str1);
+    _sendByte(' ');
+    _sendData(0, (byte_ptr) c_str2);
+    _sendByte(' ');
+    _sendData(0, (byte_ptr) c_str3);
+    _sendByte(' ');
+    _sendData(0, (byte_ptr) c_str4);
+    _sendData(0, (byte_ptr) "\r\n");
 }
 
 void writeLogTempString(const string_t tempStr) {
     if (str1_str2(disableLavel, tempStr)) return;
     u08 size = strSize(tempStr);
-    for (u08 i = 0; i < size; i++) sendUART3_buf(tempStr[i]);
-    changeCallBackLabel(writeLogTempString,sendCOM3_buf);
-    sendCOM3_buf(0, (byte_ptr) "\r\n");
+    for (u08 i = 0; i < size; i++) _sendByte(tempStr[i]);
+    changeCallBackLabel(writeLogTempString,_sendData);
+    _sendData(0, (byte_ptr) "\r\n");
 }
 
 void writeLogFloat(float data) {
@@ -264,7 +262,7 @@ void writeLogU32(u32 data) {
 }
 
 void writeSymb(char symb) {
-    sendUART3_buf((u08) symb);
+	_sendByte((u08) symb);
 }
 
 #ifdef ALLOC_MEM
@@ -391,6 +389,7 @@ static void setTimeHandler(BaseSize_t n, BaseParam_t timeStr) {
 	u32 time = (u32)toIntDec(timeStr);
 	writeLogWithStr("DEBUG: Set current system time ", time);
 	setSeconds(time);
+	execCallBack(setTimeHandler);
 }
 
 static void _helpHandler(TaskMng _h, string_t cmd, string_t description) {
@@ -434,6 +433,7 @@ static void cronjobHandler(BaseSize_t n, string_t args) {
 static void clearAllTaskHandler() {
 	delAllTimerTask();
 	delAllTask();
+	execCallBack(clearAllTaskHandler);
 }
 
 void initStandardConsoleCommands() {
@@ -465,11 +465,12 @@ static void readCMD(BaseSize_t sz, BaseParam_t data) {
 	command = (string_t)allocMemComment(sz+1, "For command console");
 	if(command == NULL) {
 		writeLogStr("ERROR: Command interface memory error");
-		clearRX3();
+		_clearData();
 		return;
 	}
-    readConsoleBuff(sz, command);
+    readConsoleBuff(sz, (byte_ptr)command);
     command[sz] = END_STRING;
+    writeLogStr(command);
     if(execCommand(command) == NOT_FOUND_DATA_STRUCT_ERROR) {
     	writeLog3Str("ERROR: Undefined command",command,". Please type \"help\" to find out command list");
     }

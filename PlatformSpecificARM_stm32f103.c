@@ -1,7 +1,8 @@
 #include "PlatformSpecific.h"
 #ifdef ARM_STM32
-#include "stm32f103xb.h"
+#include "stm32f1xx_hal.h"
 #include "TaskMngr.h"
+#include "logging.h"
 
 #ifdef MAXIMIZE_OVERFLOW_ERROR
 	void MaximizeErrorHandler(string_t str){
@@ -28,9 +29,7 @@ void initWatchDog(){
 	watchDog.Instance = IWDG;
 	watchDog.Init.Prescaler = IWDG_PRESCALER_128;
 	watchDog.Init.Reload = RELOAD_VALUE;
-	if(HAL_IWDG_Init(&watchDog) == HAL_OK) {
-		HAL_IWDG_Start(&watchDog);
-	}else {
+	if(HAL_IWDG_Init(&watchDog) != HAL_OK) {
 		writeLogStr("ERROR: Watchdog init error");
 	}
 }
@@ -39,46 +38,58 @@ void resetWatchDog(void){
 	HAL_IWDG_Refresh(&watchDog);
 }
 
-static void unlock(const void*const resourceId) {
-    __enable_irq();
-}
-
-unlock_t lock(const void*const resourceId) {
-	__disable_irq();
-	return unlock;
-}
-
-#include "config.h"
 static TIM_HandleTypeDef TIM2InitStruct;
-void initTimer2(void){ // APB1 = 72MHz
-	__TIM2_CLK_ENABLE();
+static void initTimer2(void){ // APB1 = 72MHz
+#define PRESCALER 288UL
+	__HAL_RCC_TIM2_CLK_ENABLE();  //<<=== CLOCK ENABLE SHOULD BE BEFORE INITIALIZATION
 	TIM2InitStruct.Instance = TIM2;
 	TIM2InitStruct.Init.CounterMode = TIM_COUNTERMODE_UP;
-#ifdef SERVER
-	TIM2InitStruct.Init.Period = 1000-1;
-#else
-	TIM2InitStruct.Init.Period = 10000-1;
-#endif
-	TIM2InitStruct.Init.Prescaler = 72-1;
+	TIM2InitStruct.Init.Period = (APB_CLK/PRESCALER/TICK_PER_SECOND);
+	TIM2InitStruct.Init.Prescaler = PRESCALER - 1;
 	TIM2InitStruct.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-	HAL_TIM_Base_Init(&TIM2InitStruct);     // Init timer
-	HAL_TIM_Base_Start_IT(&TIM2InitStruct);
+	if (HAL_TIM_Base_Init(&TIM2InitStruct) != HAL_OK) {  // Init timer
+		MaximizeErrorHandler("Init main femtox timer error");
+	}
+	if (HAL_TIM_Base_Start_IT(&TIM2InitStruct) != HAL_OK) {
+		MaximizeErrorHandler("Start main femtox timer error");
+	}
+	HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
 	HAL_NVIC_EnableIRQ(TIM2_IRQn);
-	__HAL_RCC_TIM2_CLK_ENABLE(); // Не отключать таймер в спящем режиме
+#undef PRESCALER
+}
+
+void idle() {
+	HAL_SuspendTick();
+	HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
 }
 
 void TIM2_IRQHandler(void){
 	if(__HAL_TIM_GET_FLAG(&TIM2InitStruct, TIM_FLAG_UPDATE)){
+		HAL_ResumeTick();
 		__HAL_TIM_CLEAR_FLAG(&TIM2InitStruct, TIM_FLAG_UPDATE);
 		TimerISR();
 	}
 }
 
-
 void _init_Timer(){
 	initTimer2();
 	HAL_PWR_DisableSleepOnExit(); // После пробуждения мы работаем в активном режиме
 }
+
+static void unlock(const void*const resourceId) {
+    __enable_irq();
+}
+
+static void empty(const void*const resourceId) {}
+
+unlock_t lock(const void*const resourceId) {
+	if((__get_CONTROL() & (uint32_t)(1<<7))) {
+	    __disable_irq();
+		return unlock;
+	}
+	return empty;
+}
+
 
 #ifdef USE_SOFT_UART
 /*
