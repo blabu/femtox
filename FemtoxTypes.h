@@ -21,5 +21,8 @@
 #ifdef ESP32
 #include "FemtoxTypes_ESP32.h"
 #endif
+#ifdef PICO2040
+#include "FemtoxTypes_Pico2040.h"
+#endif
 
 #endif /* FEMTOXTYPES_H_ */

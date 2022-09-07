@@ -34,8 +34,12 @@ extern const char* const _osVersion;
 #define CLIPUpper(X, Max)                          (((X) > (Max)) ? (Max) : (X))
 #define CLIPLower(X, Min)                          (((X) < (Min)) ? (Min) : (X))
 #define IsBetween(X, Low, High)                    ((qBool_t)((X) >= (Low) && (X) <= (High)))
+#ifndef MIN
 #define MIN(a,b)                                   (((a)<(b))?(a):(b))
+#endif
+#ifndef MAX
 #define MAX(a,b) 								   (((a)>(b))?(a):(b))
+#endif
 
 void initFemtOS(void);    /* Инициализация менеджера задач. Здесь весь список задач (масив TaskLine) иницмализируется функцией Idle*/
 CC_NO_RETURN void ResetFemtOS(void);  // Програмный сброс микроконтроллера
@@ -58,8 +62,6 @@ void SetFrontTask (const TaskMng New_Task, const BaseSize_t n, const BaseParam_t
 void delAllTask(void);
 
 //********************************СИСТЕМНЫЙ ТАЙМЕР*********************************************
-void TimerISR(void); //Обработчик прерывания по совпадению теущего значения таймера и счетчика.
-
 void SetTimerTask(const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data, const Time_t New_Time); //Постановщик задач c количеством параметров n в таймер.
 /*Функция устанавливающая задачу в очередь по таймеру. На входе адрес перехода (имя задачи) и время в тиках службы таймера.
 Время двухбайтное, т.е. от 1 до 65535 измеряеться в переплнениях таймера0. Не имеет значение
@@ -147,6 +149,8 @@ bool_t tryGetMutex(const mutexType mutexNumb);
 // TRUE - Если мьютекс захватить НЕ УДАЛОСЬ
 bool_t getMutex(const mutexType mutexNumb, const TaskMng TPTR, const BaseSize_t n, const BaseParam_t data); // Пытается захватить мьютекс Вернет TRUE если захватить не удалось
 void freeMutex(const mutexType mutexNumb);     // Освобождает мьютекс
+bool_t CASBaseSize(BaseSize_t* value, BaseSize_t expected, BaseSize_t needed);
+bool_t CASBool(bool_t* value, bool_t expected, bool_t needed);
 #define GET_MUTEX(mutexNumb, TaskPTR, arg_n, arg_p) if(getMutex((mutexType)mutexNumb, (TaskMng)TaskPTR,(BaseSize_t)arg_n, (BaseParam_t)arg_p)) return
 #define FREE_MUTEX(mutexNumb) freeMutex((mutexType)mutexNumb)
 #endif //MUTEX_ENABLE

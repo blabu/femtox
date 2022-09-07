@@ -1,12 +1,5 @@
-/*
- * PlatformSpecific.h
- *
- *  Created on: 27 жовт. 2017 р.
- *      Author: oleksiy.khanin
- */
-
-//#ifndef PLATFORMSPECIFIC_H_
-//#define PLATFORMSPECIFIC_H_
+#ifndef PLATFORMSPECIFIC_H_
+#define PLATFORMSPECIFIC_H_
 
 #include "platform.h"
 
@@ -18,9 +11,11 @@
 #include "PlatformSpecificX86.h"
 #elif ESP32
 #include "PlatformSpecificESP32.h"
+#elif PICO2040
+#include "PlatformSpecificPico2040.h"
 #else
 #error "Undefined platform"
 #include "PlatformSpecificSceleton.h"
 #endif
 
-//#endif /* PLATFORMSPECIFIC_H_ */
+#endif /* PLATFORMSPECIFIC_H_ */

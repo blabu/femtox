@@ -9,8 +9,9 @@
 #define PLATFORM_H_
 
 //#define MSP430 1
-#define ARM_STM32 1
-//#define ARM_ESP
+// #define ARM_STM32 1
+//#define ESP32 1
+#define PICO2040 1
 //#define _X86 1
 //#define SCELETON
 

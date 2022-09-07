@@ -12,7 +12,7 @@
 
 #include "platform.h"
 #ifdef ARM_STM32
-#include <FemtoxConf_STM32F103_relay.h>
+#include "FemtoxConf_STM32F103_relay.h"
 #endif
 #ifdef _X86
 #include "FemtoxConf_X86.h"
@@ -23,5 +23,7 @@
 #ifdef ESP32
 #include "FemtoxConf_ESP32.h"
 #endif
-
+#ifdef PICO2040
+#include "FemtoxConf_Pico2040.h"
+#endif
 #endif /* FEMTOXCONF_H_ */

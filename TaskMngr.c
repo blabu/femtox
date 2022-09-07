@@ -119,12 +119,13 @@ extern volatile Time_t __systemSeconds;
 
 #ifdef LOAD_STATISTIC
 static u32 idleTicks = 0;					 // Кол-во времени в Idle процессе
-#define STATISTIC_KOEF 10000UL
+#define STATISTIC_KOEF 100UL
 u32 getLoadAvarage() {
 	u32 workTicks = getTick();
 	u32 t = idleTicks;
 	while(t != idleTicks) t=idleTicks;
-	if(workTicks > t) return (u32)((u64)((workTicks - t)*STATISTIC_KOEF)/workTicks);
+	u32 onTaskTicks = workTicks - t;
+	if(workTicks > t) return (u32)((u64)(onTaskTicks*STATISTIC_KOEF*STATISTIC_KOEF)/workTicks);
 	return 0; // Произошло переполнение
 }
 #endif

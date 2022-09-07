@@ -76,6 +76,30 @@ void freeMutex(const mutexType mutexNumb) {
     unlck((void*)(&MyMutex));
 }
 
+// return TRUE if the value was replaced from expected to needed
+bool_t CASBool(bool_t* value, bool_t expected, bool_t needed) {
+	bool_t success = FALSE;
+	unlock_t unlck = lock((void*)(&MyMutex));
+	if(*value == expected) {
+		*value = needed;
+		success = TRUE;
+	}
+	unlck((void*)(&MyMutex));
+	return success;
+}
+
+// return TRUE if the value was replaced from expected to needed
+bool_t CASBaseSize(BaseSize_t* value, BaseSize_t expected, BaseSize_t needed) {
+	bool_t success = FALSE;
+	unlock_t unlck = lock((void*)(&MyMutex));
+	if(*value == expected) {
+		*value = needed;
+		success = TRUE;
+	}
+	unlck((void*)(&MyMutex));
+	return success;
+}
+
 #endif //MUTEX_ENABLE
 
 #ifdef __cplusplus

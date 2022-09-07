@@ -68,7 +68,7 @@ static u16 toStandartYear(u16 year) {
 	return result;
 }
 
-static  u08 getMinutesFromSec(Time_t sec) {
+static u08 getMinutesFromSec(Time_t sec) {
 	sec = sec/60; // Определяем сколько всего минут прошло
 	sec %= 60; // от 0 до 59 минут
 	return (u08)sec;
@@ -299,7 +299,7 @@ s08 compareDates(const Date_t*const date1, const Date_t*const date2){
 	return 0;
 }
 
-#include <String.h>
+#include "String.h"
 // input date must have format YY.MM.DD hh:mm:ss
 void setDate(string_t date) {
 	char tempStr[4];
