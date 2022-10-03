@@ -173,7 +173,7 @@ static byte_ptr alloc(byte_ptr startSize, BaseSize_t size) {
 	return (startSize+i);
 }
 
-static void free(byte_ptr startBlock) {
+static void _free(byte_ptr startBlock) {
 	while(*(--startBlock) & (1<<7)) {
 		*startBlock &= ~(1<<7);
 		if(!(*startBlock & (1<<6))) break;
@@ -209,7 +209,7 @@ static byte_ptr _allocMem(const BaseSize_t size) {
                 if((calculateSize(freeSizeBlck) + freeSizeBlck) == restSize) {
                     byte_ptr result = alloc(&heap[i],size); // Выделяем нужный блока памяти
                     i += newSizeBlck; // Вычисляем конец новго выделенного блока
-                    free(alloc(&heap[i],freeSizeBlck)); // Освобождаем выделенный кусок
+                    _free(alloc(&heap[i],freeSizeBlck)); // Освобождаем выделенный кусок
                     unlock(heap);
                     return result;
                 }
@@ -308,10 +308,12 @@ void freeMem(const byte_ptr data) {
     		}
 		#endif
     	const unlock_t unlock = lock(heap);
-        free(data);
+        _free(data);
         unlock(heap);
     } else if(data != NULL) {
+		#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
     	writeLogWithStr("ERROR: Incorrect ptr in freeMem ", (u32)data);
+		#endif
     }
 }
 
@@ -337,7 +339,7 @@ void defragmentation(void){
         	while(newSumBlocKSize < SumBlockSize) {
         	    if(newSumBlocKSize + calculateSize(newSumBlocKSize) == SumBlockSize) {
                     byte_ptr startBlock = heap+i-blockSize-prevBlkSz; // Находим стартовую позицию составного блока
-                    free(alloc(startBlock,newSumBlocKSize));
+                    _free(alloc(startBlock,newSumBlocKSize));
                     blockSize = newSumBlocKSize; // Тперь составной блок это предыдущий блок
                     i += currentBlockSize + blkSz;
                     break;
