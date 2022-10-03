@@ -32,17 +32,17 @@ SOFTWARE.
 #ifdef ENABLE_LOGGING
 #include "logging.h"
 #endif
-	void MaximizeErrorHandler(string_t str) {
-#ifdef ENABLE_LOGGING
-		writeLogStr("FATAL: Maximize error handler");
-		writeLogStr(str);
-#endif
-		initWatchDog();
-		resetWatchDog();
-		__enable_irq();
-		for(u16 i = 0; i<0xFFFF; i++); // Небольшая задержка
-		while(1); // + Еще задержка для передачи данных пока не сработает таймер
-	}
+void MaximizeErrorHandler(string_t str) {
+	#ifdef ENABLE_LOGGING
+	writeLogStr("FATAL: Maximize error handler:");
+	writeLogStr(str);
+	#endif
+	initWatchDog();
+	resetWatchDog();
+	__enable_irq();
+	for(u16 i = 0; i<0xFFFF; i++); // Небольшая задержка
+	while(1); // + Еще задержка для передачи данных пока не сработает таймер
+}
 #else
 #include "logging.h"
 	void MaximizeErrorHandler(string_t str){
@@ -55,11 +55,6 @@ SOFTWARE.
                                             ПЛАТФОРМО-ЗАВИСИМЫЕ ФУНКЦИИ														|
 *********************************************************************************************************************
 *********************************************************************************************************************/
-
-
-//#define INTERRUPT_ENABLE  __enable_irq()   //{asm("nop"); __asm__ __volatile__("eint");}
-//#define INTERRUPT_DISABLE __disable_irq()  //{__asm__ __volatile__("dint nop"); asm("nop");}
-//#define INTERRUPT_STATUS  (__get_CONTROL() & (uint32_t)(1<<7))
 
 static void unlock(const void*const resourceId) {
     __enable_irq();

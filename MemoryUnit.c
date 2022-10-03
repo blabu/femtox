@@ -173,7 +173,7 @@ static byte_ptr alloc(byte_ptr startSize, BaseSize_t size) {
 	return (startSize+i);
 }
 
-static void _free(byte_ptr startBlock) {
+static void free(byte_ptr startBlock) {
 	while(*(--startBlock) & (1<<7)) {
 		*startBlock &= ~(1<<7);
 		if(!(*startBlock & (1<<6))) break;
@@ -209,7 +209,7 @@ static byte_ptr _allocMem(const BaseSize_t size) {
                 if((calculateSize(freeSizeBlck) + freeSizeBlck) == restSize) {
                     byte_ptr result = alloc(&heap[i],size); // Выделяем нужный блока памяти
                     i += newSizeBlck; // Вычисляем конец новго выделенного блока
-                    _free(alloc(&heap[i],freeSizeBlck)); // Освобождаем выделенный кусок
+                    free(alloc(&heap[i],freeSizeBlck)); // Освобождаем выделенный кусок
                     unlock(heap);
                     return result;
                 }
@@ -308,12 +308,10 @@ void freeMem(const byte_ptr data) {
     		}
 		#endif
     	const unlock_t unlock = lock(heap);
-        _free(data);
+        free(data);
         unlock(heap);
     } else if(data != NULL) {
-		#ifdef DEBUG_CHEK_ALLOCATED_MOMORY
     	writeLogWithStr("ERROR: Incorrect ptr in freeMem ", (u32)data);
-		#endif
     }
 }
 
@@ -339,7 +337,7 @@ void defragmentation(void){
         	while(newSumBlocKSize < SumBlockSize) {
         	    if(newSumBlocKSize + calculateSize(newSumBlocKSize) == SumBlockSize) {
                     byte_ptr startBlock = heap+i-blockSize-prevBlkSz; // Находим стартовую позицию составного блока
-                    _free(alloc(startBlock,newSumBlocKSize));
+                    free(alloc(startBlock,newSumBlocKSize));
                     blockSize = newSumBlocKSize; // Тперь составной блок это предыдущий блок
                     i += currentBlockSize + blkSz;
                     break;
@@ -419,7 +417,7 @@ static byte_ptr _allocMem(const u08 size) { //size - до 127 размер бл�
 				break;
 			}
 			if((heap[i] >> 7) ||   //  Если этот блок занят (последний бит равен 1)
-					blockSize < size)   // или размер этого блока слишком маленький
+				blockSize < size)   // или размер этого блока слишком маленький
 			{
 				i += (blockSize+1); // Перескакиваем через этот блок
 				continue;
@@ -436,10 +434,10 @@ static byte_ptr _allocMem(const u08 size) { //size - до 127 размер бл�
 			break;
 		}
 		unlock(heap);
-		if((i+size+1) > HEAP_SIZE) {
-			return NULL; // Если мы вышли из цикла по причине окончания кучи, вернем ноль
+		if((i+size) < HEAP_SIZE) { // If we break the loop before end
+			return (heap + i + 1); // вернем валидный указатель на начало массива
 		}
-		return (heap + i + 1); // Иначе вернем валидный указатель на начало массива
+		return NULL; // Иначе мы вышли из цикла по причине окончания кучи, вернем ноль
 	}
     return NULL;
 }

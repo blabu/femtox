@@ -96,6 +96,16 @@ void delCycleTask(BaseSize_t arg_n, CycleFuncPtr_t CallBack) {
     unlock((void*)Timers_Array);
 }
 
+// Warning! For information only
+// getCycleTaskFreeSize - works without lock so can return invalid value
+u08 getCycleTaskFreeSize() {
+	u08 n = 0;
+	for(; n<TIMERS_ARRAY_SIZE; n++) {
+		if(!Timers_Array[n].value) break; // empty timer meen cycle task list finished
+	}
+	return n;
+}
+
 #ifdef _PWR_SAVE
 extern volatile u32 _minTimeOut;
 u32 CycleService(void) {

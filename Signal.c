@@ -54,16 +54,17 @@ void emitSignal(const void *const signal, BaseSize_t arg_n, BaseParam_t arg_p) {
     }
 }
 
-void connectTaskToSignal(const TaskMng task, const void *const signal) {
+u08 connectTaskToSignal(const TaskMng task, const void *const signal) {
     for (u08 i = 0; i < SIGNAL_LIST_LEN; i++) {
         if (signalList[i] == NULL) {
             unlock_t unlock = lock(signalList);
             signalList[i] = (void *) signal;
             taskList[i] = task;
             unlock(signalList);
-            return;
+            return EVERYTHING_IS_OK;
         }
     }
+    return OVERFLOW_OR_EMPTY_ERROR;
 }
 
 void disconnectTaskFromSignal(const TaskMng task, const void *const signal) {
@@ -74,6 +75,14 @@ void disconnectTaskFromSignal(const TaskMng task, const void *const signal) {
             unlock(signalList);
         }
     }
+}
+
+u08 getFreeSignalSize() {
+	u08 n = 0;
+	for(u08 i=0; i<SIGNAL_LIST_LEN; i++) {
+		if(signalList[i] == NULL) n++;
+	}
+	return n;
 }
 
 #ifdef __cplusplus

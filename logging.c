@@ -126,16 +126,16 @@ static void sendUART3_buf(u08 c) {
 #endif
 
 #ifdef ARM_STM32
-#include <usbd_cdc_if.h>
+#include "UART2.h"
 
-#define ReceiveConsoleBuff ReceiveUSBPackageLabel
-#define readConsoleBuff readUSB
-#define setReceiveTimeoutConsole setReceiveTimeoutUSB
-#define _sendData writeUSB
-#define _sendByte writeSymbUSB
-#define _clearData clearUSB
-#define _enableData(baud)
-#define _disableData()
+#define ReceiveConsoleBuff ReceiveUART2NewPackageLabel
+#define readConsoleBuff readBufUART2
+#define setReceiveTimeoutConsole setReceiveTimeoutUART2
+#define _sendData sendCOM2_buf
+#define _sendByte sendUART2_buf
+#define _clearData clearRX2
+#define _enableData enableUART2
+#define _disableData disableUART2
 
 static u08 countEnableLogging = 0;
 
@@ -153,9 +153,9 @@ void enableLogging(void) {
     _enableData(115200);
     setReceiveTimeoutConsole(TICK_PER_SECOND>>1);
     writeLogStr("LOG: Enable logging");
-#ifdef SIGNALS_TASK
+	#ifdef SIGNALS_TASK
     connectTaskToSignal(readCMD, ReceiveConsoleBuff);
-#endif
+	#endif
 }
 
 void disableLogging(void){

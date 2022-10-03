@@ -101,4 +101,12 @@ void forEachCommand(cmdHandler_t handler) {
     lck((void*)commandList);
 }
 
+u08 getFreeCommandSize() {
+	u08 n = 0;
+	for(u08 i=0; i<COMMAND_TASK_LIST_SIZE; i++) {
+		if(commandList[i] == NULL) n++;
+	}
+	return n;
+}
+
 #endif
