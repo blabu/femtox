@@ -12,7 +12,7 @@
 #define DATA_STRUCT_MANAGER   /*Включаем работу с очередями средствами деспетчера*/
 #define CYCLE_FUNC  /*Разрешение работы циклически выполняемых программ в прерывании системного таймера*/
 //#define MUTEX_ENABLE /*Включаем поддержку мьютексов*/
-//#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
+#define MAXIMIZE_OVERFLOW_ERROR  /*При переполнении очереди задач и или таймеров система заглохнет (максимизация оибки)*/
 #define ALLOC_MEM   /*Включение динамического выделения памяти*/
 //#define ALLOC_MEM_LARGE 1   /*Включение динамического выделения памяти без ограничения размера*/
 //#define EVENT_LOOP_TASKS
@@ -20,7 +20,7 @@
 #define CLOCK_SERVICE
 #define GLOBAL_FLAGS
 #define CALL_BACK_TASK
-//#define SIGNALS_TASK
+#define SIGNALS_TASK
 //#define _LIST_STRUCT
 //#define _DYNAMIC_ARRAY
 //#define _PWR_SAVE
@@ -36,8 +36,8 @@
 //#define STANDART_MEMCPY_MEMSET
 //#define LOAD_STATISTIC /*Сколько времени мы находимся в IDLE процессе в сравнении с полным рабочим временем в секундах*/
 
-#define TASK_LIST_LEN 8U /*Длина очереди задач*/
-#define TIME_LINE_LEN 10U /*Максимальне количество системных таймеров*/
+#define TASK_LIST_LEN 10U /*Длина очереди задач*/
+#define TIME_LINE_LEN 20U /*Максимальне количество системных таймеров*/
 #define TIME_DELAY_IF_BUSY 5U /*Задержка на повторную попытку поставить задачу в очередь или захватить мьютекс*/
 
 #ifdef EVENT_LOOP_TASKS
@@ -45,7 +45,7 @@
 #endif
 
 #ifdef  DATA_STRUCT_MANAGER
-#define DATA_STRUCT_ArraySize 5 /*Общее количество всех структур данных*/
+#define DATA_STRUCT_ArraySize 8 /*Общее количество всех структур данных*/
 #endif
 
 #ifdef MUTEX_ENABLE
@@ -53,11 +53,11 @@
 #endif
 
 #ifdef CYCLE_FUNC
-#define TIMERS_ARRAY_SIZE 5
+#define TIMERS_ARRAY_SIZE 8
 #endif
 
 #ifdef ALLOC_MEM
-#define HEAP_SIZE 500UL /*6500*/
+#define HEAP_SIZE 9000UL /*6500*/
 //#define DEBUG_CHEK_ALLOCATED_MOMORY /*Проверка алоцированных указателей и освобожденной памяти*/
 #endif
 #ifdef ALLOC_MEM_LARGE
@@ -67,11 +67,11 @@
 
 #ifdef CALL_BACK_TASK
 //#define CHECK_ERRORS_CALLBACK
-#define CALL_BACK_TASK_LIST_LEN 10
+#define CALL_BACK_TASK_LIST_LEN 34
 #endif
 
 #ifdef SIGNALS_TASK
-#define SIGNAL_LIST_LEN 3
+#define SIGNAL_LIST_LEN 4
 #endif
 
 #ifdef _PWR_SAVE
@@ -83,7 +83,7 @@
 #endif
 
 #ifdef COMMAND_TASK
-#define COMMAND_TASK_LIST_SIZE 3
+#define COMMAND_TASK_LIST_SIZE 20
 #endif
 
 #ifdef USE_SOFT_UART

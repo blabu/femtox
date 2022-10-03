@@ -68,8 +68,10 @@ extern "C" {
  * V1.5.1    - Add json don't tested yet
  * V1.5.2    - Add const qualifier in local variables
  * V1.5.3    - Add enableLogging and disableLogging= standart command
+ * V1.5.4    - Rewrite command line tool
+ * V1.5.5    - Add function to get free size of callbacks, signals and cycle tasks
  * */
-const char* const _osVersion = "V1.5.3";
+const char* const _osVersion = "V1.5.5";
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
 
 static void TaskManager(void);

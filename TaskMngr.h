@@ -161,6 +161,7 @@ bool_t CASBool(bool_t* value, bool_t expected, bool_t needed);
 */
 void SetCycleTask(Time_t time, CycleFuncPtr_t CallBack, bool_t flagToQueue); // toManager == 0(false) выполняется прям в прерывании
 void delCycleTask(BaseSize_t arg_n, CycleFuncPtr_t CallBack);
+u08 getCycleTaskFreeSize();
 #endif //CYCLE_FUNC
 
 #ifdef GLOBAL_FLAGS
@@ -235,6 +236,7 @@ void deleteCallBack(const BaseSize_t arg_n, const void*const labelPtr);
 void deleteCallBackByTask(TaskMng task);
 u08 changeCallBackLabel(const void* oldLabel, const void*const newLabel);
 void clearAllCallBackList(void);
+u08 getCallBackFreeListSize();
 #endif
 
 #ifdef SIGNALS_TASK
@@ -242,9 +244,10 @@ void clearAllCallBackList(void);
 Сигнал - это метка. В процессе генерации сигнала формируются параметры которые будут переданы все подписанным на сигнал функциям
 При вызове подписанного на сигнал task-а параметры для него передает сигнал, а задача из списка НЕ УДАЛЯЕТСЯ.
 */
-void connectTaskToSignal(const TaskMng task, const void*const signal);
+u08 connectTaskToSignal(const TaskMng task, const void*const signal);
 void disconnectTaskFromSignal(const TaskMng task, const void*const signal);
 void emitSignal(const void*const signal, BaseSize_t arg_n, BaseParam_t arg_p);
+u08 getFreeSignalSize();
 #endif
 
 #ifdef COMMAND_TASK
@@ -261,6 +264,8 @@ u08 addTaskCommand(TaskMng tsk, string_t command, string_t description);
 u08 execCommand(string_t input);
 
 u08 execWithSubCommand(string_t command, BaseSize_t subCmdCount, string_t subCommands);
+
+u08 getFreeCommandSize();
 
 void forEachCommand(cmdHandler_t handler);
 
@@ -293,11 +298,5 @@ void UARTTimerISR(void); // Само прерывание
 #define init_Mng()	initFemtOS()
 #define CreateTask(New_Task, n, data)  SetTask((TaskMng)New_Task, (BaseSize_t)n, (BaseParam_t)data)
 #define CreatePriorityTask(New_Task, n, data) SetFrontTask((TaskMng)New_Task, (BaseSize_t)n, (BaseParam_t)data)
-
-#define everyTimeRunInCoroutine if(TRUE)
-#define startCoroutine(_variable)   switch(_variable){ case 0:
-#define yieldCoroutine(_constParam) do{break; case (_constParam):;}while(0)
-#define finishCoroutine(_variable)  do{_variable = 0xFF; break; default:;}while(0)
-#define stopCoroutine() }
 
 #endif/*Task_Manager*/
