@@ -20,10 +20,12 @@ unlock_t lock(const void*const resourceId);
 
 #define WATCH_DOG_ON  initWatchDog()/*Генерируем Reset*/
 #define TICK_PER_SECOND 100UL /*Колличество тиков в секунду*/
+#define APB_CLK 72*MHZ
 
 void _init_Timer(void);	// Инициализация таймера 0, настройка прерываний каждую 1 мс, установки начальных значений для массива таймеров
 
-#ifdef USE_SOFT_UART
+void idle();
+
 /*
  * Для программного UART
  * Все програмные UART задействует прерывания одного таймера
@@ -34,10 +36,9 @@ void _initTimerSoftUart();
 void initProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK);
 void _deInitTimerSoftUart();
 void deInitProgramUartGPIO(unsigned short TX_MASK, unsigned short RX_MASK);
-
+extern TIM_HandleTypeDef TIM7InitStruct;
 #define TX_PORT   GPIOA
 #define RX_PIN    GPIOA
-extern TIM_HandleTypeDef TIM7InitStruct;
 #define ENABLE_UART_TIMER_ISR  __HAL_TIM_ENABLE_IT(&TIM7InitStruct,TIM_IT_UPDATE)
 #define DISABLE_UART_TIMER_ISR __HAL_TIM_DISABLE_IT(&TIM7InitStruct,TIM_IT_UPDATE)
 #define START_TIMER			   __HAL_TIM_ENABLE(&TIM7InitStruct)
@@ -46,8 +47,6 @@ extern TIM_HandleTypeDef TIM7InitStruct;
 #define READ_RX_PIN(PORT,PIN_MASK)  HAL_GPIO_ReadPin(PORT, PIN_MASK)
 #define WRITE_TX_PIN(PORT,PIN_MASK) HAL_GPIO_WritePin(PORT,PIN_MASK,GPIO_PIN_SET)
 #define CLEAR_TX_PIN(PORT,PIN_MASK) HAL_GPIO_WritePin(PORT,PIN_MASK,GPIO_PIN_RESET)
-
-#endif //USE_SOFT_UART
 
 #endif
 #endif // PLATFORMSPECIFIC_ARM
