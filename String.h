@@ -24,6 +24,9 @@ s16 findStr(const string_t small, const string_t big);
 // Если не найдет вернет отрицательное число
 s16 findSymb(const char symb, const string_t c_str);
 
+// containsAny - returns whether if any symbol from the symbolList exists in the target string
+bool_t containsAny(string_t symbolList, string_t target);
+
 // Добавляет к строке str1 строку str2
 // Размер строки str1 должен уместить str2
 void strCat(string_t c_str1, const string_t c_str2);
@@ -94,7 +97,7 @@ void fillRightStr(u16 size, const string_t str, char symb);
 //Вернет размер строки
 BaseSize_t strSize(const string_t c_str);
 
-/*
+/* *
  * Пока поддерживаются
  * %B, unsigned u08
  * %I, unsigned u16

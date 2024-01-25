@@ -33,22 +33,24 @@ extern "C" {
 /*
 small - строка, которую ищут
 big  - строка, в которой ищут
+returns the position of the first character from the substring in the target string
 */
 s16 findStr(const string_t small, const string_t big){
-	if(small != NULL && big != NULL) {
-		register BaseSize_t i = 0, j=0;
-		while(small[j] != END_STRING && big[i] != END_STRING) { // перебираем строки в которых ишем
-			if(big[i] == small[j]){   // Если текущий символ исходной строки совпал с первым символом сравниваемой строки
-				if(small[j+1] == END_STRING) return (i-j);    // Если все символы совпали и шли друг за другом
-				j++;                      // Увеличиваем счетчик совпавших символов
-			}
-			else if(j){	j=0; continue; }
-			i++;
-		}
-		return -1;
-	}
+    if(small != NULL && big != NULL) {
+        register BaseSize_t i = 0, j=0;
+        while(small[j] != END_STRING && big[i] != END_STRING) { // перебираем строки в которых ишем
+            if(big[i] == small[j]){   // Если текущий символ исходной строки совпал с первым символом сравниваемой строки
+                if(small[j+1] == END_STRING) return (i-j);    // Если все символы совпали и шли друг за другом
+                j++;                      // Увеличиваем счетчик совпавших символов
+            }
+            else if(j){ i-=j; j=0; } // otherwise let's start compare the small string with the next symbol after this case was failed
+            i++;
+        }
+        return -1;
+    }
     return -1;
 }
+
 
 bool_t startWith(const string_t str, const string_t starts) {
 	BaseSize_t i = 0;
@@ -137,6 +139,21 @@ char* myStrcpy (string_t destination, const string_t source) {
 void strClear(string_t str){
 	if(str == NULL) return;
 	str[0]='\0';
+}
+
+// containsAny - returns whether if any symbol from the symbolList exists in the target string
+bool_t containsAny(const string_t symbolList, const string_t target) {
+    if(symbolList != NULL && target != NULL) {
+        BaseSize_t i = 0;
+        while(target[i] != END_STRING) {
+            if(findSymb(target[i], symbolList) > 0) {
+                return TRUE;
+            }
+            i++;
+            if(!i) return FALSE; // Произошло переполнения (строка слишком длинная)
+        }
+    }
+    return FALSE;
 }
 
 // Вернет кол-во замен (в строке c_str, но не больше размера size, если size==0 тогда до конца строки)
