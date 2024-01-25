@@ -97,7 +97,7 @@ void fillRightStr(u16 size, const string_t str, char symb);
 //Вернет размер строки
 BaseSize_t strSize(const string_t c_str);
 
-/* *
+/**
  * Пока поддерживаются
  * %B, unsigned u08
  * %I, unsigned u16
