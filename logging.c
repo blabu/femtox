@@ -327,8 +327,17 @@ static void sizeMemHandler() {
 }
 
 static void tasksHandler(){
-	writeLogWithStr("LOG: Free position in task list ", getFreePositionForTask());
-	writeLogWithStr("LOG: Free position in timers list ", getFreePositionForTimerTask());
+	writeLogWithStr("LOG: Free position in task list:", getFreePositionForTask());
+	writeLogWithStr("LOG: Free position in timers list:", getFreePositionForTimerTask());
+	#ifdef CALL_BACK_TASK
+	writeLogWithStr("LOG: Free position in callBack list:", getCallBackFreeListSize());
+	#endif
+	#ifdef SIGNALS_TASK
+	writeLogWithStr("LOG: Free position in signal list:", getFreeSignalSize());
+	#endif
+	#ifdef CYCLE_FUNC
+	writeLogWithStr("LOG: Free position in cyclic list:", getCycleTaskFreeSize());
+	#endif
 	execCallBack(tasksHandler);
 }
 

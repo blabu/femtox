@@ -143,7 +143,7 @@ u08 changeCallBackLabel(const void*const oldLabel, const void*const newLabel){
 u08 getCallBackFreeListSize() {
 	u08 n = 0;
 	for(u08 i = 0; i<CALL_BACK_TASK_LIST_LEN; i++) {
-		if(labelPointer[i] != NULL) n++;
+		if(labelPointer[i] == NULL) n++;
 	}
 	return n;
 }
