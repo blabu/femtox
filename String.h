@@ -1,4 +1,4 @@
-#ifndef MY_STRING_H
+#ifndef _STRING_H
 #define _STRING_H
 #include "FemtoxTypes.h"
 
@@ -115,4 +115,4 @@ BaseSize_t strSize(const string_t c_str);
  * */
 void Sprintf(const string_t result, const string_t paternStr, void** params);
 
-#endif // MY_STRING_H
+#endif // _STRING_H
