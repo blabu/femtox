@@ -1,4 +1,4 @@
-#ifndef MY_STRING_H
+#ifndef _STRING_H
 #define _STRING_H
 #include "FemtoxTypes.h"
 
@@ -23,6 +23,9 @@ s16 findStr(const string_t small, const string_t big);
 // Ищет символ symb в строке c_str
 // Если не найдет вернет отрицательное число
 s16 findSymb(const char symb, const string_t c_str);
+
+// containsAny - returns whether if any symbol from the symbolList exists in the target string
+bool_t containsAny(string_t symbolList, string_t target);
 
 // Добавляет к строке str1 строку str2
 // Размер строки str1 должен уместить str2
@@ -94,7 +97,7 @@ void fillRightStr(u16 size, const string_t str, char symb);
 //Вернет размер строки
 BaseSize_t strSize(const string_t c_str);
 
-/*
+/**
  * Пока поддерживаются
  * %B, unsigned u08
  * %I, unsigned u16
@@ -112,4 +115,4 @@ BaseSize_t strSize(const string_t c_str);
  * */
 void Sprintf(const string_t result, const string_t paternStr, void** params);
 
-#endif // MY_STRING_H
+#endif // _STRING_H
