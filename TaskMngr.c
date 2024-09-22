@@ -73,6 +73,7 @@ extern "C" {
  * V1.5.6    - Small fix in the string library (findStr didn't work properly in some cases)
  * */
 const char* const _osVersion = "V1.5.6";
+
 const BaseSize_t _MAX_BASE_SIZE = (1LL<<(sizeof(BaseSize_t)<<3))-1;
 
 static void TaskManager(void);
