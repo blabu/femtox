@@ -437,7 +437,7 @@ static byte_ptr _allocMem(const u08 size) { //size - до 127 размер бл�
 		}
 		unlock(heap);
 		if((i+size) < HEAP_SIZE) { // If we break the loop before end
-			return (heap + i + 1); // вернем валидный указатель на начало массива
+			return (heap+i+1); // вернем валидный указатель на начало массива
 		}
 	}
     return NULL;

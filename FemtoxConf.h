@@ -1,4 +1,3 @@
-
 /*
  * FemtoxConf.h
  *
@@ -13,7 +12,9 @@
 
 #include "platform.h"
 #ifdef ARM_STM32
-#include "FemtoxConf_STM32F103_relay.h"
+//#include "FemtoxConf_STM32F103_relay.h"
+#include "FemtoxConf_STM32L152RB.h"
+//#include "FemtoxConf_STM32L152RE.h"
 #endif
 #ifdef _X86
 #include "FemtoxConf_X86.h"

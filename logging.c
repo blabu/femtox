@@ -197,8 +197,8 @@ void writeLogWithStr(const string_t c_str, u32 n) {
     _sendData(0, (byte_ptr)c_str);
     u08 size = strSize(str);
     for (u08 i = 0; i < size; i++) _sendByte(str[i]);
-    _sendByte('/r');
-    _sendByte('/n');
+    _sendByte((u08)'\r');
+    _sendByte((u08)'\n');
 }
 
 void writeLogStr(const string_t c_str) {
@@ -353,10 +353,10 @@ static void timeHandler() {
 }
 
 static void clearScreenHandler() {
-    for(u08 i = 0; i<50; i++) {
+    for(u08 i = 0; i<70; i++) {
         writeSymb('\n');
-        writeSymb('\r');
     }
+    writeSymb('\r');
     execCallBack(clearScreenHandler);
 }
 

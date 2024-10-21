@@ -36,7 +36,7 @@ SOFTWARE.
 extern "C" {
 #endif
 #ifdef CALL_BACK_TASK
-#if CALL_BACK_TASK_LIST_LEN > 0xFE
+#if CALL_BACK_TASK_LIST_LEN > 0xFF
 #error "incompatible size"
 #endif
 

@@ -1,0 +1,41 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/Femtox.dir/CallBackSubsystem.c.o"
+  "CMakeFiles/Femtox.dir/CycleTaskSubsystem.c.o"
+  "CMakeFiles/Femtox.dir/DataStructs.c.o"
+  "CMakeFiles/Femtox.dir/EventSubsystem.c.o"
+  "CMakeFiles/Femtox.dir/GlobalFlagsUnit.c.o"
+  "CMakeFiles/Femtox.dir/List.c.o"
+  "CMakeFiles/Femtox.dir/MatrWork.c.o"
+  "CMakeFiles/Femtox.dir/MemoryUnit.c.o"
+  "CMakeFiles/Femtox.dir/MutexSubsystem.c.o"
+  "CMakeFiles/Femtox.dir/PlatformSpecific.c.o"
+  "CMakeFiles/Femtox.dir/PlatformSpecificARM.c.o"
+  "CMakeFiles/Femtox.dir/PlatformSpecificARM_STM32L152.c.o"
+  "CMakeFiles/Femtox.dir/PlatformSpecificARM_stm32f103.c.o"
+  "CMakeFiles/Femtox.dir/PlatformSpecificESP32.c.o"
+  "CMakeFiles/Femtox.dir/PlatformSpecificMSP430.c.o"
+  "CMakeFiles/Femtox.dir/PlatformSpecificPico2040.c.o"
+  "CMakeFiles/Femtox.dir/PlatformSpecificSceleton.c.o"
+  "CMakeFiles/Femtox.dir/PlatformSpecificX86.cpp.o"
+  "CMakeFiles/Femtox.dir/PlatformSpecific_MSP430G2272.c.o"
+  "CMakeFiles/Femtox.dir/PlatformSpecific_stm32f103_relay.c.o"
+  "CMakeFiles/Femtox.dir/ProgrammUART.c.o"
+  "CMakeFiles/Femtox.dir/ProgrammUART_ARM.c.o"
+  "CMakeFiles/Femtox.dir/ProgrammUART_MSP430.c.o"
+  "CMakeFiles/Femtox.dir/Signal.c.o"
+  "CMakeFiles/Femtox.dir/String.c.o"
+  "CMakeFiles/Femtox.dir/TaskMngr.c.o"
+  "CMakeFiles/Femtox.dir/TimeSubsystem.c.o"
+  "CMakeFiles/Femtox.dir/cmdTask.c.o"
+  "CMakeFiles/Femtox.dir/crypt.c.o"
+  "CMakeFiles/Femtox.dir/dynArray.c.o"
+  "CMakeFiles/Femtox.dir/jsmn.c.o"
+  "CMakeFiles/Femtox.dir/logging.c.o"
+  "libFemtox.a"
+  "libFemtox.pdb"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang C CXX)
+  include(CMakeFiles/Femtox.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

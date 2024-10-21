@@ -37,7 +37,7 @@ extern "C" {
 #endif
 
 #if SIGNAL_LIST_LEN > 0xFF
-#error "SIGNAL MUST BE LESS 0xFF"
+#error "SIGNAL LIST LENGTH SHOULD BE LESS THAN 255 ITEMS"
 #endif
 
 volatile static TaskMng taskList[SIGNAL_LIST_LEN];
