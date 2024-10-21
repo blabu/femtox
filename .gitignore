@@ -7,4 +7,5 @@ Debug/*
 .idea
 .idea/*
 cmake-bui*
-
+build
+build/*
