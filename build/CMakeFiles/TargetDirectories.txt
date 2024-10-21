@@ -1,3 +1,0 @@
-/home/oleksii_khanin/proj/C/femtox/build/CMakeFiles/rebuild_cache.dir
-/home/oleksii_khanin/proj/C/femtox/build/CMakeFiles/edit_cache.dir
-/home/oleksii_khanin/proj/C/femtox/build/CMakeFiles/Femtox.dir
