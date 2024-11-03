@@ -3,6 +3,10 @@ set(PROJ_NAME Femtox)
 
 project(${PROJ_NAME})
 
+# Set C++ standard (optional)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+
 file(GLOB SRC "${CMAKE_CURRENT_SOURCE_DIR}/*.c*")
 
 add_library(${PROJ_NAME} STATIC ${SRC})

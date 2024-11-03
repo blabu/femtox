@@ -129,7 +129,7 @@ void forEachDataStruct(const void* const Array, TaskMng tsk);
 // Создание очереди вернет ноль если очередь успешно создана
 #define CreateQ(Q, sizeElement, sizeAll)    CreateDataStruct((void*)(Q), (BaseSize_t)(sizeElement), (BaseSize_t)(sizeAll))
 // Положить элемент по указателю Elem в очередь Queue
-#define PutToBackQ(Elem, Queue) PutToEndDataStruct((void*)(Elem), (void*)(Queue))
+#define PutToBackQ(Elem, Queue) PutToEndDataStruct((const void*)(Elem), (const void*)(Queue))
 // Достать єлемент из очереди и записать его по указателю returnValue
 #define GetFromQ(returnValue, Queue)   GetFromFrontDataStruct((void*)(returnValue), (const void*)(Queue))
 #define DelFromQ(Queue) delFromFrontDataStruct((const void*)(Queue))

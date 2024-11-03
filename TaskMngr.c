@@ -37,23 +37,23 @@ extern "C" {
  * V1.0.2   - Add signals and slot
  * V1.1.0   - Add power save mode for OS
  * V1.3.1   - Fix datastruct module
- * V1.3.2   - Fix FOREACH algoritm for datastructs
+ * V1.3.2   - Fix FOREACH algorithm for datastructs
  * V1.3.3   - MyString module has Sprintf
  * V1.3.4.2 - MaximizeErrorHandler now receive a string
  * V1.3.4.5 - Fix some bugs
- * V1.4.0.0 - Add lock and unlock function instead INTERRUPT_ENABLE, INTERRUPT_DISABLE (for x86 perfomance upgrade)
+ * V1.4.0.0 - Add lock and unlock function instead INTERRUPT_ENABLE, INTERRUPT_DISABLE (for x86 performance upgrade)
  * V1.4.1.0 - Add macros ENABLE_LOGGING if logging not need
  * V1.4.2    - Add large memory manager
  * V1.4.3    - Small changes in datastruct manager
  * V1.4.3.1  - Small add volatile qualificators in all global data
  * V1.4.4    - Fix power save bugs
- * V1.4.4.1  - Technical version (fix bug in MSP430 powersave mode with NATIVE_TIMER_PWR_SAVE)
- * V1.4.4.2  - Techinical commit
- * V1.4.4.3  - Small fixes timer interrupt (add clean interrupt flag instrution) + small optimiztion with strings
+ * V1.4.4.1  - Technical version (fix bug in MSP430 power save mode with NATIVE_TIMER_PWR_SAVE)
+ * V1.4.4.2  - Technical commit
+ * V1.4.4.3  - Small fixes timer interrupt (add clean interrupt flag instruction) + small optimization with strings
  * V1.4.4.4  - Fix Sprintf in MyString for print float
  * V1.4.5.0  - Add loadAverage in OS (not tested yet)
  * V1.4.5.1  - Add compiler specific attributes
- * V1.4.5.2  - Change load avarage coefficient
+ * V1.4.5.2  - Change load average coefficient
  * V1.4.5.3  - Delete double blocking timer queue in power save mode + fix bug in PlatformSpecificMSP in power save mode
  * V1.4.5.4  - Add Readme.md, Now compiled in Visual Studio
  * V1.4.5.5  - Add defragmentation function when allocMem fail and try again
@@ -67,7 +67,7 @@ extern "C" {
  * V1.5.0    - Add command list module
  * V1.5.1    - Add json don't tested yet
  * V1.5.2    - Add const qualifier in local variables
- * V1.5.3    - Add enableLogging and disableLogging= standart command
+ * V1.5.3    - Add enableLogging and disableLogging= standard command
  * V1.5.4    - Rewrite command line tool
  * V1.5.5    - Add function to get free size of callbacks, signals and cycle tasks
  * V1.5.6    - Small fix in the string library (findStr didn't work properly in some cases)
@@ -154,7 +154,7 @@ extern void initCallBackTask(void);
 #endif
 
 #ifndef TIME_LINE_LEN
-#error "TIME_LINE_LEN error (Не определена длина списка таймеров)"
+#error "TIME_LINE_LEN error (Time list length not defined)"
 #endif
 
 #if TIME_LINE_LEN > 0xFE
@@ -537,7 +537,7 @@ u08 getFreePositionForTimerTask(void) {
 	return TIME_LINE_LEN - _lastTimerIndex;
 }
 
-#ifndef STANDART_MEMCPY_MEMSET
+#ifndef STANDARD_MEMCPY_MEMSET
 //destination - адрес в памяти КУДА копируем source - адрес в памяти ОТКУДА копируем n - количество БАЙТ копируемых
 void memCpy(void* destination, const void* source, const BaseSize_t num) {
 #if ARCH == 64
@@ -590,7 +590,7 @@ void memSet(void* destination, const BaseSize_t size, const u08 value) {
 		(byte_ptr)destination++;
 	}
 }
-#else
+#else // #ifdef STANDARD_MEMCPY_MEMSET
 #include <string.h>
 void memSet(void* destination, const BaseSize_t size, const u08 value) {
     memset(destination, value, size);

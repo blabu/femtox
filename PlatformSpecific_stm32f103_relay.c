@@ -6,6 +6,7 @@
  */
 
 #include "PlatformSpecific.h"
+#ifdef ARM_STM32
 #include "stm32f1xx.h"
 #include "stm32f1xx_hal.h"
 #include "TaskMngr.h"
@@ -86,3 +87,4 @@ static void timInit(void) { //APB1 72 MHz
 void _init_Timer(void) {
 	timInit();
 }
+#endif // ARM_STM32

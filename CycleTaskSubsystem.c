@@ -101,9 +101,9 @@ void delCycleTask(BaseSize_t arg_n, CycleFuncPtr_t CallBack) {
 u08 getCycleTaskFreeSize() {
 	u08 n = 0;
 	for(; n<TIMERS_ARRAY_SIZE; n++) {
-		if(!Timers_Array[n].value) break; // empty timer meen cycle task list finished
+		if(!Timers_Array[n].value) break; // empty timer mean cycle task list finished
 	}
-	return n;
+	return TIMERS_ARRAY_SIZE-n;
 }
 
 #ifdef _PWR_SAVE

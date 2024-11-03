@@ -44,7 +44,7 @@ typedef struct {
 	BaseSize_t size;
 	string_t comment;
 } allocateDescriptor_t;
-#define MAX_DESCRIPTORS 3000
+#define MAX_DESCRIPTORS 300
 static allocateDescriptor_t descriptor[MAX_DESCRIPTORS];
 static u16 findDescriptor(const byte_ptr pointer) {
 	u16 i = 0;

@@ -35,7 +35,7 @@
 #define COMMAND_TASK
 #define MATH_SUBSYSTEM
 //#define NEED_MATRIX
-//#define STANDART_MEMCPY_MEMSET
+//#define STANDARD_MEMCPY_MEMSET
 //#define LOAD_STATISTIC /*Сколько времени мы находимся в IDLE процессе в сравнении с полным рабочим временем в секундах*/
 
 #define TASK_LIST_LEN 10U /*Длина очереди задач*/

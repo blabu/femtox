@@ -1,3 +1,32 @@
+/*
+To compile and run x86 application:
+ 1. Build femtox library by cmake utility in the project folder: `cmake --build $(pwd)/build --config Debug --target all -j 10 --`
+    This command will create a `build` folder with makefile
+ 2. Execute `make` command inside `build` folder
+    This command will create a new libFemtox.a static library that can be used in you C++ or C application
+ 3. For the simplest example, please create a `main.cpp` file with following minimal code:
+        extern "C" {
+        #include "../TaskMngr.h"
+        #include "../PlatformSpecific.h"
+        }
+        #include <iostream>
+
+        void hello() {
+            std::cout<<"hello workd"<<std::endl;
+        }
+
+        int main() {
+            initFemtOS();
+            SetCycleTask(TICK_PER_SECOND, hello, FALSE);
+            std::cout<<"run femtos"<<std::endl;
+            runFemtOS();
+            return 0;
+        }
+
+ 4. Execute compile command inside `build` folder `g++ -o main main.cpp -L$(pwd) -lFemtox -lpthread -static -v` 
+ 5. Optional `chmod u+x ./main` to make your program executable
+ 6. Now you can execute your program: `./main`
+*/
 #include "platform.h"
 #ifdef _X86
 #ifdef _MSVC_LANG
@@ -21,8 +50,9 @@ extern "C" {
 	#include "logging.h"
 }
 
-
+extern "C" {
 extern void TimerISR();
+}
 
 #ifdef MAXIMIZE_OVERFLOW_ERROR
 void MaximizeErrorHandler(string_t str){
@@ -90,14 +120,13 @@ unlock_t lock(const void*const resourceId) {
 	// lock1 - неэффективный по скорости, но надежный и простой на все ресурсы ОДИН примитив синхронизации
 	// lock2 - эффективный по скорости (для каждого ресурса свой мьютекс) Но сложнее, занимает больше места
 	// lock3 - пустішка для проверки скорости
-	return lock2(resourceId);
+	return lock1(resourceId);
 }
 
 static void __timer() {
 	const std::chrono::nanoseconds timeBase =  std::chrono::nanoseconds(1000000000ULL/TICK_PER_SECOND);
 	std::chrono::nanoseconds dT = std::chrono::nanoseconds(0);
 	while(1) {
-		writeSymb('*');
 		auto tStart = std::chrono::steady_clock::now();
 		TimerISR();
 		dT += (std::chrono::steady_clock::now() - tStart);
@@ -108,7 +137,7 @@ static void __timer() {
 			dT = dT2-(timeBase-dT);
 		}
 		else { // Произошел пропуск прерывания
-			writeSymb('?');
+			writeSymb('!');
 			dT -= timeBase;
 		}
 	}

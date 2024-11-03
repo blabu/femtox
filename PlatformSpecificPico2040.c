@@ -1,4 +1,5 @@
 #include "PlatformSpecific.h"
+#ifdef PICO2040
 #include <pico/stdlib.h>
 #include <pico/sync.h>
 #include <hardware/watchdog.h>
@@ -98,3 +99,4 @@ unlock_t lock(const void*const resourceId) {
 	
 	return unlock;
 }
+#endif // PICO2040

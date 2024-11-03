@@ -29,11 +29,11 @@ SOFTWARE.
  *      Author: oleksiy.khanin
  */
 
-#include <String.h>
-#include "PlatformSpecific.h" // for _X86
+#include "String.h"
 #include "TaskMngr.h"
 #include "logging.h"
-
+#include "ProgrammSerial_x86.h"
+#include "PlatformSpecific.h" // for _X86
 
 #ifdef __cplusplus
 extern "C" {
@@ -72,56 +72,42 @@ void writeSymb(char symb) {}
 #ifdef ENABLE_LOGGING
 
 #ifdef _X86
+void _enableData(u32 baud) {}
+void _disableData() {}
+void disableLogging() {}
 
-#include <stdio.h>
-
-u32 sizeRx3Buffer() {return 0;}
-void* ReceiveUART3NewPackageLabel = (void*)sizeRx1Buffer;
-void readBufUART3(BaseSize_t size, byte_ptr data) {}
-void setReceiveTimeoutUART3(u16 time) {}
-
-
-#define LOCAL_MUTEX 1<<7
-
-#ifdef __unix__
-#define fprintf_s fprintf
-#endif
-
-//#define TO_FILE
-void enableUART3(u32 baud) {}
-
-void disableUART3() {}
-
-#ifdef TO_FILE
-FILE* file;
-#define F_OPEN(_file, _filename , _flags)  fopen_s( (FILE**)(_file), (char const*)(_filename), (char const*)(_flags))
-#else
-#define file stdout
-#define F_OPEN(_file, _filename, _flags) ;
+#ifdef SIGNALS_TASK
+static void readCMD(BaseSize_t count, BaseParam_t arg);
 #endif
 
 void enableLogging() {
-    F_OPEN(&file, (string_t) "log.txt", (string_t) "wt");
+    initSerial(0);
+	#ifdef SIGNALS_TASK
+    connectTaskToSignal(readCMD, ReceiveNewPackageLabel);
+	#endif
 }
 
-static void sendCOM3_buf(u08 size, byte_ptr data) {
-    GET_MUTEX(LOCAL_MUTEX, sendCOM3_buf, size, data);
-    if (size == 0) fprintf_s(file, "%s", data);
-    else {
-        for (u08 i = 0; i < size; i++) {
-            fprintf_s(file, "%x ", data[i]);
-        }
-    }
-    fflush(file);
-    FREE_MUTEX(LOCAL_MUTEX);
+static void _sendData(u08 size, byte_ptr data) {
+    sendBuf(size, data);
 }
 
-static void sendUART3_buf(u08 c) {
-    GET_MUTEX(LOCAL_MUTEX, sendUART3_buf, c, NULL);
-    fprintf_s(file, "%c", c);
-    fflush(file);
-    FREE_MUTEX(LOCAL_MUTEX);
+static void _sendByte(u08 c) {
+    sendByte(c);
 }
+
+static void _clearData() {
+	clearBuf();
+}
+
+void readConsoleBuff(BaseSize_t sz, BaseParam_t buff){
+	readBuf(sz, buff);
+}
+
+void setReceiveTimeoutConsole(u16 tick) {
+	setReceiveTimeoutSerial(tick);
+}
+
+#define ReceiveConsoleBuff ReceiveNewPackageLabel
 
 #endif
 
@@ -294,6 +280,7 @@ void writeLogByteArray(u08 sizeBytes, byte_ptr array){
     writeLogStr(str);
 }
 #endif // ALLOC_MEM
+
 #ifdef ALLOC_MEM_LARGE
 void writeLogByteArray(BaseSize_t sizeBytes, byte_ptr array) {
     static string_t str = NULL;
