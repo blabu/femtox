@@ -1,0 +1,118 @@
+
+<!DOCTYPE html>
+<html>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);font-size:14px;color:var(--color-text-primary);padding:1rem 0}
+h2{font-size:18px;font-weight:500;margin-bottom:1rem}
+h3{font-size:15px;font-weight:500;margin:1.5rem 0 0.5rem}
+.section{margin-bottom:2rem}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;margin-right:6px;vertical-align:middle}
+.critical{background:var(--color-background-danger);color:var(--color-text-danger)}
+.warning{background:var(--color-background-warning);color:var(--color-text-warning)}
+.info{background:var(--color-background-info);color:var(--color-text-info)}
+.issue{border-left:3px solid var(--color-border-primary);padding:10px 14px;margin-bottom:10px;border-radius:0 6px 6px 0;background:var(--color-background-secondary)}
+.issue.c{border-color:#E24B4A}
+.issue.w{border-color:#BA7517}
+.issue.i{border-color:#378ADD}
+.issue-title{font-weight:500;margin-bottom:4px;font-size:14px}
+.issue-body{color:var(--color-text-secondary);font-size:13px;line-height:1.6}
+code{font-family:var(--font-mono);font-size:12px;background:var(--color-background-tertiary);padding:1px 5px;border-radius:3px}
+.improve{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;margin-bottom:8px;background:var(--color-background-secondary);border-radius:8px}
+.improve-num{font-size:13px;font-weight:500;color:var(--color-text-info);min-width:24px}
+.improve-body{font-size:13px;color:var(--color-text-secondary);line-height:1.6}
+.improve-body strong{color:var(--color-text-primary);font-weight:500}
+hr{border:none;border-top:1px solid var(--color-border-tertiary);margin:1.5rem 0}
+</style>
+<div class="section">
+  <h2>Femtox — code review</h2>
+
+  <h3><span class="badge critical">Critical</span> Bugs &amp; safety issues</h3>
+
+  <div class="issue c">
+    <div class="issue-title">1. Race condition: <code>_lastTimerIndex</code> modified in both ISR and task context without full lock</div>
+    <div class="issue-body">
+      <code>TimerService()</code> (called from <code>TimerISR</code>) decrements <code>_lastTimerIndex</code> and swaps array entries while holding the <code>MainTime</code> lock — but <code>SetTimerTask()</code> can run concurrently on a single-core MCU if an interrupt fires mid-execution <em>after</em> the <code>lock()</code> call but before <code>_lastTimerIndex++</code>. On MSP430 and ARM Cortex-M without PRIMASK, the lock may be a no-op or the critical section may be too narrow, leading to two writers stomping the same slot. Worst case: a timer entry is silently dropped or an expired timer fires with corrupted arguments.
+    </div>
+  </div>
+
+  <div class="issue c">
+    <div class="issue-title">2. <code>validateMemory()</code> always returns <code>TRUE</code> — logic is inverted</div>
+    <div class="issue-body">
+      In <code>MemoryUnit.c</code>, the function returns <code>TRUE</code> immediately when <code>blocSize</code> is non-zero (line ~310), then tries to accumulate <code>i</code> — but the early <code>return TRUE</code> means the loop body that checks <code>i > HEAP_SIZE</code> is <em>never reached</em>. The function is entirely useless as a validation tool and will hide heap corruption in production.
+    </div>
+  </div>
+
+  <div class="issue c">
+    <div class="issue-title">3. <code>delAllTask()</code> has a broken spin-loop that can hang forever</div>
+    <div class="issue-body">
+      The implementation is <code>while(countBegin != countEnd) { countBegin = countEnd = 0; }</code>. Setting both to 0 makes the condition false immediately on the first iteration — the loop is harmless but the guard is pointless. More critically, this is called without any lock, so if the scheduler is running, it can race with <code>SetTask</code> from an ISR to produce a half-zeroed queue state. Should simply be an atomic <code>countBegin = countEnd = 0</code> inside a critical section.
+    </div>
+  </div>
+
+  <div class="issue c">
+    <div class="issue-title">4. <code>ALLOC_MEM</code> heap: <code>freeMem()</code> does not update <code>sizeAllFreeMemmory</code></div>
+    <div class="issue-body">
+      When a block is freed, the accounting variable is never incremented. <code>getFreeMemmorySize()</code> therefore always reads stale data and triggers a spurious <code>defragmentation()</code> on every call once any memory has been freed. On constrained MCUs this wastes CPU time proportional to heap size.
+    </div>
+  </div>
+
+  <div class="issue c">
+    <div class="issue-title">5. <code>getTick()</code> spin-read on multi-byte volatile is not atomic on 8/16-bit targets</div>
+    <div class="issue-body">
+      <code>GlobalTick</code> is a multi-byte type read with <code>while(time_res != GlobalTick) time_res = GlobalTick</code>. On AVR or MSP430 (8/16-bit buses), reading a 32-bit value is not atomic even with this retry loop — the ISR can fire between the high and low byte reads. The result is a silently inconsistent tick value, which can corrupt timer scheduling.
+    </div>
+  </div>
+
+  <hr>
+  <h3><span class="badge warning">Warning</span> Significant problems</h3>
+
+  <div class="issue w">
+    <div class="issue-title">6. Power-save mode: recursive <code>TimerISR()</code> call inside <code>SetTimerTask()</code></div>
+    <div class="issue-body">
+      When <code>_PWR_SAVE</code> is active and a new timer is shorter than the current <code>_minTimeOut</code>, <code>SetTimerTask</code> calls <code>TimerISR()</code> directly from task context. This is dangerous: if a real hardware ISR fires at the same time, both contexts run the same timer update code simultaneously, corrupting <code>_lastTimerIndex</code> and timer entries.
+    </div>
+  </div>
+
+  <div class="issue w">
+    <div class="issue-title">7. <code>memSet()</code> custom implementation: incorrect UB on type-punned pointer arithmetic</div>
+    <div class="issue-body">
+      The 32/64-bit fast path casts a <code>void*</code> to <code>u32*</code>/<code>u64*</code> and dereferences without verifying alignment. On ARM Cortex-M0 and MSP430, unaligned 32-bit writes cause a hardware fault. The byte-level fallback loop also uses <code>(byte_ptr)destination++</code>, which modifies the local copy of the pointer — this is technically fine in C99 but confusing and inconsistent with how <code>memCpy</code> handles it.
+    </div>
+  </div>
+
+  <div class="issue w">
+    <div class="issue-title">8. <code>getFreePositionForTask()</code> — spin-read of <code>countBegin</code>/<code>countEnd</code> is not safe</div>
+    <div class="issue-body">
+      The function uses separate spin-loops for <code>countBegin</code> and <code>countEnd</code> individually, but there is a window between the two reads where both can change together. The computed free count can be negative (wrapping as <code>u8</code>) or too large. Should read both inside a single critical section.
+    </div>
+  </div>
+
+  <div class="issue w">
+    <div class="issue-title">9. <code>ALLOC_MEM_LARGE</code>: <code>defragmentation()</code> called without result returned to caller</div>
+    <div class="issue-body">
+      After defragmentation in the large-heap <code>allocMem</code>, <code>_allocMem</code> is retried once. If it fails again, <code>NULL</code> is returned to the caller with no error handler invoked — unlike the timer subsystem which calls <code>MaximizeErrorHandler</code>. Callers rarely check for NULL, making heap exhaustion a silent source of corruption.
+    </div>
+  </div>
+
+  <hr>
+  <h3><span class="badge info">Improvement</span> Suggestions for production use</h3>
+</div>
+
+<div class="section">
+  <div class="improve"><span class="improve-num">1</span><div class="improve-body"><strong>Replace all spin-reads with proper critical sections.</strong> Every volatile multi-byte variable (<code>GlobalTick</code>, <code>countBegin/countEnd</code>, <code>_lastTimerIndex</code>) should be read and written inside a single <code>lock/unlock</code> pair, not guarded by retry loops. The retry approach gives the illusion of safety but fails on non-atomic bus accesses.</div></div>
+
+  <div class="improve"><span class="improve-num">2</span><div class="improve-body"><strong>Add a watchdog-kick site in <code>Idle()</code>.</strong> The current idle hook is user-extensible via <code>SetIdleTask</code>, but there is no guaranteed watchdog refresh. On long-running embedded systems, a runaway task that starves the idle path will silently reset the device without a diagnostic.</div></div>
+
+  <div class="improve"><span class="improve-num">3</span><div class="improve-body"><strong>Make <code>MaximizeErrorHandler</code> configurable and non-silent in release builds.</strong> Today it calls into the user's hook or silently does nothing. For safety-critical code, it should at minimum blink an LED, log to a ring buffer in NVRAM, or trigger a watchdog reset with a stored reason code.</div></div>
+
+  <div class="improve"><span class="improve-num">4</span><div class="improve-body"><strong>Add return values to <code>SetTask</code> and <code>SetTimerTask</code>.</strong> Both functions currently call the error handler on overflow but return <code>void</code>, so callers cannot react to a failed enqueue. Returning a <code>bool_t</code> or error code lets the application implement retry or drop logic instead of crashing.</div></div>
+
+  <div class="improve"><span class="improve-num">5</span><div class="improve-body"><strong>Separate ISR-safe and task-safe APIs.</strong> Functions like <code>SetTask</code> are called from both ISRs (<code>TimerService</code>) and task context. ISR-context calls must disable only the relevant interrupt, not all interrupts via a global lock. Introduce <code>SetTask_fromISR</code> variants (as FreeRTOS does) to make the calling context explicit and avoid over-locking.</div></div>
+
+  <div class="improve"><span class="improve-num">6</span><div class="improve-body"><strong>Add alignment guarantees to the heap allocator.</strong> Neither <code>ALLOC_MEM</code> nor <code>ALLOC_MEM_LARGE</code> aligns returned pointers to the target's natural word size. Any struct containing a 32-bit field allocated from this heap will cause unaligned access faults on Cortex-M0 and MSP430. Round allocation sizes up to <code>sizeof(void*)</code> alignment at minimum.</div></div>
+
+  <div class="improve"><span class="improve-num">7</span><div class="improve-body"><strong>Fix or remove <code>validateMemory()</code> and add a real heap integrity check.</strong> The function is broken (see bug #2 above). A correct implementation should walk all blocks, verify that <code>getNextBlockSize</code> never produces a size that would walk past <code>HEAP_SIZE</code>, and count free vs allocated bytes to cross-check against <code>sizeAllFreeMemmory</code>.</div></div>
+
+  <div class="improve"><span class="improve-num">8</span><div class="improve-body"><strong>Add CI and a host-side unit test suite.</strong> The repo has a CMake <code>x86</code> target but no tests. Even simple tests — enqueue N tasks, fire timers, verify callback order, alloc/free in various patterns — would have caught bugs #2 and #4 immediately. The x86 platform target makes this entirely feasible without any hardware.</div></div>
+</div>
